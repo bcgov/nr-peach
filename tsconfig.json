@@ -1,0 +1,12 @@
+{
+  "extends": "@tsconfig/node22/tsconfig.json",
+  "compilerOptions": {
+    "erasableSyntaxOnly": true,
+    "forceConsistentCasingInFileNames": true,
+    "noEmit": true,
+    "resolveJsonModule": true,
+    "rewriteRelativeImportExtensions": true,
+    "verbatimModuleSyntax": false
+  },
+  "exclude": ["node_modules", "src/tests"]
+}

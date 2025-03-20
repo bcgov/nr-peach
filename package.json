@@ -1,0 +1,19 @@
+{
+  "scripts": {
+    "start": "node src/index.ts",
+    "migrate:down": "kysely migrate down",
+    "migrate:latest": "kysely migrate latest",
+    "migrate:list": "kysely migrate list",
+    "migrate:up": "kysely migrate up --all"
+  },
+  "devDependencies": {
+    "@tsconfig/node22": "^22.0.0",
+    "@types/pg": "^8.11.11",
+    "typescript": "^5.8.2"
+  },
+  "dependencies": {
+    "kysely": "^0.27.6",
+    "kysely-ctl": "^0.12.1",
+    "pg": "^8.14.1"
+  }
+}
