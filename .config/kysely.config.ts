@@ -1,11 +1,9 @@
 import { defineConfig } from "kysely-ctl";
 
-import { dialectConfig } from "../src/db";
+import { db } from "../src/db";
 
 export default defineConfig({
-  dialect: "pg",
-  dialectConfig,
+  kysely: db,
   migrations: { migrationFolder: "src/db/migrations" },
-  // plugins: [],
-  // seeds: { seedFolder: "src/db/seeds" }
+  seeds: { seedFolder: "src/db/seeds" },
 });

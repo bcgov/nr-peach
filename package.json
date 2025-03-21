@@ -1,12 +1,15 @@
 {
   "scripts": {
-    "start": "node src/index.ts",
     "migrate:down": "kysely migrate down",
     "migrate:latest": "kysely migrate latest",
     "migrate:list": "kysely migrate list",
     "migrate:make": "kysely migrate make",
     "migrate:rollback": "kysely migrate rollback --all",
-    "migrate:up": "kysely migrate up"
+    "migrate:up": "kysely migrate up",
+    "seed:list": "kysely seed list",
+    "seed:make": "kysely seed make",
+    "seed:run": "kysely seed run",
+    "start": "node --experimental-transform-types src/index.ts"
   },
   "devDependencies": {
     "@tsconfig/node22": "^22.0.0",
