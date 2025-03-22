@@ -1,9 +1,10 @@
 import { CamelCasePlugin, Kysely, PostgresDialect } from "kysely";
-import { Pool } from "pg";
-
-import { Database } from "./types.ts";
+import pg from "pg";
 
 import type { PostgresDialectConfig } from "kysely";
+import type { Database } from "./types.ts";
+
+const { Pool } = pg;
 
 // TODO: Add in .env parameterization support
 export const dialectConfig: PostgresDialectConfig = {
@@ -21,6 +22,6 @@ export const dialectConfig: PostgresDialectConfig = {
 // Dialect is passed to Kysely's constructor, and from now on, Kysely knows how to communicate with your database.
 export const db = new Kysely<Database>({
   dialect: new PostgresDialect(dialectConfig),
-  log: ['error'/*, 'query'*/],
+  log: ["error" /*, 'query'*/],
   plugins: [new CamelCasePlugin()],
 });

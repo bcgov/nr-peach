@@ -1,4 +1,4 @@
-import {
+import type {
   ColumnType,
   Generated,
   Insertable,
@@ -23,7 +23,7 @@ export interface Timestamps {
   created_at: ColumnType<Date, string | undefined, never>
   created_by: string
   updated_at: ColumnType<Date, string | undefined, string | undefined>
-  updated_by: string
+  updated_by: string | null
 }
 
 /*

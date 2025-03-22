@@ -1,4 +1,5 @@
 {
+  "type": "module",
   "scripts": {
     "migrate:down": "kysely migrate down",
     "migrate:latest": "kysely migrate latest",

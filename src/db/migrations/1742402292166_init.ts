@@ -10,7 +10,7 @@ import {
   dropIndex,
   dropUpdatedAtTrigger,
   withTimestamps,
-} from "../utils";
+} from "../utils.ts";
 
 export async function up(db: Kysely<any>): Promise<void> {
   // Create audit and pies schemas
