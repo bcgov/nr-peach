@@ -9,7 +9,19 @@ db.insertInto("pies.concept")
   })
   .execute();
 
-db.selectFrom("pies.concept")
+db.insertInto("pies.process_event")
+  .values({
+    tx_id: "0195cab8-7d03-74b2-af02-553a6873b528",
+    system_record_id: 1,
+    start_date: new Date(),
+    is_datetime: false,
+    concept_id: 1,
+    created_by: "test"
+  })
+  .execute();
+
+db.selectFrom("pies.process_event")
+  .innerJoin("pies.concept", "pies.concept.id", "pies.process_event.concept_id")
   .selectAll()
   .execute()
   .then((rows) => {

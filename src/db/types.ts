@@ -12,6 +12,7 @@ import type {
 
 export interface Database {
   'pies.concept': ConceptTable
+  'pies.process_event': ProcessEventTable
 }
 
 export interface Timestamps {
@@ -51,3 +52,30 @@ export interface ConceptTable extends ConceptFields, Timestamps {};
 export type Concept = Selectable<ConceptTable>
 export type NewConcept = Insertable<ConceptTable>
 export type UpdateConcept = Updateable<ConceptTable>
+
+/*
+ * Process Event Table
+ */
+
+export interface ProcessEventFields {
+  id: Generated<number>
+  tx_id: string
+  system_record_id: number
+  start_date: ColumnType<Date, Date | Date | string, Date | string>
+  end_date: ColumnType<Date, Date | string | undefined, Date | string | undefined>
+  is_datetime: boolean
+  concept_id: number
+  status: string | null
+  status_code: string | null
+  description: string | null
+}
+
+export interface ProcessEventTable extends ProcessEventFields, Timestamps {};
+
+export type ProcessEvent = Selectable<ProcessEventTable>
+export type NewProcessEvent = Insertable<ProcessEventTable>
+export type UpdateProcessEvent = Updateable<ProcessEventTable>
+
+/*
+ * System Record Table
+ */
