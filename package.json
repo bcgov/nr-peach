@@ -1,25 +1,53 @@
 {
+  "name": "nr-peach",
+  "version": "0.1.0",
+  "license": "Apache-2.0",
+  "private": true,
+  "description": "NR Permitting Exchange, Aggregation and Collection Hub",
+  "author": "NRM Permitting and Data Solutions <NRM.PermittingAndData@gov.bc.ca>",
   "type": "module",
+  "main": "index.ts",
   "scripts": {
+    "clean": "rimraf coverage",
+    "debug": "ts-node-dev --debug --respawn --transpile-only --rs --watch bin,config,dist ./bin/www",
+    "format": "prettier --write \"src/**/*.ts\" \"tests/**/*.ts\"",
+    "lint": "eslint . **/www* --no-fix --ext .js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --ignore-path .gitignore",
     "migrate:down": "kysely migrate down",
     "migrate:latest": "kysely migrate latest",
     "migrate:list": "kysely migrate list",
     "migrate:make": "kysely migrate make",
     "migrate:rollback": "kysely migrate rollback --all",
     "migrate:up": "kysely migrate up",
+    "postrebuild": "npm run build",
+    "postreinstall": "npm install",
+    "prelint": "npm run typecheck",
+    "pretest": "npm run lint",
+    "posttest": "node --experimental-transform-types ./lcov-fix.ts",
+    "purge": "rimraf node_modules",
+    "rebuild": "npm run clean",
+    "reinstall": "npm run purge",
     "seed:list": "kysely seed list",
     "seed:make": "kysely seed make",
     "seed:run": "kysely seed run",
-    "start": "node --experimental-transform-types src/index.ts"
-  },
-  "devDependencies": {
-    "@tsconfig/node22": "^22.0.0",
-    "@types/pg": "^8.11.11",
-    "typescript": "^5.8.2"
+    "serve": "ts-node-dev --respawn --transpile-only --rs --watch bin,config,dist ./bin/www",
+    "start": "node --experimental-transform-types src/index.ts",
+    "test": "jest --verbose --forceExit --detectOpenHandles",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "kysely": "^0.27.6",
-    "kysely-ctl": "^0.12.1",
-    "pg": "^8.14.1"
+    "eslint": "8.57.0",
+    "kysely": "0.27.6",
+    "kysely-ctl": "0.12.1",
+    "pg": "8.14.1"
+  },
+  "devDependencies": {
+    "@tsconfig/node22": "22.0.0",
+    "@types/pg": "8.11.11",
+    "jest": "29.7.0",
+    "prettier": "3.5.3",
+    "rimraf": "6.0.1",
+    "ts-jest": "29.3.1",
+    "ts-node-dev": "2.0.0",
+    "typescript": "5.8.2"
   }
 }
