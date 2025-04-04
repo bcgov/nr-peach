@@ -1,4 +1,4 @@
-import { db } from "./db/index.ts";
+import { db } from './db/index.ts';
 
 // db.insertInto("pies.concept")
 //   .values({
@@ -20,8 +20,8 @@ import { db } from "./db/index.ts";
 //   })
 //   .execute();
 
-db.selectFrom("pies.process_event")
-  .innerJoin("pies.concept", "pies.concept.id", "pies.process_event.concept_id")
+db.selectFrom('pies.process_event')
+  .innerJoin('pies.concept', 'pies.concept.id', 'pies.process_event.concept_id')
   .selectAll()
   .execute()
   .then((rows) => {

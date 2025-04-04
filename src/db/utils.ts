@@ -1,9 +1,9 @@
-import { sql } from "kysely";
+import { sql } from 'kysely';
 
-import type { CreateTableBuilder, Kysely } from "kysely";
+import type { CreateTableBuilder, Kysely } from 'kysely';
 
 export function createAuditLogTrigger(
-  qb: Kysely<any>,
+  qb: Kysely<unknown>,
   schema: string,
   table: string
 ) {
@@ -13,21 +13,21 @@ export function createAuditLogTrigger(
 }
 
 export function createIndex(
-  qb: Kysely<any>,
+  qb: Kysely<unknown>,
   schema: string,
   table: string,
   columns: string[]
 ) {
   return qb.schema
     .withSchema(schema)
-    .createIndex(`${table}_${columns.join("_")}_index`)
+    .createIndex(`${table}_${columns.join('_')}_index`)
     .on(table)
     .columns(columns)
     .execute();
 }
 
 export function createUpdatedAtTrigger(
-  qb: Kysely<any>,
+  qb: Kysely<unknown>,
   schema: string,
   table: string
 ) {
@@ -37,7 +37,7 @@ export function createUpdatedAtTrigger(
 }
 
 export function dropAuditLogTrigger(
-  qb: Kysely<any>,
+  qb: Kysely<unknown>,
   schema: string,
   table: string
 ) {
@@ -48,19 +48,19 @@ export function dropAuditLogTrigger(
 }
 
 export function dropIndex(
-  qb: Kysely<any>,
+  qb: Kysely<unknown>,
   schema: string,
   table: string,
   columns: string[]
 ) {
   return qb.schema
     .withSchema(schema)
-    .dropIndex(`${table}_${columns.join("_")}_index`)
+    .dropIndex(`${table}_${columns.join('_')}_index`)
     .execute();
 }
 
 export function dropUpdatedAtTrigger(
-  qb: Kysely<any>,
+  qb: Kysely<unknown>,
   schema: string,
   table: string
 ) {
@@ -80,10 +80,10 @@ export function withTimestamps<TB extends string>(
   qb: CreateTableBuilder<TB>
 ): CreateTableBuilder<TB> {
   return qb
-    .addColumn("created_at", "timestamp", (col) =>
+    .addColumn('created_at', 'timestamp', (col) =>
       col.notNull().defaultTo(sql`now()`)
     )
-    .addColumn("created_by", "text", (col) => col.notNull())
-    .addColumn("updated_at", "timestamp")
-    .addColumn("updated_by", "text");
+    .addColumn('created_by', 'text', (col) => col.notNull())
+    .addColumn('updated_at', 'timestamp')
+    .addColumn('updated_by', 'text');
 }

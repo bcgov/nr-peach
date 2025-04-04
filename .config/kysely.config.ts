@@ -1,9 +1,9 @@
-import { defineConfig } from "kysely-ctl";
+import { defineConfig } from 'kysely-ctl';
 
-import { db } from "../src/db/index.ts";
+import { db } from '../src/db';
 
 export default defineConfig({
   kysely: db,
-  migrations: { migrationFolder: "src/db/migrations" },
-  seeds: { seedFolder: "src/db/seeds" },
+  migrations: { migrationFolder: 'src/db/migrations' },
+  seeds: { seedFolder: 'src/db/seeds' }
 });

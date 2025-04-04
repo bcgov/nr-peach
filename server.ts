@@ -1,21 +1,16 @@
 #!/usr/bin/env node
 
 import { config } from 'dotenv';
-import express from 'express';
 import http from 'http';
+
+import app from './src/app.ts';
 
 // import getLogger from '../src/components/log';
 
 config(); // Load environment variables
-const app = express();
-const port = normalizePort(process.env.PORT || '3000');
-
-app.get('/', (req, res) => {
-  res.send('Hello, World!');
-});
-
 // const log = getLogger(module.filename);
 const log = console; // TODO Swap to getLogger
+const port = normalizePort(process.env.PORT || '3000');
 
 /**
  * Normalize a port into a number, string, or false.
@@ -56,6 +51,6 @@ function onError(error: { syscall: string; code: string }): void {
  */
 const server = http.createServer(app);
 server.listen(port, (): void => {
-  log.info(`Server running on http://localhost:${port}`)
+  log.info(`Server running on http://localhost:${port}`);
 });
 server.on('error', onError);

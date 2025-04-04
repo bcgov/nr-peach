@@ -1,6 +1,6 @@
-import { sql } from "kysely";
+import { sql } from 'kysely';
 
-import type { Kysely } from "kysely";
+import type { Kysely } from 'kysely';
 
 import {
   createAuditLogTrigger,
@@ -9,13 +9,13 @@ import {
   dropAuditLogTrigger,
   dropIndex,
   dropUpdatedAtTrigger,
-  withTimestamps,
-} from "../utils.ts";
+  withTimestamps
+} from '../utils.ts';
 
-export async function up(db: Kysely<any>): Promise<void> {
+export async function up(db: Kysely<unknown>): Promise<void> {
   // Create audit and pies schemas
-  await db.schema.createSchema("audit").ifNotExists().execute();
-  await db.schema.createSchema("pies").ifNotExists().execute();
+  await db.schema.createSchema('audit').ifNotExists().execute();
+  await db.schema.createSchema('pies').ifNotExists().execute();
 
   // Create schema functions
   await sql`CREATE OR REPLACE FUNCTION audit.if_modified_func() RETURNS trigger AS $body$
@@ -69,110 +69,110 @@ export async function up(db: Kysely<any>): Promise<void> {
 
   // Create audit tables
   await db.schema
-    .withSchema("audit")
-    .createTable("logged_actions")
-    .addColumn("id", "integer", (col) =>
+    .withSchema('audit')
+    .createTable('logged_actions')
+    .addColumn('id', 'integer', (col) =>
       col.primaryKey().generatedAlwaysAsIdentity()
     )
-    .addColumn("schema_name", "text", (col) => col.notNull())
-    .addColumn("table_name", "text", (col) => col.notNull())
-    .addColumn("db_user", "text", (col) => col.notNull())
-    .addColumn("updated_by_username", "text")
-    .addColumn("action_timestamp", "timestamp", (col) =>
+    .addColumn('schema_name', 'text', (col) => col.notNull())
+    .addColumn('table_name', 'text', (col) => col.notNull())
+    .addColumn('db_user', 'text', (col) => col.notNull())
+    .addColumn('updated_by_username', 'text')
+    .addColumn('action_timestamp', 'timestamp', (col) =>
       col.notNull().defaultTo(sql`now()`)
     )
-    .addColumn("action", "text", (col) => col.notNull())
-    .addColumn("original_data", "json")
-    .addColumn("new_data", "json")
+    .addColumn('action', 'text', (col) => col.notNull())
+    .addColumn('original_data', 'json')
+    .addColumn('new_data', 'json')
     .execute();
-  await createIndex(db, "audit", "logged_actions", ["schema_name"]);
-  await createIndex(db, "audit", "logged_actions", ["table_name"]);
-  await createIndex(db, "audit", "logged_actions", ["action_timestamp"]);
-  await createIndex(db, "audit", "logged_actions", ["action"]);
+  await createIndex(db, 'audit', 'logged_actions', ['schema_name']);
+  await createIndex(db, 'audit', 'logged_actions', ['table_name']);
+  await createIndex(db, 'audit', 'logged_actions', ['action_timestamp']);
+  await createIndex(db, 'audit', 'logged_actions', ['action']);
 
   // Create PIES tables and triggers
   await db.schema
-    .withSchema("pies")
-    .createTable("concept")
-    .addColumn("id", "integer", (col) =>
+    .withSchema('pies')
+    .createTable('concept')
+    .addColumn('id', 'integer', (col) =>
       col.primaryKey().generatedAlwaysAsIdentity()
     )
-    .addColumn("class", sql`_text`, (col) => col.notNull())
-    .addColumn("concept", "text", (col) => col.notNull())
-    .addColumn("version", "text", (col) => col.notNull())
-    .addUniqueConstraint("concept_class_concept_version_uk", [
-      "class",
-      "concept",
-      "version",
+    .addColumn('class', sql`_text`, (col) => col.notNull())
+    .addColumn('concept', 'text', (col) => col.notNull())
+    .addColumn('version', 'text', (col) => col.notNull())
+    .addUniqueConstraint('concept_class_concept_version_uk', [
+      'class',
+      'concept',
+      'version'
     ])
     .$call(withTimestamps)
     .execute();
-  await createIndex(db, "pies", "concept", ["class"]);
-  await createUpdatedAtTrigger(db, "pies", "concept");
-  await createAuditLogTrigger(db, "pies", "concept");
+  await createIndex(db, 'pies', 'concept', ['class']);
+  await createUpdatedAtTrigger(db, 'pies', 'concept');
+  await createAuditLogTrigger(db, 'pies', 'concept');
 
   await db.schema
-    .withSchema("pies")
-    .createTable("process_event")
-    .addColumn("id", "integer", (col) =>
+    .withSchema('pies')
+    .createTable('process_event')
+    .addColumn('id', 'integer', (col) =>
       col.primaryKey().generatedAlwaysAsIdentity()
     )
-    .addColumn("tx_id", "uuid", (col) => col.notNull().unique())
-    .addColumn("system_record_id", "integer", (col) => col.notNull())
-    .addColumn("start_date", "timestamp", (col) => col.notNull())
-    .addColumn("end_date", "timestamp")
-    .addColumn("is_datetime", "boolean", (col) =>
+    .addColumn('tx_id', 'uuid', (col) => col.notNull().unique())
+    .addColumn('system_record_id', 'integer', (col) => col.notNull())
+    .addColumn('start_date', 'timestamp', (col) => col.notNull())
+    .addColumn('end_date', 'timestamp')
+    .addColumn('is_datetime', 'boolean', (col) =>
       col.notNull().defaultTo(false)
     )
-    .addColumn("concept_id", "integer", (col) =>
+    .addColumn('concept_id', 'integer', (col) =>
       col
         .notNull()
-        .references("concept.id")
-        .onUpdate("cascade")
-        .onDelete("cascade")
+        .references('concept.id')
+        .onUpdate('cascade')
+        .onDelete('cascade')
     )
-    .addColumn("status", "text")
-    .addColumn("status_code", "text")
-    .addColumn("description", "text")
+    .addColumn('status', 'text')
+    .addColumn('status_code', 'text')
+    .addColumn('description', 'text')
     .$call(withTimestamps)
     .execute();
   await db.schema
-    .withSchema("pies")
-    .createIndex("process_event_system_record_id_index")
-    .on("process_event")
-    .columns(["system_record_id"])
+    .withSchema('pies')
+    .createIndex('process_event_system_record_id_index')
+    .on('process_event')
+    .columns(['system_record_id'])
     .execute();
-  await createUpdatedAtTrigger(db, "pies", "process_event");
-  await createAuditLogTrigger(db, "pies", "process_event");
+  await createUpdatedAtTrigger(db, 'pies', 'process_event');
+  await createAuditLogTrigger(db, 'pies', 'process_event');
 }
 
-export async function down(db: Kysely<any>): Promise<void> {
+export async function down(db: Kysely<unknown>): Promise<void> {
   // Drop PIES tables and triggers
-  await dropAuditLogTrigger(db, "pies", "process_event");
-  await dropUpdatedAtTrigger(db, "pies", "process_event");
+  await dropAuditLogTrigger(db, 'pies', 'process_event');
+  await dropUpdatedAtTrigger(db, 'pies', 'process_event');
   await db.schema
-    .withSchema("pies")
-    .dropIndex("process_event_system_record_id_index")
+    .withSchema('pies')
+    .dropIndex('process_event_system_record_id_index')
     .execute();
-  await db.schema.withSchema("pies").dropTable("process_event").execute();
+  await db.schema.withSchema('pies').dropTable('process_event').execute();
 
-  await dropAuditLogTrigger(db, "pies", "concept");
-  await dropUpdatedAtTrigger(db, "pies", "concept");
-  await dropIndex(db, "pies", "concept", ["class"]);
-  await db.schema.withSchema("pies").dropTable("concept").execute();
+  await dropAuditLogTrigger(db, 'pies', 'concept');
+  await dropUpdatedAtTrigger(db, 'pies', 'concept');
+  await dropIndex(db, 'pies', 'concept', ['class']);
+  await db.schema.withSchema('pies').dropTable('concept').execute();
 
   // Drop audit tables
-  await dropIndex(db, "audit", "logged_actions", ["action"]);
-  await dropIndex(db, "audit", "logged_actions", ["action_timestamp"]);
-  await dropIndex(db, "audit", "logged_actions", ["table_name"]);
-  await dropIndex(db, "audit", "logged_actions", ["schema_name"]);
-  await db.schema.withSchema("audit").dropTable("logged_actions").execute();
+  await dropIndex(db, 'audit', 'logged_actions', ['action']);
+  await dropIndex(db, 'audit', 'logged_actions', ['action_timestamp']);
+  await dropIndex(db, 'audit', 'logged_actions', ['table_name']);
+  await dropIndex(db, 'audit', 'logged_actions', ['schema_name']);
+  await db.schema.withSchema('audit').dropTable('logged_actions').execute();
 
   // Drop schema functions
   await sql`DROP FUNCTION IF EXISTS pies.set_updated_at_func`.execute(db);
   await sql`DROP FUNCTION IF EXISTS audit.if_modified_func`.execute(db);
 
   // Drop audit and pies schemas
-  await db.schema.dropSchema("pies").execute();
-  await db.schema.dropSchema("audit").execute();
+  await db.schema.dropSchema('pies').execute();
+  await db.schema.dropSchema('audit').execute();
 }
