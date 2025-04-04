@@ -12,6 +12,10 @@ import {
   withTimestamps
 } from '../utils.ts';
 
+/**
+ *
+ * @param db Database
+ */
 export async function up(db: Kysely<unknown>): Promise<void> {
   // Create audit and pies schemas
   await db.schema.createSchema('audit').ifNotExists().execute();
@@ -146,6 +150,10 @@ export async function up(db: Kysely<unknown>): Promise<void> {
   await createAuditLogTrigger(db, 'pies', 'process_event');
 }
 
+/**
+ *
+ * @param db Database
+ */
 export async function down(db: Kysely<unknown>): Promise<void> {
   // Drop PIES tables and triggers
   await dropAuditLogTrigger(db, 'pies', 'process_event');

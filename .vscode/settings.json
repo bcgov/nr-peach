@@ -32,10 +32,11 @@
   "[yaml]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
-  "cSpell.words": ["kysely", "plpgsql"],
+  "cSpell.words": ["kysely", "plpgsql", "SQLERRM", "SQLSTATE"],
   "editor.defaultFormatter": "esbenp.prettier-vscode",
   "editor.formatOnSave": true,
   "editor.rulers": [80, 120],
   "eslint.format.enable": true,
+  "eslint.useFlatConfig": true,
   "files.insertFinalNewline": true
 }

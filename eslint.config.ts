@@ -1,6 +1,7 @@
 import eslint from '@eslint/js';
 import eslintConfigPrettier from 'eslint-config-prettier';
 import eslintPluginPrettierRecommended from 'eslint-plugin-prettier/recommended';
+import jsdoc from 'eslint-plugin-jsdoc';
 import tseslint from 'typescript-eslint';
 
 export default tseslint.config({
@@ -10,6 +11,7 @@ export default tseslint.config({
     eslint.configs.recommended,
     tseslint.configs.recommended,
     tseslint.configs.stylistic,
+    jsdoc.configs['flat/recommended-typescript'],
     eslintPluginPrettierRecommended,
     eslintConfigPrettier // Drops conflicting rules
   ],

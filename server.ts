@@ -14,6 +14,8 @@ const port = normalizePort(process.env.PORT || '3000');
 
 /**
  * Normalize a port into a number, string, or false.
+ * @param val Port string value
+ * @returns A number, string or false
  */
 function normalizePort(val: string): string | number | boolean {
   const port = parseInt(val, 10);
@@ -26,6 +28,9 @@ function normalizePort(val: string): string | number | boolean {
 
 /**
  * Event listener for HTTP server "error" event.
+ * @param error Error event
+ * @param error.syscall System call
+ * @param error.code Error code
  */
 function onError(error: { syscall: string; code: string }): void {
   if (error.syscall !== 'listen') throw error;
