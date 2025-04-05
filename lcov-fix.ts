@@ -1,16 +1,17 @@
 // Jest 25.x onwards emits coverage reports on a different source path
 // https://stackoverflow.com/q/60323177
-import fs from 'fs';
-import process from 'process';
+import { readFile, writeFile } from 'node:fs';
+import { cwd } from 'node:process';
+
 const file = './coverage/lcov.info';
 
-fs.readFile(file, 'utf8', (err, data) => {
+readFile(file, 'utf8', (err, data) => {
   if (err) {
     return console.error(err); // eslint-disable-line no-console
   }
-  const result = data.replace(/SF:/g, `SF:${process.cwd()}/`);
+  const result = data.replace(/SF:/g, `SF:${cwd()}/`);
 
-  fs.writeFile(file, result, 'utf8', (err) => {
+  writeFile(file, result, 'utf8', (err) => {
     if (err) return console.error(err); // eslint-disable-line no-console
   });
 });

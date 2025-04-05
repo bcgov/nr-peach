@@ -4,27 +4,38 @@ import eslintPluginPrettierRecommended from 'eslint-plugin-prettier/recommended'
 import jsdoc from 'eslint-plugin-jsdoc';
 import tseslint from 'typescript-eslint';
 
-export default tseslint.config({
-  files: ['**/*.{js,ts}'],
-  extends: [
-    // Order dependent - apply ESLint, then TSLint and then Prettier rules
-    eslint.configs.recommended,
-    tseslint.configs.recommended,
-    tseslint.configs.stylistic,
-    jsdoc.configs['flat/recommended-typescript'],
-    eslintPluginPrettierRecommended,
-    eslintConfigPrettier // Drops conflicting rules
-  ],
-  rules: {
-    '@typescript-eslint/no-require-imports': 'error',
-    'eol-last': ['error', 'always'],
-    indent: ['error', 2, { SwitchCase: 1 }],
-    'linebreak-style': ['error', 'unix'],
-    'max-len': ['warn', { code: 120, comments: 120, ignoreUrls: true }],
-    'no-console': 'warn',
-    'no-debugger': 'warn',
-    quotes: ['error', 'single'],
-    semi: ['error', 'always']
+export default tseslint.config(
+  {
+    ignores: ['.config/**', 'node_modules/**'] //TODO Check if the gitignore pattern if required later
+  },
+  {
+    files: ['**/*.{js,ts}'],
+    extends: [
+      // Extensions are order dependent - always apply Prettier last
+      eslint.configs.recommended,
+      tseslint.configs.recommendedTypeChecked,
+      tseslint.configs.stylisticTypeChecked,
+      jsdoc.configs['flat/recommended-typescript'],
+      eslintPluginPrettierRecommended,
+      eslintConfigPrettier // Drops conflicting rules
+    ],
+    languageOptions: {
+      parserOptions: {
+        projectService: true,
+        tsconfigRootDir: import.meta.dirname
+      }
+    },
+    rules: {
+      '@typescript-eslint/no-require-imports': 'error',
+      'eol-last': ['error', 'always'],
+      indent: ['error', 2, { SwitchCase: 1 }],
+      'linebreak-style': ['error', 'unix'],
+      'max-len': ['warn', { code: 120, comments: 120, ignoreUrls: true }],
+      'no-console': process.env.NODE_ENV === 'production' ? 'error' : 'warn',
+      'no-debugger': process.env.NODE_ENV === 'production' ? 'error' : 'warn',
+      quotes: ['error', 'single'],
+      semi: ['error', 'always']
+    }
+    // TODO Check if Jest test overrides are still required
   }
-  // TODO Check if Jest test overrides are still required
-});
+);

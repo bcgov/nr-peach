@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { config } from 'dotenv';
-import http from 'http';
+import http from 'node:http';
 
 import app from './src/app.ts';
 
@@ -10,7 +10,7 @@ import app from './src/app.ts';
 config(); // Load environment variables
 // const log = getLogger(module.filename);
 const log = console; // TODO Swap to getLogger
-const port = normalizePort(process.env.PORT || '3000');
+const port = normalizePort(process.env.PORT ?? '3000');
 
 /**
  * Normalize a port into a number, string, or false.
@@ -33,7 +33,7 @@ function normalizePort(val: string): string | number | boolean {
  * @param error.code Error code
  */
 function onError(error: { syscall: string; code: string }): void {
-  if (error.syscall !== 'listen') throw error;
+  if (error.syscall !== 'listen') throw error; // eslint-disable-line @typescript-eslint/only-throw-error
 
   // Handle specific listen errors with friendly messages
   const bind = typeof port === 'string' ? 'Pipe ' + port : 'Port ' + port;
@@ -47,14 +47,14 @@ function onError(error: { syscall: string; code: string }): void {
       process.exit(1);
       break;
     default:
-      throw error;
+      throw error; // eslint-disable-line @typescript-eslint/only-throw-error
   }
 }
 
 /**
  * Create HTTP server and listen on provided port, on all network interfaces.
  */
-const server = http.createServer(app);
+const server = http.createServer(app); // eslint-disable-line @typescript-eslint/no-misused-promises
 server.listen(port, (): void => {
   log.info(`Server running on http://localhost:${port}`);
 });

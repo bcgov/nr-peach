@@ -20,7 +20,8 @@ import { db } from './db/index.ts';
 //   })
 //   .execute();
 
-db.selectFrom('pies.process_event')
+void db
+  .selectFrom('pies.process_event')
   .innerJoin('pies.concept', 'pies.concept.id', 'pies.process_event.concept_id')
   .selectAll()
   .execute()

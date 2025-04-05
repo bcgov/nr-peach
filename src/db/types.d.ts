@@ -61,7 +61,7 @@ export interface ProcessEventFields {
   id: Generated<number>;
   tx_id: string;
   system_record_id: number;
-  start_date: ColumnType<Date, Date | Date | string, Date | string>;
+  start_date: ColumnType<Date, Date | string, Date | string>;
   end_date: ColumnType<
     Date,
     Date | string | undefined,
