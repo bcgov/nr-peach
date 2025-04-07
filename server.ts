@@ -7,7 +7,8 @@ import app from './src/app.ts';
 
 // import getLogger from '../src/components/log';
 
-config(); // Load environment variables
+// Load environment variables, prioritizing .env over .env.default
+config({ path: ['.env', '.env.default'] });
 // const log = getLogger(module.filename);
 const log = console; // TODO Swap to getLogger
 const port = normalizePort(process.env.PORT ?? '3000');

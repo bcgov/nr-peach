@@ -52,6 +52,14 @@ npm ci
 
 This command installs the dependencies as defined by the lockfile.
 
+#### Environment Variables
+
+```sh
+cp .env.default .env
+```
+
+If you do not have a `.env` file in the root directory, create a copy of the `.env.default` and modify as necessary.
+
 ### Run Local Development
 
 ```sh
