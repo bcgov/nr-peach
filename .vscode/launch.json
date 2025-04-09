@@ -2,14 +2,17 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Debug",
       "type": "node",
       "request": "launch",
-      "runtimeArgs": ["--experimental-transform-types"],
+      "name": "Launch",
       "program": "${workspaceFolder}/server.ts",
+      "args": ["--experimental-transform-types"],
+      "skipFiles": [
+        "<node_internals>/**",
+        "${workspaceFolder}/node_modules/**"
+      ],
       "console": "integratedTerminal",
-      "internalConsoleOptions": "neverOpen",
-      "skipFiles": ["<node_internals>/**", "${workspaceFolder}/node_modules/**"]
+      "internalConsoleOptions": "neverOpen"
     }
   ]
 }

@@ -18,7 +18,8 @@
       ]
     }
   },
-  "forwardPorts": [3000],
+  "forwardPorts": [3000, 5432],
   "postCreateCommand": "(npm ci && npm run migrate:latest)",
+  "waitFor": "postCreateCommand",
   "remoteUser": "node"
 }
