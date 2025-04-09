@@ -10,7 +10,7 @@
   "scripts": {
     "clean": "rimraf coverage",
     "debug": "node --experimental-transform-types --inspect server.ts",
-    "format": "prettier --write \"{src,tests}/**/*.ts\"",
+    "format": "prettier --write \"**/*.{json,md,ts,yaml}\"",
     "lint": "eslint",
     "lint:fix": "eslint --fix",
     "migrate:down": "kysely migrate down",
