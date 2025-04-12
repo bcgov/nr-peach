@@ -3,10 +3,12 @@
   "compilerOptions": {
     "erasableSyntaxOnly": true,
     "forceConsistentCasingInFileNames": true,
+    "isolatedModules": true,
     "noEmit": true,
     "resolveJsonModule": true,
     "rewriteRelativeImportExtensions": true,
+    "types": ["vitest/globals"],
     "verbatimModuleSyntax": false
   },
-  "exclude": ["node_modules"]
+  "include": [".config/**/*", "src/**/*", "tests/**/*", "*.ts"]
 }

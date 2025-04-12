@@ -6,7 +6,7 @@ import tseslint from 'typescript-eslint';
 
 export default tseslint.config(
   {
-    ignores: ['.config/**', 'node_modules/**'] //TODO Check if the gitignore pattern if required later
+    ignores: ['coverage/**', 'node_modules/**']
   },
   {
     files: ['**/*.{js,ts}'],
@@ -36,6 +36,5 @@ export default tseslint.config(
       quotes: ['error', 'single'],
       semi: ['error', 'always']
     }
-    // TODO Check if Jest test overrides are still required
   }
 );

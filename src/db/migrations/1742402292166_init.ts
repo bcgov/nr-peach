@@ -1,3 +1,4 @@
+/* eslint-disable max-len */
 import { sql } from 'kysely';
 
 import type { Kysely } from 'kysely';
