@@ -8,24 +8,25 @@ TBD
 ## Directory Structure
 
 ```txt
+.devcontainer              - VSCode Dev Container configurations
 .github/                   - GitHub PR and Issue templates
 .vscode/                   - VSCode environment configurations
 src/                       - Node.js web application
-├── components/            - Components Layer
 ├── controllers/           - Controller Layer
 ├── db/                    - Database Layer
-├── interfaces/            - Typescript interface definitions
-├── middleware/            - Middleware Layer
+├── docs/                  - API Documentation
+├── middlewares/           - Middleware Layer
 ├── routes/                - Routes Layer
 ├── services/              - Services Layer
-├── tests/                 - Node.js web application tests
-└── types/                 - Typescript type definitions
-bcgovpubcode.yml           - BCGov Repository Metadata
+├── utils/                 - Utilities
+├── validators/            - Validator Layer
+tests/                     - Node.js web application tests
 CODE-OF-CONDUCT.md         - Code of Conduct
 COMPLIANCE.yaml            - BCGov PIA/STRA compliance status
 CONTRIBUTING.md            - Contributing Guidelines
+Dockerfile                 - Dockerfile Image definition
 LICENSE                    - License
-renovate.json              - Mend Renovate configuration
+server.ts                  - Node.js server entrypoint
 SECURITY.md                - Security Policy and Reporting
 ```
 
@@ -58,7 +59,8 @@ This command installs the dependencies as defined by the lockfile.
 cp .env.default .env
 ```
 
-If you do not have a `.env` file in the root directory, create a copy of the `.env.default` and modify as necessary.
+If you do not have a `.env` file in the root directory, create a copy of the
+`.env.default` and modify as necessary.
 
 ### Run Local Development
 
@@ -69,33 +71,19 @@ npm run migrate:latest
 This command ensures that your database schema is up-to-date.
 
 ```sh
+npm run serve
+```
+
+This command starts a local development server. Most changes are reflected live
+without having to restart the server.
+
+### Run Production
+
+```sh
 npm run start
 ```
 
-This command starts a local development server and opens up a browser window.
-Most changes are reflected live without having to restart the server.
-
-### Static Build
-
-```sh
-npm run build
-```
-
-This command generates static content into the `build` directory and can be
-served using any static contents hosting service.
-
-### Versioning
-
-Releasing a version requires the following actions to be done in order:
-
-1. Run `npm version` with argument `patch`, `minor` or `major` depending on the
-   desired outcome (e.g. `npm version minor`).
-2. Run `npm run version` with the semver version to be published (e.g.
-   `npm run version 0.1.0`). This will create a new Docusaurus version, and run a
-   script to align all the schema references appropriately.
-
-_Note: You may run `npm run postversion` directly in the event you need to
-manually align all the schema references._
+This command starts the server in production mode.
 
 ## Getting Help or Reporting an Issue
 

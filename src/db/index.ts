@@ -3,7 +3,7 @@ import { CamelCasePlugin, Kysely, PostgresDialect } from 'kysely';
 import pg from 'pg';
 
 import type { PostgresDialectConfig } from 'kysely';
-import type { Database } from './types.d.ts';
+import type { Database } from './schema.d.ts';
 
 // Load environment variables, prioritizing .env over .env.default
 config({ path: ['.env', '.env.default'] });

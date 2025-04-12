@@ -25,7 +25,7 @@
     "prelint:fix": "npm run typecheck",
     "pretest": "npm run lint",
     "pretest:cov": "npm run lint",
-    "posttest:cov": "node --experimental-transform-types lcov-fix.ts",
+    "posttest:cov": "node --experimental-transform-types lcovFix.util.ts",
     "purge": "rimraf node_modules",
     "seed:list": "kysely seed list",
     "seed:make": "kysely seed make",
