@@ -16,6 +16,7 @@ src/                       - Node.js web application
 ├── db/                    - Database Layer
 ├── docs/                  - API Documentation
 ├── middlewares/           - Middleware Layer
+├── public/                - Public Assets
 ├── routes/                - Routes Layer
 ├── services/              - Services Layer
 ├── utils/                 - Utilities

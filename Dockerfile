@@ -40,5 +40,5 @@ COPY --chown=appuser:appgroup . ${APP_ROOT}
 
 # Run the app, limit heap size to 50 MB
 EXPOSE ${APP_PORT}
-HEALTHCHECK --interval=30s --timeout=3s CMD wget --quiet --spider http://localhost:${APP_PORT} || exit 1
+HEALTHCHECK --interval=30s --timeout=3s CMD wget --quiet --spider http://localhost:${APP_PORT}/live || exit 1
 CMD ["node", "--experimental-transform-types", "--max-old-space-size=50", "server.ts"]
