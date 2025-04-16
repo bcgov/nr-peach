@@ -1,0 +1,549 @@
+---
+openapi: 3.0.2
+info:
+  version: 0.1.0
+  title: NR Peach API
+  description: |
+    NR Permitting Exchange, Aggregation and Collection Hub - A PIES v0.1.0
+    compliant API
+  license:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0.html
+servers:
+  - url: /api/v1
+    description: This server
+security:
+  - BearerAuth: []
+    OpenID: []
+tags:
+  - name: Processes
+    description: Operations for managing Process Events.
+  - name: Records
+    description: Operations for managing Records and Record Linkages.
+  - name: Systems
+    description: Operations for managing Systems. May potentially proxy to JIRA API.
+paths:
+  /process-events:
+    get:
+      summary: List ProcessEvents for a specific system record
+      description: Retrieves a set of all known ProcessEvents associated with a record.
+      operationId: getProcessEvents
+      tags:
+        - Processes
+      parameters:
+        - $ref: '#/components/parameters/Query-RecordId-Required'
+        - $ref: '#/components/parameters/Query-SystemId'
+      responses:
+        '200':
+          description: OK - A ProcessEventSet message associated with a record
+          content:
+            application/json:
+              schema:
+                $ref: >-
+                  https://raw.githubusercontent.com/bcgov/nr-pies/refs/heads/main/docs/spec/message/process_event_set.schema.json
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        default:
+          $ref: '#/components/responses/Error'
+    put:
+      summary: Add and merge ProcessEvents for a specific system record
+      description: Adds and merges all known ProcessEvents associated with a record.
+      operationId: putProcessEvents
+      tags:
+        - Processes
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: >-
+                https://raw.githubusercontent.com/bcgov/nr-pies/refs/heads/main/docs/spec/message/process_event_set.schema.json
+      responses:
+        '201':
+          description: Created - Added a new Record with the associated ProcessEvents
+        '202':
+          description: >-
+            Accepted - Merged an existing Record with the associated
+            ProcessEvents
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        default:
+          $ref: '#/components/responses/Error'
+    delete:
+      summary: Delete all ProcessEvents for a specific system record
+      description: Deletes all known ProcessEvents associated with a record.
+      operationId: deleteProcessEvents
+      tags:
+        - Processes
+      parameters:
+        - $ref: '#/components/parameters/Query-RecordId-Required'
+        - $ref: '#/components/parameters/Query-SystemId'
+      responses:
+        '204':
+          description: No Content
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        default:
+          $ref: '#/components/responses/Error'
+  /record-linkages:
+    get:
+      summary: List RecordLinkages for a specific system record
+      description: >-
+        Retrieves a flattened set of all known RecordLinkages associated with a
+        record.
+      operationId: getRecordLinkages
+      tags:
+        - Records
+      parameters:
+        - $ref: '#/components/parameters/Query-RecordId-Required'
+        - $ref: '#/components/parameters/Query-SystemId'
+        - $ref: '#/components/parameters/Query-Depth'
+      responses:
+        '200':
+          description: OK - A set of RecordLinkage messages associated with a record
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: >-
+                    https://raw.githubusercontent.com/bcgov/nr-pies/refs/heads/main/docs/spec/message/record_linkage.schema.json
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        default:
+          $ref: '#/components/responses/Error'
+    put:
+      summary: Adds RecordLinkages for a specific system record
+      description: Adds RecordLinkages associated with a record.
+      operationId: putRecordLinkages
+      tags:
+        - Records
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: >-
+                https://raw.githubusercontent.com/bcgov/nr-pies/refs/heads/main/docs/spec/message/record_linkage.schema.json
+      responses:
+        '201':
+          description: Created - Added a new Record with the associated RecordLinkage
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        default:
+          $ref: '#/components/responses/Error'
+    delete:
+      summary: Deletes a specific RecordLinkage for a specific system record
+      description: Deletes a specific RecordLinkage associated with a record.
+      operationId: deleteRecordLinkages
+      tags:
+        - Records
+      parameters:
+        - $ref: '#/components/parameters/Query-RecordId-Required'
+        - $ref: '#/components/parameters/Query-SystemId'
+        - $ref: '#/components/parameters/Query-Linked-RecordId-Required'
+        - $ref: '#/components/parameters/Query-Linked-SystemId'
+      responses:
+        '204':
+          description: No Content
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        default:
+          $ref: '#/components/responses/Error'
+  /systems:
+    get:
+      summary: Checks if a specific system has records being tracked
+      description: >-
+        Checks if a specific system has records being tracked. Returns true if
+        the system is being tracked, false if system is known but not tracked,
+        404 if not found in JIRA ITSM (TBD in scope?).
+      operationId: getSystems
+      tags:
+        - Systems
+      parameters:
+        - $ref: '#/components/parameters/Query-SystemId-Required'
+      responses:
+        '200':
+          description: OK - System tracking status
+          content:
+            application/json:
+              schema:
+                type: boolean
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        default:
+          $ref: '#/components/responses/Error'
+  /system-records:
+    get:
+      summary: Get a specific system record header
+      description: Get a specific system record header
+      operationId: getRecords
+      tags:
+        - Systems
+      parameters:
+        - $ref: '#/components/parameters/Query-RecordId-Required'
+        - $ref: '#/components/parameters/Query-SystemId'
+      responses:
+        '200':
+          description: OK - A record header
+          content:
+            application/json:
+              schema:
+                $ref: >-
+                  https://raw.githubusercontent.com/bcgov/nr-pies/refs/heads/main/docs/spec/data/header.schema.json
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        default:
+          $ref: '#/components/responses/Error'
+    delete:
+      summary: Deletes a specific system record
+      description: Deletes a specific system record and all associated data
+      operationId: deleteRecords
+      tags:
+        - Systems
+      parameters:
+        - $ref: '#/components/parameters/Query-RecordId-Required'
+        - $ref: '#/components/parameters/Query-SystemId'
+      responses:
+        '204':
+          description: No Content
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        default:
+          $ref: '#/components/responses/Error'
+components:
+  parameters:
+    Path-SubmissionId:
+      in: path
+      name: submissionId
+      description: UUID of a Submission
+      required: true
+      schema:
+        type: string
+        format: uuid
+        example: da5c5031-0e84-4234-7766-1ba846997482
+    Query-Depth:
+      in: query
+      name: depth
+      description: |
+        Specifies the maximum number of hops allowed in record linkage graph
+        traversal. Default is 1 if undefined, and -1 indicates no limit.
+      schema:
+        type: integer
+        minimum: -1
+        default: 1
+        example: 1
+    Query-Linked-RecordId-Required:
+      in: query
+      name: linked_record_id
+      description: Record Identifier
+      required: true
+      schema:
+        $ref: '#/components/schemas/Attribute-RecordId'
+    Query-Linked-SystemId:
+      in: query
+      name: linked_system_id
+      description: System Identifier
+      schema:
+        $ref: '#/components/schemas/Attribute-SystemId'
+    Query-RecordId-Required:
+      in: query
+      name: record_id
+      description: Record Identifier
+      required: true
+      schema:
+        $ref: '#/components/schemas/Attribute-RecordId'
+    Query-SystemId:
+      in: query
+      name: system_id
+      description: System Identifier
+      schema:
+        $ref: '#/components/schemas/Attribute-SystemId'
+    Query-SystemId-Required:
+      in: query
+      name: system_id
+      description: System Identifier
+      required: true
+      schema:
+        $ref: '#/components/schemas/Attribute-SystemId'
+  schemas:
+    Attribute-RecordId:
+      type: string
+      description: >-
+        The record or primary key representing what the data this message is
+        directly associated to.
+      example: 06bc53dc-3e4f-420b-801c-bd9cc0ea01b2
+    Attribute-SystemId:
+      type: string
+      description: >-
+        A valid URI or set of URIs that identifies the source system, service or
+        asset that the data comes from. This is typically a string; however an
+        array of unordered URIs can be used to indicate that multiple systems
+        were used to compile the data in this message. This URI should point to
+        an authoritative asset tracking system or equivalent. However, the URI
+        does not need to be machine readable.
+      format: uri
+      example: https://apps.nrs.gov.bc.ca/int/jira/secure/insight/assets/ITSM-5917
+    Response-BadRequest:
+      title: Response Bad Request
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/Response-Problem'
+        - type: object
+          properties:
+            status:
+              example: 400
+            title:
+              example: Bad Request
+            type:
+              example: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/400
+    Response-Conflict:
+      title: Response Conflict
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/Response-Problem'
+        - type: object
+          properties:
+            status:
+              example: 409
+            title:
+              example: Conflict
+            type:
+              example: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/409
+    Response-Error:
+      title: Response Error
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/Response-Problem'
+        - type: object
+          properties:
+            status:
+              example: 500
+            title:
+              example: Internal Server Error
+            type:
+              example: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/500
+    Response-Forbidden:
+      title: Response Forbidden
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/Response-Problem'
+        - type: object
+          properties:
+            type:
+              example: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/403
+            title:
+              example: Forbidden
+            status:
+              example: 403
+            detail:
+              example: User lacks permission to complete this action
+    Response-NotFound:
+      title: Response Not Found
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/Response-Problem'
+        - type: object
+          properties:
+            status:
+              example: 404
+            title:
+              example: Not Found
+            type:
+              example: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/404
+    Response-Problem:
+      title: Response Problem
+      type: object
+      required:
+        - type
+        - title
+        - status
+      properties:
+        type:
+          type: string
+          description: What type of problem, link to explanation of problem
+        title:
+          type: string
+          description: Title of problem, generally the HTTP Status Code description
+        status:
+          type: string
+          description: The HTTP Status code
+        detail:
+          type: string
+          description: >-
+            A short, human-readable explanation specific to this occurrence of
+            the problem
+        instance:
+          type: string
+          description: >-
+            A URI reference that identifies the specific occurrence of the
+            problem
+    Response-Unauthorized:
+      title: Response Unauthorized
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/Response-Problem'
+        - type: object
+          properties:
+            type:
+              example: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/401
+            title:
+              example: Unauthorized
+            status:
+              example: 401
+            detail:
+              example: Invalid authorization credentials
+    Response-ValidationError:
+      title: Response Validation Error
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/Response-Problem'
+        - type: object
+          required:
+            - errors
+          properties:
+            errors:
+              type: array
+              items:
+                type: object
+                required:
+                  - message
+                properties:
+                  value:
+                    type: object
+                    description: Contents of the field that was in error.
+                    example: {}
+                  message:
+                    type: string
+                    description: The error message for the field.
+                    example: Invalid value `encoding`.
+            status:
+              example: 422
+            title:
+              example: Unprocessable Entity
+            type:
+              example: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/422
+  responses:
+    BadRequest:
+      description: Bad Request (Request is missing content or malformed)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Response-BadRequest'
+    Conflict:
+      description: Conflict
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Response-Conflict'
+    Error:
+      description: Internal Server Error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Response-Error'
+    Forbidden:
+      description: Forbidden
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Response-Forbidden'
+    NotFound:
+      description: Not Found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Response-NotFound'
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Response-Unauthorized'
+    UnprocessableEntity:
+      description: Unprocessable Content (Generally validation error(s))
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Response-ValidationError'
+  securitySchemes:
+    BearerAuth:
+      type: http
+      description: Bearer token auth using an OIDC issued JWT token
+      scheme: bearer
+      bearerFormat: JWT
+    OpenID:
+      type: openIdConnect
+      description: OpenID Connect endpoint for acquiring JWT tokens
+      openIdConnectUrl: >-
+        https://logonproxy.gov.bc.ca/auth/realms/your-realm-name/.well-known/openid-configuration

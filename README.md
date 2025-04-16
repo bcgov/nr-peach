@@ -19,7 +19,7 @@ src/                       - Node.js web application
 ├── routes/                - Routes Layer
 ├── services/              - Services Layer
 ├── utils/                 - Utilities
-├── validators/            - Validator Layer
+└── validators/            - Validator Layer
 tests/                     - Node.js web application tests
 CODE-OF-CONDUCT.md         - Code of Conduct
 COMPLIANCE.yaml            - BCGov PIA/STRA compliance status
