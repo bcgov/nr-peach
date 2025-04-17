@@ -5,6 +5,13 @@ import http from 'node:http';
 
 import app from './src/app.ts';
 import { getLogger, httpLogger } from './src/utils/log.ts';
+import { getGitRevision } from './src/utils/utils.ts';
+
+export const state = {
+  gitRev: getGitRevision(),
+  ready: false,
+  shutdown: false
+};
 
 // Load environment variables, prioritizing .env over .env.default
 config({ path: ['.env', '.env.default'] });
@@ -12,7 +19,10 @@ const log = getLogger(import.meta.filename);
 const port = normalizePort(process.env.APP_PORT ?? '3000');
 
 // Skip if running tests
-if (process.env.NODE_ENV !== 'test') app.use(httpLogger);
+if (process.env.NODE_ENV !== 'test') {
+  state.ready = true; // TODO: Do a database check here to determine readiness
+  app.use(httpLogger);
+}
 
 /**
  * Create HTTP server and listen on provided port, on all network interfaces.
