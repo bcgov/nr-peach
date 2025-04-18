@@ -24,6 +24,20 @@ if (process.env.NODE_ENV !== 'test') {
   app.use(httpLogger);
 }
 
+// Prevent unhandled errors from crashing application
+process.on('unhandledRejection', (err: Error): void => {
+  if (err?.stack) log.error(err);
+});
+
+// Graceful shutdown support
+process.on('SIGTERM', shutdown);
+process.on('SIGINT', shutdown);
+process.on('SIGUSR1', shutdown);
+process.on('SIGUSR2', shutdown);
+process.on('exit', (): void => {
+  log.info('Exiting...');
+});
+
 /**
  * Create HTTP server and listen on provided port, on all network interfaces.
  */
@@ -53,8 +67,9 @@ function normalizePort(val: string): string | number | boolean {
  * @param error.syscall System call
  * @param error.code Error code
  */
-function onError(error: { syscall: string; code: string }): void {
-  if (error.syscall !== 'listen') throw error; // eslint-disable-line @typescript-eslint/only-throw-error
+function onError(error: { syscall?: string; code: string }): void {
+  // eslint-disable-next-line @typescript-eslint/only-throw-error
+  if (error.syscall !== 'listen') throw error;
 
   // Handle specific listen errors with friendly messages
   const bind = typeof port === 'string' ? 'Pipe ' + port : 'Port ' + port;
@@ -70,4 +85,23 @@ function onError(error: { syscall: string; code: string }): void {
     default:
       throw error; // eslint-disable-line @typescript-eslint/only-throw-error
   }
+}
+
+/**
+ * Shuts down this application.
+ */
+function shutdown(): void {
+  log.info('Received kill signal. Shutting down...');
+  state.shutdown = true;
+  cleanup();
+  // TODO: See if we want to wait 3 seconds before starting cleanup?
+  // if (!state.shutdown) setTimeout(cleanup, 3000);
+}
+
+/**
+ * Cleans up connections in this application.
+ */
+function cleanup(): void {
+  log.info('Service no longer accepting traffic');
+  process.exit();
 }

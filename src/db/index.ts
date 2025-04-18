@@ -10,7 +10,6 @@ config({ path: ['.env', '.env.default'] });
 
 const { Pool } = pg;
 
-// TODO Add in .env parameterization support
 export const dialectConfig: PostgresDialectConfig = {
   pool: new Pool({
     host: process.env.PGHOST,
