@@ -44,6 +44,9 @@ app.get('/robots.txt', (_req: Request, res: Response): void => {
   res.send('User-agent: *\nDisallow: /');
 });
 
+// Root level router
+app.use(router);
+
 // Handle 500
 app.use(
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -64,7 +67,5 @@ app.use(
 app.use((req: Request, res: Response): void => {
   new Problem(404).send(req, res);
 });
-
-app.use(router);
 
 export default app;
