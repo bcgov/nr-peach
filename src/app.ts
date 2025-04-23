@@ -5,17 +5,23 @@ import helmet from 'helmet';
 import { randomBytes } from 'node:crypto';
 import favicon from 'serve-favicon';
 
-import { state } from '../server.ts';
 import router from './routes/index.ts';
 
-import { getLogger } from './utils/log.ts';
+import { getLogger, httpLogger } from './utils/log.ts';
 import Problem from './utils/problem.ts';
+import { getGitRevision } from './utils/utils.ts';
 
 import type { NextFunction, Request, Response } from 'express';
 
 const log = getLogger(import.meta.filename);
 
-const app = express();
+export const state = {
+  gitRev: getGitRevision(),
+  ready: false,
+  shutdown: false
+};
+
+export const app = express();
 app.use(compression());
 app.use(cors());
 app.use(express.json());
@@ -26,6 +32,12 @@ app.use((_req: Request, res: Response, next): void => {
   helmet();
   next();
 });
+
+// Skip if running tests
+if (process.env.NODE_ENV !== 'test') {
+  state.ready = true; // TODO: Do a database check here to determine readiness
+  app.use(httpLogger);
+}
 
 // Block requests until service is ready
 app.use((req: Request, res: Response, next: NextFunction): void => {
@@ -67,5 +79,3 @@ app.use(
 app.use((req: Request, res: Response): void => {
   new Problem(404).send(req, res);
 });
-
-export default app;

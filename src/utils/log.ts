@@ -1,3 +1,4 @@
+import { config } from 'dotenv';
 import { logger } from 'express-winston';
 // const jwt = require('jsonwebtoken'); // TODO: Revisit when we look at authentication
 import { parse } from 'node:path';
@@ -7,6 +8,9 @@ import Transport from 'winston-transport';
 import type { Request, Response } from 'express';
 import type { Logger } from 'winston';
 import type { TransportStreamOptions } from 'winston-transport';
+
+// Load environment variables, prioritizing .env over .env.default
+config({ path: ['.env', '.env.default'] });
 
 /**
  * Class representing a winston transport writing to null
@@ -39,7 +43,7 @@ const log = createLogger({
   format: format.combine(
     format.errors({ stack: true }), // Force errors to show stacktrace
     format.timestamp(), // Add ISO timestamp to each entry
-    format.json() // Force output to be in JSON format
+    process.env.NODE_ENV === 'production' ? format.json() : format.simple()
   ),
   level: process.env.APP_LOGLEVEL ?? 'http'
 });
