@@ -1,6 +1,6 @@
 import { Router } from 'express';
 
-import { validate } from '../../validators/index.ts';
+import { validateSchema } from '../../validators/index.ts';
 import Problem from '../../utils/problem.ts';
 
 import type { Request, Response } from 'express';
@@ -13,11 +13,16 @@ router.get('/process-events', (req: Request, res: Response): void => {
 });
 
 /** Put Process Events */
-router.put('/process-events', async (req: Request, res: Response): void => {
-  const valid = await validate(req.body);
-  // if (!valid) new Problem(422).send(req, res);
-  res.status(200).json(valid);
-});
+router.put(
+  '/process-events',
+  async (req: Request, res: Response): Promise<void> => {
+    const schemaUri =
+      'https://raw.githubusercontent.com/bcgov/nr-pies/refs/heads/main/docs/spec/message/process_event_set.schema.json';
+    const valid = await validateSchema(schemaUri, req.body);
+    // if (!valid) new Problem(422).send(req, res);
+    res.status(200).json(valid);
+  }
+);
 
 /** Delete Process Events */
 router.delete('/process-events', (req: Request, res: Response): void => {

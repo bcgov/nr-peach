@@ -1,6 +1,6 @@
 import { Router } from 'express';
 
-import { state } from '../../server.ts';
+import { state } from '../app.ts';
 
 import type { Request, Response } from 'express';
 

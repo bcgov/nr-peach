@@ -22,7 +22,8 @@ FROM ${BASE_IMAGE}
 
 ARG APP_ROOT
 ARG APP_PORT
-ENV NO_UPDATE_NOTIFIER=true \
+ENV NODE_ENV=production \
+    NO_UPDATE_NOTIFIER=true \
     PATH="$PATH:${APP_ROOT}/node_modules/.bin"
 WORKDIR ${APP_ROOT}
 
