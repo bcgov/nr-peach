@@ -10,20 +10,25 @@ const log = getLogger(import.meta.filename);
 const schemaCache: Record<string, AnySchemaObject> = {};
 
 /**
- * Loads a schema from the given URI and returns it as an AnySchemaObject.
- * @param schema The URI of the schema to load
- * @returns The loaded schema as an AnySchemaObject
+ * Loads a JSON schema from the provided URI.
+ * Uses the cache if available; otherwise, fetches from the URI.
+ * @param schema The schema URI.
+ * @returns A promise resolving to an AnySchemaObject.
+ * @throws If the schema cannot be loaded.
  */
 export async function loadSchema(schema: string): Promise<AnySchemaObject> {
   const cached = schema in schemaCache;
   log.verbose('loadSchema', { cached, schema });
 
   if (!cached) {
-    const res = await fetch(schema);
-    if (!res.ok) throw new Error(`Failed to fetch schema from ${schema}`);
-
-    const schemaObject = (await res.json()) as AnySchemaObject;
-    schemaCache[schema] = schemaObject;
+    try {
+      const res = await fetch(schema);
+      if (!res.ok) throw new Error(`Failed to fetch schema ${schema}`);
+      schemaCache[schema] = (await res.json()) as AnySchemaObject;
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (error) {
+      throw new Error(`Failed to load schema ${schema}`);
+    }
   }
 
   return schemaCache[schema];
