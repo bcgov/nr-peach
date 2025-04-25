@@ -12,6 +12,11 @@ router.get('/process-events', (req: Request, res: Response): void => {
   new Problem(501).send(req, res);
 });
 
+/** Post Process Events */
+router.post('/process-events', (req: Request, res: Response): void => {
+  new Problem(501).send(req, res);
+});
+
 /** Put Process Events */
 router.put(
   '/process-events',

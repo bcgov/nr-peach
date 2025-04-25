@@ -53,9 +53,41 @@ paths:
           $ref: '#/components/responses/UnprocessableEntity'
         default:
           $ref: '#/components/responses/Error'
-    put:
+    post:
       summary: Add and merge ProcessEvents for a specific system record
       description: Adds and merges all known ProcessEvents associated with a record.
+      operationId: postProcessEvents
+      tags:
+        - Processes
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: >-
+                https://raw.githubusercontent.com/bcgov/nr-pies/refs/heads/main/docs/spec/message/process_event_set.schema.json
+      responses:
+        '201':
+          description: Created - Added a new Record with the associated ProcessEvents
+        '202':
+          description: >-
+            Accepted - Merged an existing Record with the associated
+            ProcessEvents
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        default:
+          $ref: '#/components/responses/Error'
+    put:
+      summary: Assert ProcessEvents for a specific system record
+      description: Replaces all known ProcessEvents associated with a record.
       operationId: putProcessEvents
       tags:
         - Processes
