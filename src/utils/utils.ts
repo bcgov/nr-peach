@@ -8,7 +8,7 @@ const log = getLogger(import.meta.filename);
 
 /**
  * Gets the current git revision hash
- * @see {@link https://stackoverflow.com/a/34518749}
+ * @see https://stackoverflow.com/a/34518749
  * @returns The git revision hash, or empty string
  */
 export function getGitRevision(): string {

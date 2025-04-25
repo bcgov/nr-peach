@@ -7,9 +7,12 @@ import favicon from 'serve-favicon';
 
 import router from './routes/index.ts';
 
-import { getLogger, httpLogger } from './utils/log.ts';
-import Problem from './utils/problem.ts';
-import { getGitRevision } from './utils/utils.ts';
+import {
+  getGitRevision,
+  getLogger,
+  httpLogger,
+  Problem
+} from './utils/index.ts';
 
 import type { NextFunction, Request, Response } from 'express';
 

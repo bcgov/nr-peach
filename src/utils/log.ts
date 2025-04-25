@@ -106,5 +106,3 @@ export const httpLogger = logger({
   skip: (req) => !!req.get('user-agent')?.includes('kube-probe'),
   winstonInstance: log
 });
-
-export default getLogger;

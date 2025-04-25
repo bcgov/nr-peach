@@ -1,5 +1,11 @@
-export default {
-  getDocHTML: (version = 'v1'): string => `<!DOCTYPE html>
+/**
+ * Generates a ReDocs HTML string for the documentation page of the NR
+ * Permitting Exchange, Aggregation and Collection Hub (PEACH) API.
+ * @param version - The version of the API documentation to display. Defaults to 'v1'.
+ * @returns The HTML string for the documentation page.
+ */
+export function getDocHTML(version: string = 'v1'): string {
+  return `<!DOCTYPE html>
   <html>
     <head>
       <title>NR Permitting Exchange, Aggregation and Collection Hub (PEACH) API - Documentation ${version}</title>
@@ -15,5 +21,5 @@ export default {
       <redoc spec-url='/docs/openapi.yaml' />
       <script src="https://cdn.redoc.ly/redoc/latest/bundles/redoc.standalone.js"></script>
     </body>
-  </html>`
-};
+  </html>`;
+}

@@ -1,6 +1,6 @@
 import { Router } from 'express';
 
-import Problem from '../../utils/problem.ts';
+import { Problem } from '../../utils/index.ts';
 
 import type { Request, Response } from 'express';
 

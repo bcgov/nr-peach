@@ -1,7 +1,7 @@
 import { Ajv } from 'ajv';
 import formats from 'ajv-formats';
 
-import { getLogger } from '../utils/log.ts';
+import { getLogger } from '../utils/index.ts';
 
 import type { AnySchemaObject, Plugin } from 'ajv';
 import type { FormatsPluginOptions } from 'ajv-formats';

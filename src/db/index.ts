@@ -1,14 +1,12 @@
 import { config } from 'dotenv';
 import { CamelCasePlugin, Kysely, PostgresDialect } from 'kysely';
-import pg from 'pg';
+import { Pool } from 'pg';
 
 import type { PostgresDialectConfig } from 'kysely';
 import type { Database } from './schema.d.ts';
 
 // Load environment variables, prioritizing .env over .env.default
 config({ path: ['.env', '.env.default'] });
-
-const { Pool } = pg;
 
 export const dialectConfig: PostgresDialectConfig = {
   pool: new Pool({
@@ -28,3 +26,5 @@ export const db = new Kysely<Database>({
   log: ['error' /*, 'query'*/],
   plugins: [new CamelCasePlugin()]
 });
+
+export * from './utils.ts';

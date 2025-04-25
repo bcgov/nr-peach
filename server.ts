@@ -4,7 +4,7 @@ import { config } from 'dotenv';
 import http from 'node:http';
 
 import { app, state } from './src/app.ts';
-import { getLogger } from './src/utils/log.ts';
+import { getLogger } from './src/utils/index.ts';
 
 // Load environment variables, prioritizing .env over .env.default
 config({ path: ['.env', '.env.default'] });

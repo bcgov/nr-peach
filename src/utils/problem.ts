@@ -13,19 +13,38 @@ const STATUS_CODES_WEB =
   'https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/';
 
 /**
- * An RFC 9457 Problem Details error generator.
- * @param status - HTTP Status Code (RFC7231, Section 6)
- * @param opts - Problem Details options
- * @param extra - Extra properties to add to the problem details object
- * @returns An Error with RFC 9457 Problem Details properties
+ * A Problem Details object error generator which extends the `Error` class.
+ * This class is used to model HTTP problem details as per RFC9457.
+ * @see https://tools.ietf.org/html/rfc9457
  */
 export default class Problem extends Error {
+  /** The type of the problem, typically a URI reference identifying the problem type. */
   type: string;
+
+  /** A short, human-readable summary of the problem. */
   title: string;
+
+  /** The HTTP status code associated with the problem. */
   status: number;
+
+  /** (Optional) A detailed explanation of the problem. */
   detail?: string;
+
+  /** (Optional) A URI reference that identifies the specific occurrence of the problem. */
   instance?: string;
 
+  /**
+   * Constructs a new `Problem` instance.
+   * @param status - The HTTP status code of the problem (RFC7231, Section 6).
+   * @param opts - Optional parameters for the problem details.
+   * @param opts.type - The type of the problem. Defaults to a URI based on the status code.
+   * @param opts.title - A short, human-readable summary of the problem. Defaults to the status code description.
+   * @param opts.detail - A detailed explanation of the problem.
+   * @param opts.instance - A URI reference identifying the specific occurrence of the problem.
+   * @param extra - Additional properties to be assigned to the problem object.
+   * @throws {Error} If the `status` is not provided or is invalid.
+   * @throws {Error} If the `title` cannot be determined.
+   */
   constructor(
     status: number,
     opts?: {
@@ -34,7 +53,7 @@ export default class Problem extends Error {
       detail?: string;
       instance?: string;
     },
-    extra?: object
+    extra?: Record<string, unknown>
   ) {
     if (!status) throw new Error(ERR_STATUS);
     if ((status >= 600 || status < 400) && status !== 207) {
@@ -65,15 +84,30 @@ export default class Problem extends Error {
     if (extra) Object.assign(this, extra);
   }
 
+  /**
+   * Converts the `Problem` instance to a string representation.
+   * @returns A string in the format `[status] title (type)`.
+   */
   toString() {
     return `[${this.status}] ${this.title} (${this.type})`;
   }
 
+  /**
+   * Converts the `Problem` instance to a plain object representation.
+   * This method escapes the `Error` class to ensure all properties are included.
+   * @returns An object containing all properties of the `Problem` instance.
+   */
   toObject() {
     // Escape the Error class
     return Object.fromEntries(new Map(Object.entries(this)));
   }
 
+  /**
+   * Sends a JSON response with the current instance's data.
+   * @param req - The HTTP request object.
+   * @param res - The HTTP response object.
+   * @param space - The number of spaces to use for JSON stringification. Defaults to 2.
+   */
   send(req: Request, res: Response, space: string | number = 2) {
     this.instance ??= req.originalUrl;
     res.writeHead(this.status, { 'Content-Type': CONTENT_TYPE });

@@ -3,7 +3,7 @@ import helmet from 'helmet';
 import { dump, load } from 'js-yaml';
 import { readFileSync } from 'node:fs';
 
-import docs from '../docs/index.ts';
+import { getDocHTML } from '../docs/index.ts';
 
 import type { Request, Response } from 'express';
 
@@ -47,7 +47,7 @@ router.use(
 
 /** OpenAPI Docs */
 router.get('/', (_req: Request, res: Response): void => {
-  res.send(docs.getDocHTML());
+  res.send(getDocHTML());
 });
 
 /** OpenAPI YAML Spec */
