@@ -53,7 +53,7 @@ export default class Problem extends Error {
       detail?: string;
       instance?: string;
     },
-    extra?: Record<string, unknown>
+    extra?: unknown
   ) {
     if (!status) throw new Error(ERR_STATUS);
     if ((status >= 600 || status < 400) && status !== 207) {

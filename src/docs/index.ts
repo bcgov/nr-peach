@@ -4,7 +4,7 @@
  * @param version - The version of the API documentation to display. Defaults to 'v1'.
  * @returns The HTML string for the documentation page.
  */
-export function getDocHTML(version: string = 'v1'): string {
+export function getDocHTML(version = 'v1'): string {
   return `<!DOCTYPE html>
   <html>
     <head>
