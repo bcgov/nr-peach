@@ -4,7 +4,11 @@ import formats from 'ajv-formats';
 import { getLogger } from '../utils/index.ts';
 
 import type { AnySchemaObject, Plugin } from 'ajv';
-import type { AnyValidateFunction, ErrorObject } from 'ajv/dist/core.js';
+import type {
+  AnyValidateFunction,
+  ErrorObject,
+  Options
+} from 'ajv/dist/core.js';
 import type { FormatsPluginOptions } from 'ajv-formats';
 
 const log = getLogger(import.meta.filename);
@@ -19,12 +23,11 @@ const schemaCache: Record<string, AnySchemaObject> = {};
  *             modify Ajv's behavior.
  * @returns A configured Ajv instance with all errors enabled and typical formats applied.
  */
-export function createAjvInstance(opts?: object): Ajv {
+export function createAjvInstance(opts?: Options): Ajv {
   const ajv = new Ajv({ allErrors: true, loadSchema, ...opts });
   // TS workaround: https://github.com/ajv-validator/ajv-formats/issues/85#issuecomment-2377962689
   const addFormats = formats as unknown as Plugin<FormatsPluginOptions>;
-  addFormats(ajv);
-  return ajv;
+  return addFormats(ajv);
 }
 
 /**

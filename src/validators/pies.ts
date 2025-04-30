@@ -1,3 +1,6 @@
+/**
+ * Configuration for PIES (Permitting Information Exchange Specification).
+ */
 export const pies = {
   root: 'https://raw.githubusercontent.com/bcgov/nr-pies/refs',
   schemaSuffix: '.schema.json',

@@ -1,29 +1,33 @@
 import { pies, getPiesSchemaUri } from './index.ts';
-import { Problem } from '../utils/index.ts';
-import { validateSchema } from '../validators/index.ts';
+import { validateRequest } from '../middlewares/index.ts';
 
-import type { NextFunction, Request, Response } from 'express';
+import type { RequestHandler } from 'express';
 
-/**
- * Middleware function to validate the request body against a schema for process events.
- * @param req - The Express request object.
- * @param res - The Express response object.
- * @param next - The next middleware function in the stack.
- */
-export async function putProcessEventsValidator(
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<void> {
-  // TODO: Figure out middleware pattern to handle header, query, param, and body
-  const schemaUri = getPiesSchemaUri(pies.spec.message.processEventSet);
-  const { valid, errors } = await validateSchema(schemaUri, req.body);
-  if (!valid) {
-    new Problem(422, { detail: 'Invalid request body' }, { errors }).send(
-      req,
-      res
-    );
-    return;
+// TODO: Consider creating a "common" attribute schema library
+export const deleteProcessEventsValidator: RequestHandler = validateRequest({
+  query: {
+    properties: {
+      record_id: { type: 'string' },
+      system_id: { type: 'string', pattern: '^ITSM-\\d{4,5}$' }
+    },
+    required: ['record_id']
   }
-  next();
-}
+});
+
+export const getProcessEventsValidator: RequestHandler = validateRequest({
+  query: {
+    properties: {
+      record_id: { type: 'string' },
+      system_id: { type: 'string', pattern: '^ITSM-\\d{4,5}$' }
+    },
+    required: ['record_id']
+  }
+});
+
+export const postProcessEventsValidator: RequestHandler = validateRequest({
+  body: getPiesSchemaUri(pies.spec.message.processEventSet)
+});
+
+export const putProcessEventsValidator: RequestHandler = validateRequest({
+  body: getPiesSchemaUri(pies.spec.message.processEventSet)
+});
