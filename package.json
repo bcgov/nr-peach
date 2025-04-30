@@ -23,8 +23,6 @@
     "postinstall": "simple-git-hooks",
     "prelint": "npm run typecheck",
     "prelint:fix": "npm run typecheck",
-    "pretest": "npm run lint",
-    "pretest:cov": "npm run lint",
     "posttest:cov": "node --experimental-transform-types lcovFix.util.ts",
     "purge": "rimraf node_modules",
     "seed:list": "kysely seed list",
