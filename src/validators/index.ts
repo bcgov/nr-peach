@@ -24,7 +24,13 @@ const schemaCache: Record<string, AnySchemaObject> = {};
  * @returns A configured Ajv instance with all errors enabled and typical formats applied.
  */
 export function createAjvInstance(opts?: Options): Ajv {
-  const ajv = new Ajv({ allErrors: true, loadSchema, ...opts });
+  const ajv = new Ajv({
+    allErrors: true,
+    /** Type Coersion @see https://ajv.js.org/guide/modifying-data.html#coercing-data-types */
+    coerceTypes: true,
+    loadSchema,
+    ...opts
+  });
   // TS workaround: https://github.com/ajv-validator/ajv-formats/issues/85#issuecomment-2377962689
   const addFormats = formats as unknown as Plugin<FormatsPluginOptions>;
   return addFormats(ajv);
@@ -90,5 +96,8 @@ export async function validateSchema(
   return { valid: valid, errors: validate.errors ?? undefined };
 }
 
+export * from './common.ts';
 export * from './pies.ts';
 export * from './process.ts';
+export * from './record.ts';
+export * from './system.ts';

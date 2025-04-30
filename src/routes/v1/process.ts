@@ -6,7 +6,7 @@ import {
   getProcessEventsValidator,
   postProcessEventsValidator,
   putProcessEventsValidator
-} from '../../validators/process.ts';
+} from '../../validators/index.ts';
 
 import type { Request, Response } from 'express';
 
