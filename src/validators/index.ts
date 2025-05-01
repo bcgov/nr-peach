@@ -51,8 +51,8 @@ export async function loadSchema(schema: string): Promise<AnySchemaObject> {
       const res = await fetch(schema);
       if (!res.ok) throw new Error(`Failed to fetch schema ${schema}`);
       schemaCache[schema] = (await res.json()) as AnySchemaObject;
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
+      log.error('loadSchema', { error });
       throw new Error(`Failed to load schema ${schema}`);
     }
   }
