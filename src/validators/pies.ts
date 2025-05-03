@@ -5,7 +5,7 @@ export const pies = {
   root: 'https://raw.githubusercontent.com/bcgov/nr-pies/refs',
   schemaSuffix: '.schema.json',
   spec: {
-    dir: 'docs/spec',
+    dir: 'docs/spec/element',
     data: {
       code: 'data/code',
       event: 'data/event',
