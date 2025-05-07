@@ -30,7 +30,7 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded());
 app.use(favicon('src/public/favicon.ico'));
-app.use((_req: Request, res: Response, next): void => {
+app.use((_req: Request, res: Response, next: NextFunction): void => {
   res.locals.cspNonce = randomBytes(32).toString('hex');
   helmet();
   next();
@@ -62,21 +62,25 @@ app.get('/robots.txt', (_req: Request, res: Response): void => {
 // Root level router
 app.use(router);
 
-// Handle 500
-app.use(
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  (err: Error, req: Request, res: Response, _next: NextFunction): void => {
-    if (err.stack) log.error(err);
+export const errorHandler = (
+  err: Error,
+  req: Request,
+  res: Response,
+  _next: NextFunction // eslint-disable-line @typescript-eslint/no-unused-vars
+): void => {
+  if (err.stack) log.error(err);
 
-    if (err instanceof Problem) {
-      err.send(req, res);
-    } else {
-      new Problem(500, {
-        detail: err.message ? err.message : err.toString()
-      }).send(req, res);
-    }
+  if (err instanceof Problem) {
+    err.send(req, res);
+  } else {
+    new Problem(500, {
+      detail: err.message ?? err.toString()
+    }).send(req, res);
   }
-);
+};
+
+// Handle 500
+app.use(errorHandler);
 
 // Handle 404
 app.use((req: Request, res: Response): void => {

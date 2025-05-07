@@ -1,4 +1,5 @@
-import { db } from './db/index.ts';
+// TODO: Delete this file as this will be replaced with the actual code soon
+// import { db } from './db/index.ts';
 
 // db.insertInto("pies.concept")
 //   .values({
@@ -20,11 +21,11 @@ import { db } from './db/index.ts';
 //   })
 //   .execute();
 
-void db
-  .selectFrom('pies.process_event')
-  .innerJoin('pies.concept', 'pies.concept.id', 'pies.process_event.concept_id')
-  .selectAll()
-  .execute()
-  .then((rows) => {
-    console.log(rows);
-  });
+// void db
+//   .selectFrom('pies.process_event')
+//   .innerJoin('pies.concept', 'pies.concept.id', 'pies.process_event.concept_id')
+//   .selectAll()
+//   .execute()
+//   .then((rows) => {
+//     console.log(rows);
+//   });
