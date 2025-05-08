@@ -1,7 +1,8 @@
 /* eslint-disable @typescript-eslint/unbound-method */
-// TODO: Figure out how to mock and test the sql interface from kysely
+import '../kysely.helper.ts'; // Must be imported before everything else
 
 import { Kysely, sql } from 'kysely';
+
 import {
   createAuditLogTrigger,
   createIndex,
@@ -12,37 +13,30 @@ import {
   withTimestamps
 } from '../../src/db/utils.ts';
 
-import type { CreateTableBuilder } from 'kysely';
-
-vi.mock('kysely', () => ({
-  sql: {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    raw: vi.fn((value) => value),
-    id: vi.fn((schema, table) => `${schema}.${table}`)
-  }
-}));
+import type { CreateTableBuilder, KyselyConfig } from 'kysely';
 
 describe('DB Utils', () => {
   let qb: Kysely<unknown>;
 
   beforeEach(() => {
-    qb = {
-      schema: {
-        withSchema: vi.fn().mockReturnThis(),
-        createIndex: vi.fn().mockReturnThis(),
-        dropIndex: vi.fn().mockReturnThis(),
-        on: vi.fn().mockReturnThis(),
-        columns: vi.fn().mockReturnThis(),
-        execute: vi.fn()
-      }
-    } as unknown as Kysely<unknown>;
+    qb = new Kysely<unknown>({} as KyselyConfig);
   });
 
-  it.skip('should create an audit log trigger', async () => {
-    await createAuditLogTrigger(qb, 'public', 'test_table');
-    expect(sql.raw).toHaveBeenCalledWith('test_table_audit_au_trigger');
+  it('should create an audit log trigger', async () => {
+    const execute = await createAuditLogTrigger(qb, 'public', 'test_table');
+
+    expect(sql).toHaveBeenCalledWith(
+      [
+        'CREATE TRIGGER audit_',
+        '_au_trigger\n    AFTER UPDATE OR DELETE ON ',
+        '\n    FOR EACH ROW EXECUTE PROCEDURE audit.if_modified_func();'
+      ],
+      'test_table',
+      ['public', 'test_table']
+    );
+    expect(sql.raw).toHaveBeenCalledWith('test_table');
     expect(sql.id).toHaveBeenCalledWith('public', 'test_table');
-    expect(qb.schema).toHaveBeenCalled();
+    expect(execute).toEqual(qb);
   });
 
   it('should create an index', async () => {
@@ -59,20 +53,34 @@ describe('DB Utils', () => {
     expect(qb.schema.execute).toHaveBeenCalled();
   });
 
-  it.skip('should create an updated at trigger', async () => {
-    await createUpdatedAtTrigger(qb, 'public', 'test_table');
-    expect(sql.raw).toHaveBeenCalledWith('test_table_bu_trigger');
+  it('should create an updated at trigger', async () => {
+    const execute = await createUpdatedAtTrigger(qb, 'public', 'test_table');
+
+    expect(sql).toHaveBeenCalledWith(
+      [
+        'CREATE TRIGGER pies_',
+        '_bu_trigger\n    BEFORE UPDATE ON ',
+        '\n    FOR EACH ROW EXECUTE PROCEDURE pies.set_updated_at_func();'
+      ],
+      'test_table',
+      ['public', 'test_table']
+    );
+    expect(sql.raw).toHaveBeenCalledWith('test_table');
     expect(sql.id).toHaveBeenCalledWith('public', 'test_table');
-    // @ts-expect-error ts2339
-    expect(qb.schema.execute).toHaveBeenCalled();
+    expect(execute).toEqual(qb);
   });
 
-  it.skip('should drop an audit log trigger', async () => {
-    await dropAuditLogTrigger(qb, 'public', 'test_table');
-    expect(sql.raw).toHaveBeenCalledWith('test_table_bu_trigger');
+  it('should drop an audit log trigger', async () => {
+    const execute = await dropAuditLogTrigger(qb, 'public', 'test_table');
+
+    expect(sql).toHaveBeenCalledWith(
+      ['DROP TRIGGER IF EXISTS audit_', '_au_trigger ON ', ''],
+      'test_table',
+      ['public', 'test_table']
+    );
+    expect(sql.raw).toHaveBeenCalledWith('test_table');
     expect(sql.id).toHaveBeenCalledWith('public', 'test_table');
-    // @ts-expect-error ts2339
-    expect(qb.schema.execute).toHaveBeenCalled();
+    expect(execute).toEqual(qb);
   });
 
   it('should drop an index', async () => {
@@ -85,19 +93,23 @@ describe('DB Utils', () => {
     expect(qb.schema.execute).toHaveBeenCalled();
   });
 
-  it.skip('should drop an updated at trigger', async () => {
-    await dropUpdatedAtTrigger(qb, 'public', 'test_table');
-    expect(sql.raw).toHaveBeenCalledWith('test_table_bu_trigger');
+  it('should drop an updated at trigger', async () => {
+    const execute = await dropUpdatedAtTrigger(qb, 'public', 'test_table');
+
+    expect(sql).toHaveBeenCalledWith(
+      ['DROP TRIGGER IF EXISTS pies_', '_bu_trigger ON ', ''],
+      'test_table',
+      ['public', 'test_table']
+    );
+    expect(sql.raw).toHaveBeenCalledWith('test_table');
     expect(sql.id).toHaveBeenCalledWith('public', 'test_table');
-    // @ts-expect-error ts2339
-    expect(qb.schema.execute).toHaveBeenCalled();
+    expect(execute).toEqual(qb);
   });
 
   it('should add timestamps to a table builder', () => {
     const tableBuilder = {
       addColumn: vi.fn().mockReturnThis()
     } as unknown as CreateTableBuilder<string>;
-
     const result = withTimestamps(tableBuilder);
 
     expect(result.addColumn).toHaveBeenCalledWith(

@@ -14,7 +14,7 @@ export function createAuditLogTrigger(
   schema: string,
   table: string
 ): Promise<QueryResult<unknown>> {
-  return sql`CREATE TRIGGER ${sql.raw(table)}_audit_au_trigger
+  return sql`CREATE TRIGGER audit_${sql.raw(table)}_au_trigger
     AFTER UPDATE OR DELETE ON ${sql.id(schema, table)}
     FOR EACH ROW EXECUTE PROCEDURE audit.if_modified_func();`.execute(qb);
 }
@@ -53,7 +53,7 @@ export function createUpdatedAtTrigger(
   schema: string,
   table: string
 ): Promise<QueryResult<unknown>> {
-  return sql`CREATE TRIGGER ${sql.raw(table)}_bu_trigger
+  return sql`CREATE TRIGGER pies_${sql.raw(table)}_bu_trigger
     BEFORE UPDATE ON ${sql.id(schema, table)}
     FOR EACH ROW EXECUTE PROCEDURE pies.set_updated_at_func();`.execute(qb);
 }
@@ -70,7 +70,7 @@ export function dropAuditLogTrigger(
   schema: string,
   table: string
 ): Promise<QueryResult<unknown>> {
-  return sql`DROP TRIGGER IF EXISTS ${sql.raw(table)}_bu_trigger ON ${sql.id(
+  return sql`DROP TRIGGER IF EXISTS audit_${sql.raw(table)}_au_trigger ON ${sql.id(
     schema,
     table
   )}`.execute(qb);
@@ -108,7 +108,7 @@ export function dropUpdatedAtTrigger(
   schema: string,
   table: string
 ): Promise<QueryResult<unknown>> {
-  return sql`DROP TRIGGER IF EXISTS ${sql.raw(table)}_bu_trigger ON ${sql.id(
+  return sql`DROP TRIGGER IF EXISTS pies_${sql.raw(table)}_bu_trigger ON ${sql.id(
     schema,
     table
   )}`.execute(qb);

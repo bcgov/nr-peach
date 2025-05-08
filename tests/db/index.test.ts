@@ -2,7 +2,7 @@ import { dialectConfig } from '../../src/db/index.ts';
 
 import type { Pool } from 'pg';
 
-describe('Database Configuration', () => {
+describe('DB Config', () => {
   let pool: Pool;
 
   beforeAll(() => {

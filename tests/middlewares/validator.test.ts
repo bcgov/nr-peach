@@ -7,7 +7,7 @@ import * as validators from '../../src/validators/index.ts';
 
 import type { Application, Request, RequestHandler, Response } from 'express';
 
-describe('validateRequest Middleware', () => {
+describe('validateRequest', () => {
   const mockHandler = vi.fn((_req: Request, res: Response) =>
     res.status(200).send('Success')
   );
