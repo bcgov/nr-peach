@@ -9,7 +9,9 @@ import type { Request, Response } from 'express';
 
 const router = Router();
 
-router.use(
+/** OpenAPI Docs */
+router.get(
+  '/',
   helmet({
     contentSecurityPolicy: {
       directives: {
@@ -42,13 +44,11 @@ router.use(
         ]
       }
     }
-  })
+  }),
+  (_req: Request, res: Response): void => {
+    res.send(getDocHTML());
+  }
 );
-
-/** OpenAPI Docs */
-router.get('/', (_req: Request, res: Response): void => {
-  res.send(getDocHTML());
-});
 
 /** OpenAPI YAML Spec */
 router.get('/openapi.yaml', (_req: Request, res: Response): void => {
