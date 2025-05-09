@@ -1,7 +1,58 @@
+import { existsSync, readFileSync } from 'node:fs';
+
 import { getGitRevision } from '../../src/utils/utils.ts';
 
+vi.mock('node:fs', () => ({
+  existsSync: vi.fn(),
+  readFileSync: vi.fn()
+}));
+
+vi.mock('node:process', () => ({
+  cwd: vi.fn(() => '/mocked/cwd')
+}));
+
 describe('getGitRevision', () => {
-  it('should return a string', () => {
-    expect(typeof getGitRevision()).toBe('string');
+  it('should return the git hash from HEAD when it does not contain a ref', () => {
+    vi.mocked(existsSync).mockReturnValue(true);
+    vi.mocked(readFileSync).mockReturnValue('mocked-hash');
+
+    const result = getGitRevision();
+
+    expect(result).toBe('mocked-hash');
+    expect(readFileSync).toHaveBeenCalledWith('/mocked/cwd/.git/HEAD', 'utf8');
+  });
+
+  it('should return the git hash from the ref file when HEAD contains a ref', () => {
+    vi.mocked(existsSync).mockReturnValue(true);
+    vi.mocked(readFileSync)
+      .mockImplementationOnce(() => 'ref: refs/heads/main')
+      .mockImplementationOnce(() => 'mocked-ref-hash');
+
+    const result = getGitRevision();
+
+    expect(result).toBe('mocked-ref-hash');
+    expect(readFileSync).toHaveBeenCalledWith('/mocked/cwd/.git/HEAD', 'utf8');
+    expect(readFileSync).toHaveBeenCalledWith(
+      '/mocked/cwd/.git/refs/heads/main',
+      'utf8'
+    );
+  });
+
+  it('should return an empty string if the .git directory is not found', () => {
+    vi.mocked(existsSync).mockReturnValue(false);
+
+    const result = getGitRevision();
+
+    expect(result).toBe('');
+  });
+
+  it('return an empty string if an error occurs', () => {
+    vi.mocked(existsSync).mockImplementation(() => {
+      throw new Error('mocked error');
+    });
+
+    const result = getGitRevision();
+
+    expect(result).toBe('');
   });
 });

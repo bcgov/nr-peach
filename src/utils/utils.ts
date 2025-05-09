@@ -34,9 +34,9 @@ export function getGitRevision(): string {
         .toString()
         .trim();
     }
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  } catch (err: any) {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
+  } catch (err: unknown) {
+    // @ts-expect-error ts18046
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     log.warn(err.message, { function: 'getGitRevision' });
     return '';
   }

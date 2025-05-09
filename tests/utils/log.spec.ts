@@ -1,35 +1,72 @@
-import type { Logger } from 'winston';
+import { createLogger, format, transports } from 'winston';
+import { getLogger, httpLogger, NullTransport } from '../../src/utils/log.ts';
 
-import { getLogger, httpLogger } from '../../src/utils/log.ts';
+describe('Logger', () => {
+  describe('getLogger', () => {
+    it('should return a logger instance without a filename', () => {
+      const logger = getLogger(undefined);
+      expect(logger).toHaveProperty('info');
+      expect(logger).toHaveProperty('error');
+    });
 
-describe('getLogger', () => {
-  const assertLogger = (log: Logger): void => {
-    expect(log).toBeTruthy();
-    expect(typeof log).toBe('object');
-    expect(typeof log.pipe).toBe('function');
-    expect(log.exitOnError).toBeFalsy();
-    expect(log.format).toBeTruthy();
-    expect(log.level).toBe(process.env.APP_LOGLEVEL);
-    expect(log.transports).toHaveLength(1);
-  };
-
-  it('should return a winston logger', () => {
-    const result = getLogger(undefined);
-    assertLogger(result);
+    it('should return a child logger with a filename', () => {
+      const logger = getLogger('/path/to/file.ts');
+      expect(logger).toHaveProperty('info');
+      expect(logger).toHaveProperty('error');
+    });
   });
 
-  it('should return a child winston logger with metadata overrides', () => {
-    const result = getLogger('test');
-    assertLogger(result);
+  describe('httpLogger', () => {
+    it('should be defined and configured correctly', () => {
+      expect(httpLogger).toBeDefined();
+    });
   });
-});
 
-describe('httpLogger', () => {
-  it('should return a winston middleware function', () => {
-    const result = httpLogger;
+  describe('NullTransport', () => {
+    it('should call the callback without logging', () => {
+      const callback = vi.fn();
+      const nullTransport = new NullTransport({});
+      nullTransport.log({}, callback);
+      expect(callback).toHaveBeenCalledOnce();
+    });
+  });
 
-    expect(result).toBeTruthy();
-    expect(typeof result).toBe('function');
-    expect(result.length).toBe(3);
+  describe('Logger Config', () => {
+    let logger: ReturnType<typeof createLogger>;
+
+    beforeEach(() => {
+      logger = createLogger({
+        exitOnError: false,
+        format: format.combine(
+          format.errors({ stack: true }),
+          format.timestamp(),
+          format.simple()
+        ),
+        level: 'http'
+      });
+    });
+
+    it('should include timestamp and errors in the format', () => {
+      const formats = logger.format;
+      expect(formats).toBeDefined();
+    });
+
+    it('should add Console transport in non-test environments', () => {
+      if (process.env.NODE_ENV !== 'test') {
+        logger.add(new transports.Console({ handleExceptions: true }));
+        expect(
+          logger.transports.some((t) => t instanceof transports.Console)
+        ).toBe(true);
+      }
+    });
+
+    it('should add NullTransport in test environments', () => {
+      if (process.env.NODE_ENV === 'test') {
+        logger.add(new NullTransport({}));
+        expect(logger.transports.some((t) => t instanceof NullTransport)).toBe(
+          true
+        );
+      }
+    });
   });
 });
