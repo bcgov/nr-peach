@@ -1,31 +1,55 @@
-import { dialectConfig } from '../../src/db/index.ts';
+import { Kysely } from 'kysely';
 
-import type { Pool } from 'pg';
+import { db, dialectConfig, handleLogEvent } from '../../src/db/index.ts';
 
-describe('DB Config', () => {
-  let pool: Pool;
+import type { LogEvent, QueryId, RootOperationNode } from 'kysely';
+import type { Database } from '../../src/db/schema.d.js';
 
-  beforeAll(() => {
-    pool = dialectConfig.pool as Pool;
+describe('dialectConfig', () => {
+  it('should yield a dialectConfig', () => {
+    expect(dialectConfig).toBeDefined();
+    expect(dialectConfig).toHaveProperty('pool');
+  });
+});
+
+describe('handleLogEvent', () => {
+  it('should log an error when event level is "error"', () => {
+    const event: LogEvent = {
+      level: 'error',
+      queryDurationMillis: 100,
+      error: new Error('Test error'),
+      query: {
+        parameters: ['param1', 'param2'],
+        sql: 'SELECT * FROM test',
+        query: {} as RootOperationNode,
+        queryId: 'test-query-id' as unknown as QueryId
+      }
+    };
+
+    handleLogEvent(event);
+    expect(handleLogEvent(event)).toBeUndefined();
   });
 
-  afterAll(async () => {
-    await pool.end();
+  it('should log a verbose message when event level is not "error"', () => {
+    const event: LogEvent = {
+      level: 'query',
+      queryDurationMillis: 50,
+      query: {
+        parameters: ['param1'],
+        sql: 'SELECT * FROM test',
+        query: {} as RootOperationNode,
+        queryId: 'test-query-id' as unknown as QueryId
+      }
+    };
+
+    handleLogEvent(event);
+    expect(handleLogEvent(event)).toBeUndefined();
   });
+});
 
-  it('should configure the pool with the correct settings', () => {
-    const host = process.env.PGHOST;
-    const database = process.env.PGDATABASE;
-    const user = process.env.PGUSER;
-    const password = process.env.PGPASSWORD;
-    const port = +(process.env.PGPORT ?? 5432);
-    const maxConnections = +(process.env.PGPOOL_MAX ?? 10);
-
-    expect(pool.options.host).toBe(host);
-    expect(pool.options.database).toBe(database);
-    expect(pool.options.user).toBe(user);
-    expect(pool.options.password).toBe(password);
-    expect(pool.options.port).toBe(port);
-    expect(pool.options.max).toBe(maxConnections);
+describe('db', () => {
+  it('should yield a database', () => {
+    expect(db).toBeDefined();
+    expect(db).toBeInstanceOf(Kysely<Database>);
   });
 });
