@@ -11,24 +11,20 @@ config({ path: ['.env', '.env.default'] });
 const log = getLogger(import.meta.filename);
 const port = normalizePort(process.env.APP_PORT ?? '3000');
 
-// Prevent unhandled errors from crashing application
+// Prevent unhandled rejections from crashing application
 process.on('unhandledRejection', (err: Error): void => {
   if (err?.stack) log.error(err);
 });
 
 // Graceful shutdown support
-process.on('SIGTERM', shutdown);
-process.on('SIGINT', shutdown);
-process.on('SIGUSR1', shutdown);
-process.on('SIGUSR2', shutdown);
-process.on('exit', (): void => {
-  log.info('Exiting...');
+['SIGTERM', 'SIGINT', 'SIGUSR1', 'SIGUSR2'].forEach((signal) => {
+  process.on(signal, () => shutdown(signal as NodeJS.Signals));
 });
+process.on('exit', () => log.info('Exiting...'));
 
-/**
- * Create HTTP server and listen on provided port, on all network interfaces.
- */
-const server = http.createServer(app); // eslint-disable-line @typescript-eslint/no-misused-promises
+// Create HTTP server and listen on provided port, on all network interfaces.
+// eslint-disable-next-line @typescript-eslint/no-misused-promises
+const server = http.createServer(app);
 server.listen(port, (): void => {
   log.info(`Server running on http://localhost:${port}`);
 });
@@ -75,20 +71,24 @@ function onError(error: { syscall?: string; code: string }): void {
 }
 
 /**
- * Shuts down this application.
+ * Handles application shutdown on termination signals.
+ * @param signal - Received termination signal (e.g., 'SIGINT', 'SIGTERM').
  */
-function shutdown(): void {
-  log.info('Received kill signal. Shutting down...');
+function shutdown(signal: NodeJS.Signals): void {
   state.shutdown = true;
+  log.info(`Received ${signal} signal. Shutting down...`);
   cleanup();
-  // TODO: See if we want to wait 3 seconds before starting cleanup?
-  // if (!state.shutdown) setTimeout(cleanup, 3000);
 }
 
 /**
- * Cleans up connections in this application.
+ * Gracefully shuts down the server and exits the process.
+ * @see https://nodejs.org/api/http.html#servercloseallconnections
  */
 function cleanup(): void {
-  log.info('Service no longer accepting traffic');
-  process.exit();
+  state.ready = false;
+  server.close(() => {
+    server.closeAllConnections();
+    log.info('Server shut down');
+    process.exit(0);
+  });
 }

@@ -25,6 +25,7 @@ export const state = {
 };
 
 export const app = express();
+app.disable('x-powered-by');
 app.use(compression());
 app.use(cors());
 app.use(express.json());
@@ -62,6 +63,11 @@ app.get('/robots.txt', (_req: Request, res: Response): void => {
 // Root level router
 app.use(router);
 
+// Handle 404
+app.use((req: Request, res: Response): void => {
+  new Problem(404).send(req, res);
+});
+
 export const errorHandler = (
   err: Error,
   req: Request,
@@ -81,8 +87,3 @@ export const errorHandler = (
 
 // Handle 500
 app.use(errorHandler);
-
-// Handle 404
-app.use((req: Request, res: Response): void => {
-  new Problem(404).send(req, res);
-});
