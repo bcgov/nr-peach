@@ -38,8 +38,8 @@ jobs:
         env:
           cache-name: cache-node-modules
         with:
-          path: ${{ github.workspace }}/app/node_modules
-          key: ${{ runner.os }}-app-${{ env.cache-name }}-${{ hashFiles('**/app/package-lock.json') }}
+          path: ${{ github.workspace }}/node_modules
+          key: ${{ runner.os }}-app-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-app-${{ env.cache-name }}-
             ${{ runner.os }}-app-
@@ -51,7 +51,7 @@ jobs:
         if: "matrix.node-version == '22.x'"
         run: npm run lint
       - name: Test (Legacy)
-        if: "matrix.node-version == '18.x' || matrix.node-version == '20.x'"
+        if: "matrix.node-version == '20.x'"
         run: npm run test
         env:
           CI: true
