@@ -23,7 +23,7 @@ export const dialectConfig: PostgresDialectConfig = {
 // Dialect is passed to Kysely's constructor, and from now on, Kysely knows how to communicate with your database.
 export const db = new Kysely<Database>({
   dialect: new PostgresDialect(dialectConfig),
-  log: ['error' /*, 'query'*/],
+  log: ['error' /*, 'query'*/], //TODO: Ref https://kysely.dev/docs/recipes/logging#2-provide-a-custom-logging-function
   plugins: [new CamelCasePlugin()]
 });
 

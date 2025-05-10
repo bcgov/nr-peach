@@ -79,9 +79,7 @@ export const errorHandler = (
   if (err instanceof Problem) {
     err.send(req, res);
   } else {
-    new Problem(500, {
-      detail: err.message ?? err.toString()
-    }).send(req, res);
+    new Problem(500, { detail: err.message ?? err.toString() }).send(req, res);
   }
 };
 
