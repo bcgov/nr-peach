@@ -1,4 +1,5 @@
 import { existsSync, readFileSync } from 'node:fs';
+import { join } from 'node:path';
 
 import { getGitRevision } from '../../src/utils/utils.ts';
 
@@ -8,10 +9,21 @@ vi.mock('node:fs', () => ({
 }));
 
 vi.mock('node:process', () => ({
-  cwd: vi.fn(() => '/mocked/cwd')
+  cwd: vi.fn(() => join('/', 'mocked', 'cwd'))
 }));
 
 describe('getGitRevision', () => {
+  const gitHeadPath = join('/', 'mocked', 'cwd', '.git', 'HEAD');
+  const gitRefPath = join(
+    '/',
+    'mocked',
+    'cwd',
+    '.git',
+    'refs',
+    'heads',
+    'main'
+  );
+
   it('should return the git hash from HEAD when it does not contain a ref', () => {
     vi.mocked(existsSync).mockReturnValue(true);
     vi.mocked(readFileSync).mockReturnValue('mocked-hash');
@@ -19,7 +31,7 @@ describe('getGitRevision', () => {
     const result = getGitRevision();
 
     expect(result).toBe('mocked-hash');
-    expect(readFileSync).toHaveBeenCalledWith('/mocked/cwd/.git/HEAD', 'utf8');
+    expect(readFileSync).toHaveBeenCalledWith(gitHeadPath, 'utf8');
   });
 
   it('should return the git hash from the ref file when HEAD contains a ref', () => {
@@ -31,11 +43,8 @@ describe('getGitRevision', () => {
     const result = getGitRevision();
 
     expect(result).toBe('mocked-ref-hash');
-    expect(readFileSync).toHaveBeenCalledWith('/mocked/cwd/.git/HEAD', 'utf8');
-    expect(readFileSync).toHaveBeenCalledWith(
-      '/mocked/cwd/.git/refs/heads/main',
-      'utf8'
-    );
+    expect(readFileSync).toHaveBeenCalledWith(gitHeadPath, 'utf8');
+    expect(readFileSync).toHaveBeenCalledWith(gitRefPath, 'utf8');
   });
 
   it('should return an empty string if the .git directory is not found', () => {
