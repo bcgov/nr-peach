@@ -23,17 +23,17 @@ jobs:
           - '22.x'
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
       # - name: Check CodeClimate Secrets
       #   id: check-secrets
       #   run: |
       #     echo "HAS_CC_SECRETS=${{ secrets.CC_TEST_REPORTER_ID != '' }}" >> $GITHUB_OUTPUT
       - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: ${{ matrix.node-version }}
       - name: Cache node modules
-        uses: actions/cache@v4
+        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4
         id: cache-app
         env:
           cache-name: cache-node-modules
@@ -69,7 +69,7 @@ jobs:
       #     retention-days: 1
       - name: Monitor Coverage
         if: "matrix.node-version == '22.x' && ! github.event.pull_request.head.repo.fork"
-        uses: slavcodev/coverage-monitor-action@v1
+        uses: slavcodev/coverage-monitor-action@398c4cbbb710e549a8407fdef96ae8b9454d0463 # v1
         with:
           comment_mode: update
           comment_footer: false
