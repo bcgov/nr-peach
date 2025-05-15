@@ -38,10 +38,7 @@ app.use((_req: Request, res: Response, next: NextFunction): void => {
 });
 
 // Skip if running tests
-if (process.env.NODE_ENV !== 'test') {
-  state.ready = true; // TODO: Do a database check here to determine readiness
-  app.use(httpLogger);
-}
+if (process.env.NODE_ENV !== 'test') app.use(httpLogger);
 
 // Block requests until service is ready
 app.use((req: Request, res: Response, next: NextFunction): void => {
@@ -68,12 +65,21 @@ app.use((req: Request, res: Response): void => {
   new Problem(404).send(req, res);
 });
 
-export const errorHandler = (
+/**
+ * Handles errors that occur during the request-response lifecycle.
+ * Logs the error stack if available and sends an appropriate response
+ * to the client based on the type of error.
+ * @param err - The error object that was thrown.
+ * @param req - The HTTP request object.
+ * @param res - The HTTP response object.
+ * @param _next - The next middleware function in the stack (unused).
+ */
+export function errorHandler(
   err: Error,
   req: Request,
   res: Response,
   _next: NextFunction // eslint-disable-line @typescript-eslint/no-unused-vars
-): void => {
+): void {
   if (err.stack) log.error(err);
 
   if (err instanceof Problem) {
@@ -81,7 +87,7 @@ export const errorHandler = (
   } else {
     new Problem(500, { detail: err.message ?? err.toString() }).send(req, res);
   }
-};
+}
 
 // Handle 500
 app.use(errorHandler);

@@ -1,6 +1,8 @@
 // TODO: Delete this file as this will be replaced with the actual code soon
 // import { db } from './db/index.ts';
 
+export {};
+
 // db.insertInto("pies.concept")
 //   .values({
 //     class: ["a", "b"],

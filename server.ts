@@ -4,6 +4,7 @@ import { config } from 'dotenv';
 import http from 'node:http';
 
 import { app, state } from './src/app.ts';
+import { checkDatabaseHealth, checkDatabaseSchema } from './src/db/index.ts';
 import { getLogger } from './src/utils/index.ts';
 
 // Load environment variables, prioritizing .env over .env.default
@@ -29,6 +30,17 @@ server.listen(port, (): void => {
   log.info(`Server running on http://localhost:${port}`);
 });
 server.on('error', onError);
+
+// Perform preliminary database checks
+state.ready = (await checkDatabaseHealth()) && (await checkDatabaseSchema());
+
+// Start periodic 10 second connection probes
+const probeId = setInterval(() => {
+  void checkDatabaseHealth().then((result) => {
+    if (!state.ready && result) log.info('Database has recovered');
+    state.ready = result;
+  });
+}, 10000);
 
 /**
  * Normalize a port into a number, string, or false.
@@ -71,16 +83,6 @@ function onError(error: { syscall?: string; code: string }): void {
 }
 
 /**
- * Handles application shutdown on termination signals.
- * @param signal - Received termination signal (e.g., 'SIGINT', 'SIGTERM').
- */
-function shutdown(signal: NodeJS.Signals): void {
-  state.shutdown = true;
-  log.info(`Received ${signal} signal. Shutting down...`);
-  cleanup();
-}
-
-/**
  * Gracefully shuts down the server and exits the process.
  * @see https://nodejs.org/api/http.html#servercloseallconnections
  */
@@ -91,4 +93,17 @@ function cleanup(): void {
     log.info('Server shut down');
     process.exit(0);
   });
+}
+
+/**
+ * Handles application shutdown on termination signals.
+ * @param signal - Received termination signal (e.g., 'SIGINT', 'SIGTERM').
+ */
+function shutdown(signal: NodeJS.Signals): void {
+  state.shutdown = true;
+  log.info(`Received ${signal} signal. Shutting down...`);
+
+  // Stop periodic 10 second connection probes
+  clearInterval(probeId);
+  cleanup();
 }
