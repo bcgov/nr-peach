@@ -25,9 +25,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
       - name: Build & Push
-        uses: ./.github/actions/build-push-container
+        uses: bcgov/action-builder-ghcr@ace71f7a527ca6fc43c15c7806314be5a4579d2c # v2.3.0
         with:
-          context: .
-          image_name: ${{ env.APP_NAME }}
-          github_username: ${{ github.repository_owner }}
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          package: ${{ env.APP_NAME }}
+          tag: ${{ github.event.number }}
+          tag_fallback: latest
+          build_context: .
+          token: ${{ secrets.GITHUB_TOKEN }}
