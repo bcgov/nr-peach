@@ -1,5 +1,12 @@
 # NR Permitting Exchange, Aggregation and Collection Hub
 
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=bcgov_nr-peach&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=bcgov_nr-peach)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=bcgov_nr-peach&metric=coverage)](https://sonarcloud.io/summary/new_code?id=bcgov_nr-peach)
+[![Tests](https://github.com/bcgov/nr-peach/actions/workflows/unit-tests.yaml/badge.svg)](https://github.com/bcgov/nr-peach/actions/workflows/unit-tests.yaml)
+[![CodeQL](https://github.com/bcgov/nr-peach/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/bcgov/nr-peach/actions/workflows/github-code-scanning/codeql)
+
+[![Issues](https://img.shields.io/github/issues/bcgov/nr-peach)](/../../issues)
+[![Pull Requests](https://img.shields.io/github/issues-pr/bcgov/nr-peach)](/../../pulls)
 [![Lifecycle:Experimental](https://img.shields.io/badge/Lifecycle-Experimental-339999)](https://github.com/bcgov/repomountie/blob/master/doc/lifecycle-badges.md)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 
