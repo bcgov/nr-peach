@@ -1,6 +1,6 @@
 ARG APP_ROOT=/app
 ARG APP_PORT=3000
-ARG BASE_IMAGE=docker.io/node:22.15.0-alpine@sha256:ad1aedbcc1b0575074a91ac146d6956476c1f9985994810e4ee02efd932a68fd
+ARG BASE_IMAGE=docker.io/node:22.15.1-alpine@sha256:152270cd4bd094d216a84cbc3c5eb1791afb05af00b811e2f0f04bdc6c473602
 
 #
 # Build the app
