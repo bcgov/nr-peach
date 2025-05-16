@@ -1,5 +1,5 @@
-/* eslint-disable @typescript-eslint/unbound-method */
 import '../kysely.helper.ts'; // Must be imported before everything else
+import { mockSqlExecuteReturn } from '../kysely.helper.ts';
 
 import { Kysely, sql } from 'kysely';
 
@@ -14,12 +14,14 @@ import {
 } from '../../src/db/utils.ts';
 
 import type { CreateTableBuilder, KyselyConfig } from 'kysely';
+import type { Mock } from 'vitest';
 
 describe('DB Utils', () => {
   let qb: Kysely<unknown>;
 
   beforeEach(() => {
     qb = new Kysely<unknown>({} as KyselyConfig);
+    (sql as unknown as Mock).mockImplementation(mockSqlExecuteReturn(qb));
   });
 
   it('should create an audit log trigger', async () => {
@@ -34,14 +36,18 @@ describe('DB Utils', () => {
       'test_table',
       ['public', 'test_table']
     );
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(sql.raw).toHaveBeenCalledWith('test_table');
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(sql.id).toHaveBeenCalledWith('public', 'test_table');
     expect(execute).toEqual(qb);
   });
 
   it('should create an index', async () => {
     await createIndex(qb, 'public', 'test_table', ['column1', 'column2']);
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(qb.schema.withSchema).toHaveBeenCalledWith('public');
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(qb.schema.createIndex).toHaveBeenCalledWith(
       'test_table_column1_column2_index'
     );
@@ -65,7 +71,9 @@ describe('DB Utils', () => {
       'test_table',
       ['public', 'test_table']
     );
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(sql.raw).toHaveBeenCalledWith('test_table');
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(sql.id).toHaveBeenCalledWith('public', 'test_table');
     expect(execute).toEqual(qb);
   });
@@ -78,14 +86,18 @@ describe('DB Utils', () => {
       'test_table',
       ['public', 'test_table']
     );
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(sql.raw).toHaveBeenCalledWith('test_table');
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(sql.id).toHaveBeenCalledWith('public', 'test_table');
     expect(execute).toEqual(qb);
   });
 
   it('should drop an index', async () => {
     await dropIndex(qb, 'public', 'test_table', ['column1', 'column2']);
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(qb.schema.withSchema).toHaveBeenCalledWith('public');
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(qb.schema.dropIndex).toHaveBeenCalledWith(
       'test_table_column1_column2_index'
     );
@@ -101,7 +113,9 @@ describe('DB Utils', () => {
       'test_table',
       ['public', 'test_table']
     );
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(sql.raw).toHaveBeenCalledWith('test_table');
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(sql.id).toHaveBeenCalledWith('public', 'test_table');
     expect(execute).toEqual(qb);
   });
@@ -112,17 +126,21 @@ describe('DB Utils', () => {
     } as unknown as CreateTableBuilder<string>;
     const result = withTimestamps(tableBuilder);
 
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(result.addColumn).toHaveBeenCalledWith(
       'created_at',
       'timestamp',
       expect.any(Function)
     );
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(result.addColumn).toHaveBeenCalledWith(
       'created_by',
       'text',
       expect.any(Function)
     );
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(result.addColumn).toHaveBeenCalledWith('updated_at', 'timestamp');
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(result.addColumn).toHaveBeenCalledWith('updated_by', 'text');
   });
 });

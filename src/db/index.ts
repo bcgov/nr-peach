@@ -35,7 +35,7 @@ export async function checkDatabaseHealth(): Promise<boolean> {
       db
     );
     log.debug('Database is healthy');
-    return result.rows[0].result === 1;
+    return result.rows?.[0]?.result === 1;
   } catch (error) {
     log.error('Database is unhealthy', error);
     return false;
