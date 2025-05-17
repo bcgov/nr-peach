@@ -52,7 +52,7 @@ describe('checkDatabaseSchema', () => {
       [
         {
           schema: 'pies',
-          name: 'concept'
+          name: 'coding'
         },
         {
           schema: 'audit',
@@ -76,7 +76,7 @@ describe('checkDatabaseSchema', () => {
       [
         {
           schema: 'audit',
-          name: 'concept'
+          name: 'coding'
         },
         {
           schema: 'audit',

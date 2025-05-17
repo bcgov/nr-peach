@@ -98,23 +98,27 @@ export async function up(db: Kysely<unknown>): Promise<void> {
   // Create PIES tables and triggers
   await db.schema
     .withSchema('pies')
-    .createTable('concept')
+    .createTable('coding')
     .addColumn('id', 'integer', (col) =>
       col.primaryKey().generatedAlwaysAsIdentity()
     )
-    .addColumn('class', sql`_text`, (col) => col.notNull())
-    .addColumn('concept', 'text', (col) => col.notNull())
+    .addColumn('code', 'text', (col) => col.notNull())
+    .addColumn('code_display', 'text')
+    .addColumn('code_set', sql`_text`, (col) => col.notNull())
+    .addColumn('code_system', 'text', (col) => col.notNull())
     .addColumn('version', 'text', (col) => col.notNull())
-    .addUniqueConstraint('concept_class_concept_version_uk', [
-      'class',
-      'concept',
+    .addUniqueConstraint('coding_code_code_set_code_system_version_unique', [
+      'code',
+      'code_set',
+      'code_system',
       'version'
     ])
     .$call(withTimestamps)
     .execute();
-  await createIndex(db, 'pies', 'concept', ['class']);
-  await createUpdatedAtTrigger(db, 'pies', 'concept');
-  await createAuditLogTrigger(db, 'pies', 'concept');
+  await createIndex(db, 'pies', 'coding', ['code']);
+  await createIndex(db, 'pies', 'coding', ['code_set']);
+  await createUpdatedAtTrigger(db, 'pies', 'coding');
+  await createAuditLogTrigger(db, 'pies', 'coding');
 
   await db.schema
     .withSchema('pies')
@@ -129,10 +133,10 @@ export async function up(db: Kysely<unknown>): Promise<void> {
     .addColumn('is_datetime', 'boolean', (col) =>
       col.notNull().defaultTo(false)
     )
-    .addColumn('concept_id', 'integer', (col) =>
+    .addColumn('coding_id', 'integer', (col) =>
       col
         .notNull()
-        .references('concept.id')
+        .references('coding.id')
         .onUpdate('cascade')
         .onDelete('cascade')
     )
@@ -149,6 +153,15 @@ export async function up(db: Kysely<unknown>): Promise<void> {
     .execute();
   await createUpdatedAtTrigger(db, 'pies', 'process_event');
   await createAuditLogTrigger(db, 'pies', 'process_event');
+
+  await db.schema
+    .withSchema('pies')
+    .createTable('system')
+    .addColumn('id', 'text', (col) => col.primaryKey())
+    .$call(withTimestamps)
+    .execute();
+  await createUpdatedAtTrigger(db, 'pies', 'system');
+  await createAuditLogTrigger(db, 'pies', 'system');
 }
 
 /**
@@ -157,6 +170,10 @@ export async function up(db: Kysely<unknown>): Promise<void> {
  */
 export async function down(db: Kysely<unknown>): Promise<void> {
   // Drop PIES tables and triggers
+  await dropAuditLogTrigger(db, 'pies', 'system');
+  await dropUpdatedAtTrigger(db, 'pies', 'system');
+  await db.schema.withSchema('pies').dropTable('system').execute();
+
   await dropAuditLogTrigger(db, 'pies', 'process_event');
   await dropUpdatedAtTrigger(db, 'pies', 'process_event');
   await db.schema
@@ -165,10 +182,11 @@ export async function down(db: Kysely<unknown>): Promise<void> {
     .execute();
   await db.schema.withSchema('pies').dropTable('process_event').execute();
 
-  await dropAuditLogTrigger(db, 'pies', 'concept');
-  await dropUpdatedAtTrigger(db, 'pies', 'concept');
-  await dropIndex(db, 'pies', 'concept', ['class']);
-  await db.schema.withSchema('pies').dropTable('concept').execute();
+  await dropAuditLogTrigger(db, 'pies', 'coding');
+  await dropUpdatedAtTrigger(db, 'pies', 'coding');
+  await dropIndex(db, 'pies', 'coding', ['code_set']);
+  await dropIndex(db, 'pies', 'coding', ['code']);
+  await db.schema.withSchema('pies').dropTable('coding').execute();
 
   // Drop audit tables
   await dropIndex(db, 'audit', 'logged_actions', ['action']);
