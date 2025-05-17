@@ -1,7 +1,8 @@
 import express from 'express';
 import request from 'supertest';
 
-import { app, errorHandler, state } from '../src/app.ts';
+import { app, errorHandler } from '../src/app.ts';
+import { state } from '../src/state.ts';
 import { Problem } from '../src/utils/index.ts';
 
 describe('App', () => {

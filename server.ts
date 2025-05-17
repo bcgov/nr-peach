@@ -3,7 +3,8 @@
 import { config } from 'dotenv';
 import http from 'node:http';
 
-import { app, state } from './src/app.ts';
+import { app } from './src/app.ts';
+import { state } from './src/state.ts';
 import { checkDatabaseHealth, checkDatabaseSchema } from './src/db/index.ts';
 import { getLogger } from './src/utils/index.ts';
 

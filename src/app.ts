@@ -7,22 +7,12 @@ import favicon from 'serve-favicon';
 
 import router from './routes/index.ts';
 
-import {
-  getGitRevision,
-  getLogger,
-  httpLogger,
-  Problem
-} from './utils/index.ts';
+import { state } from './state.ts';
+import { getLogger, httpLogger, Problem } from './utils/index.ts';
 
 import type { NextFunction, Request, Response } from 'express';
 
 const log = getLogger(import.meta.filename);
-
-export const state = {
-  gitRev: getGitRevision(),
-  ready: false,
-  shutdown: false
-};
 
 export const app = express();
 app.disable('x-powered-by');
