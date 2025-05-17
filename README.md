@@ -5,12 +5,17 @@
 [![Tests](https://github.com/bcgov/nr-peach/actions/workflows/unit-tests.yaml/badge.svg)](https://github.com/bcgov/nr-peach/actions/workflows/unit-tests.yaml)
 [![CodeQL](https://github.com/bcgov/nr-peach/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/bcgov/nr-peach/actions/workflows/github-code-scanning/codeql)
 
+[![Reliability Rating](https://sonarcloud.io/api/project_badges/measure?project=bcgov_nr-peach&metric=reliability_rating)](https://sonarcloud.io/summary/new_code?id=bcgov_nr-peach)
+[![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=bcgov_nr-peach&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=bcgov_nr-peach)
+[![Technical Debt](https://sonarcloud.io/api/project_badges/measure?project=bcgov_nr-peach&metric=sqale_index)](https://sonarcloud.io/summary/new_code?id=bcgov_nr-peach)
+[![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=bcgov_nr-peach&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=bcgov_nr-peach)
+
 [![Issues](https://img.shields.io/github/issues/bcgov/nr-peach)](/../../issues)
 [![Pull Requests](https://img.shields.io/github/issues-pr/bcgov/nr-peach)](/../../pulls)
 [![Lifecycle:Experimental](https://img.shields.io/badge/Lifecycle-Experimental-339999)](https://github.com/bcgov/repomountie/blob/master/doc/lifecycle-badges.md)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 
-TBD
+TBD: NR Permitting Exchange, Aggregation and Collection Hub
 
 ## Directory Structure
 

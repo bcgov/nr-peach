@@ -23,7 +23,6 @@
     "postinstall": "simple-git-hooks",
     "prelint": "npm run typecheck",
     "prelint:fix": "npm run typecheck",
-    "posttest:cov": "node --experimental-transform-types lcovFix.util.ts",
     "purge": "rimraf node_modules",
     "seed:list": "kysely seed list",
     "seed:make": "kysely seed make",
@@ -31,10 +30,10 @@
     "serve": "node --experimental-transform-types --watch server.ts",
     "start": "node --experimental-transform-types server.ts",
     "test": "vitest",
-    "test:cov": "vitest run --coverage",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@tsconfig/node22": "22.0.1",
     "ajv": "8.17.1",
     "ajv-formats": "3.0.1",
     "compression": "1.8.0",
@@ -53,7 +52,6 @@
   },
   "devDependencies": {
     "@eslint/js": "9.25.1",
-    "@tsconfig/node22": "22.0.1",
     "@types/compression": "1.7.5",
     "@types/cors": "2.8.18",
     "@types/express": "5.0.1",
