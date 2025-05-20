@@ -27,13 +27,10 @@ process.on('exit', () => log.info('Exiting...'));
 // Create HTTP server and listen on provided port, on all network interfaces.
 // eslint-disable-next-line @typescript-eslint/no-misused-promises
 const server = http.createServer(app);
-server.listen(port, (): void => {
+server.listen(port, () => {
   log.info(`Server running on http://localhost:${port}`);
 });
 server.on('error', onError);
-
-// Perform preliminary database checks
-state.ready = (await checkDatabaseHealth()) && (await checkDatabaseSchema());
 
 // Start periodic 10 second connection probes
 const probeId = setInterval(() => {
@@ -42,6 +39,9 @@ const probeId = setInterval(() => {
     state.ready = result;
   });
 }, 10000);
+
+// Perform preliminary database checks
+void startup();
 
 /**
  * Normalize a port into a number, string, or false.
@@ -105,6 +105,20 @@ function shutdown(signal: NodeJS.Signals): void {
   log.info(`Received ${signal} signal. Shutting down...`);
 
   // Stop periodic 10 second connection probes
-  clearInterval(probeId);
+  if (probeId) clearInterval(probeId);
   cleanup();
+}
+
+/**
+ * Initializes the server by performing database health and schema checks.
+ */
+async function startup(): Promise<void> {
+  try {
+    if (!(await checkDatabaseHealth())) throw new Error('Health check failed');
+    if (!(await checkDatabaseSchema())) throw new Error('Schema check failed');
+    state.ready = true;
+  } catch (error) {
+    log.error('Error during database checks:', error);
+    shutdown('SIGTERM');
+  }
 }
