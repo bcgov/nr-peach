@@ -52,7 +52,16 @@ export async function checkDatabaseSchema(): Promise<boolean> {
   // TODO: Should this be in a different location?
   const expected = Object.freeze({
     schemas: ['audit', 'pies'],
-    tables: ['coding', 'logged_actions', 'process_event']
+    tables: [
+      'logged_actions',
+      'coding',
+      'process_event',
+      'record_kind',
+      'system',
+      'system_record',
+      'transaction',
+      'version'
+    ]
   });
 
   try {

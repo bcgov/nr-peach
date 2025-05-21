@@ -50,18 +50,14 @@ describe('checkDatabaseSchema', () => {
   it('should return true when the database schema matches the expected structure', async () => {
     getTablesSpy.mockResolvedValue(
       [
-        {
-          schema: 'pies',
-          name: 'coding'
-        },
-        {
-          schema: 'audit',
-          name: 'logged_actions'
-        },
-        {
-          schema: 'pies',
-          name: 'process_event'
-        }
+        { schema: 'audit', name: 'logged_actions' },
+        { schema: 'pies', name: 'coding' },
+        { schema: 'pies', name: 'process_event' },
+        { schema: 'pies', name: 'record_kind' },
+        { schema: 'pies', name: 'system' },
+        { schema: 'pies', name: 'system_record' },
+        { schema: 'pies', name: 'transaction' },
+        { schema: 'pies', name: 'version' }
       ].map((r) => ({ ...r, isView: false, columns: [] }))
     );
 
@@ -74,14 +70,8 @@ describe('checkDatabaseSchema', () => {
   it('should return false when the database schema does not match the expected structure', async () => {
     getTablesSpy.mockResolvedValue(
       [
-        {
-          schema: 'audit',
-          name: 'coding'
-        },
-        {
-          schema: 'audit',
-          name: 'logged_actions'
-        }
+        { schema: 'audit', name: 'logged_actions' },
+        { schema: 'audit', name: 'coding' } // Force a false situation with a different schema
       ].map((r) => ({ ...r, isView: false, columns: [] }))
     );
 

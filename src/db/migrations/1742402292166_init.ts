@@ -18,7 +18,9 @@ import {
  * @param db Database
  */
 export async function up(db: Kysely<unknown>): Promise<void> {
+  //
   // Create audit and pies schemas
+  //
   await db.schema.createSchema('audit').ifNotExists().execute();
   await db.schema.createSchema('pies').ifNotExists().execute();
 
@@ -72,7 +74,11 @@ export async function up(db: Kysely<unknown>): Promise<void> {
     END;
     $$`.execute(db);
 
+  //
   // Create audit tables
+  //
+
+  // audit.logged_actions
   await db.schema
     .withSchema('audit')
     .createTable('logged_actions')
@@ -95,7 +101,41 @@ export async function up(db: Kysely<unknown>): Promise<void> {
   await createIndex(db, 'audit', 'logged_actions', ['action_timestamp']);
   await createIndex(db, 'audit', 'logged_actions', ['action']);
 
+  //
   // Create PIES tables and triggers
+  //
+
+  // pies.system
+  await db.schema
+    .withSchema('pies')
+    .createTable('system')
+    .addColumn('id', 'text', (col) => col.primaryKey())
+    .$call(withTimestamps)
+    .execute();
+  await createUpdatedAtTrigger(db, 'pies', 'system');
+  await createAuditLogTrigger(db, 'pies', 'system');
+
+  // pies.transaction
+  await db.schema
+    .withSchema('pies')
+    .createTable('transaction')
+    .addColumn('id', 'uuid', (col) => col.primaryKey())
+    .$call(withTimestamps)
+    .execute();
+  await createUpdatedAtTrigger(db, 'pies', 'transaction');
+  await createAuditLogTrigger(db, 'pies', 'transaction');
+
+  // pies.version
+  await db.schema
+    .withSchema('pies')
+    .createTable('version')
+    .addColumn('id', 'text', (col) => col.primaryKey())
+    .$call(withTimestamps)
+    .execute();
+  await createUpdatedAtTrigger(db, 'pies', 'version');
+  await createAuditLogTrigger(db, 'pies', 'version');
+
+  // pies.coding
   await db.schema
     .withSchema('pies')
     .createTable('coding')
@@ -106,12 +146,18 @@ export async function up(db: Kysely<unknown>): Promise<void> {
     .addColumn('code_display', 'text')
     .addColumn('code_set', sql`_text`, (col) => col.notNull())
     .addColumn('code_system', 'text', (col) => col.notNull())
-    .addColumn('version', 'text', (col) => col.notNull())
-    .addUniqueConstraint('coding_code_code_set_code_system_version_unique', [
+    .addColumn('version_id', 'text', (col) =>
+      col
+        .notNull()
+        .references('version.id')
+        .onUpdate('cascade')
+        .onDelete('cascade')
+    )
+    .addUniqueConstraint('coding_code_code_set_code_system_version_id_unique', [
       'code',
       'code_set',
       'code_system',
-      'version'
+      'version_id'
     ])
     .$call(withTimestamps)
     .execute();
@@ -120,14 +166,80 @@ export async function up(db: Kysely<unknown>): Promise<void> {
   await createUpdatedAtTrigger(db, 'pies', 'coding');
   await createAuditLogTrigger(db, 'pies', 'coding');
 
+  // pies.record_kind
+  await db.schema
+    .withSchema('pies')
+    .createTable('record_kind')
+    .addColumn('id', 'integer', (col) =>
+      col.primaryKey().generatedAlwaysAsIdentity()
+    )
+    .addColumn('kind', 'text', (col) => col.notNull())
+    .addColumn('version_id', 'text', (col) =>
+      col
+        .notNull()
+        .references('version.id')
+        .onUpdate('cascade')
+        .onDelete('cascade')
+    )
+    .$call(withTimestamps)
+    .execute();
+  await createUpdatedAtTrigger(db, 'pies', 'record_kind');
+  await createAuditLogTrigger(db, 'pies', 'record_kind');
+
+  // pies.system_record
+  await db.schema
+    .withSchema('pies')
+    .createTable('system_record')
+    .addColumn('id', 'integer', (col) =>
+      col.primaryKey().generatedAlwaysAsIdentity()
+    )
+    .addColumn('system_id', 'text', (col) =>
+      col
+        .notNull()
+        .references('system.id')
+        .onUpdate('cascade')
+        .onDelete('cascade')
+    )
+    .addColumn('record_id', 'text', (col) => col.notNull())
+    .addColumn('record_kind_id', 'integer', (col) =>
+      col
+        .notNull()
+        .references('record_kind.id')
+        .onUpdate('cascade')
+        .onDelete('cascade')
+    )
+    .addUniqueConstraint('system_record_system_id_record_id_unique', [
+      'system_id',
+      'record_id'
+    ])
+    .$call(withTimestamps)
+    .execute();
+  await createIndex(db, 'pies', 'system_record', ['record_id']);
+  await createIndex(db, 'pies', 'system_record', ['system_id']);
+  await createUpdatedAtTrigger(db, 'pies', 'system_record');
+  await createAuditLogTrigger(db, 'pies', 'system_record');
+
+  // pies.process_event
   await db.schema
     .withSchema('pies')
     .createTable('process_event')
     .addColumn('id', 'integer', (col) =>
       col.primaryKey().generatedAlwaysAsIdentity()
     )
-    .addColumn('tx_id', 'uuid', (col) => col.notNull().unique())
-    .addColumn('system_record_id', 'integer', (col) => col.notNull())
+    .addColumn('transaction_id', 'uuid', (col) =>
+      col
+        .notNull()
+        .references('transaction.id')
+        .onUpdate('cascade')
+        .onDelete('cascade')
+    )
+    .addColumn('system_record_id', 'integer', (col) =>
+      col
+        .notNull()
+        .references('system_record.id')
+        .onUpdate('cascade')
+        .onDelete('cascade')
+    )
     .addColumn('start_date', 'timestamp', (col) => col.notNull())
     .addColumn('end_date', 'timestamp')
     .addColumn('is_datetime', 'boolean', (col) =>
@@ -145,23 +257,11 @@ export async function up(db: Kysely<unknown>): Promise<void> {
     .addColumn('description', 'text')
     .$call(withTimestamps)
     .execute();
-  await db.schema
-    .withSchema('pies')
-    .createIndex('process_event_system_record_id_index')
-    .on('process_event')
-    .columns(['system_record_id'])
-    .execute();
+  await createIndex(db, 'pies', 'process_event', ['system_record_id']);
   await createUpdatedAtTrigger(db, 'pies', 'process_event');
   await createAuditLogTrigger(db, 'pies', 'process_event');
 
-  await db.schema
-    .withSchema('pies')
-    .createTable('system')
-    .addColumn('id', 'text', (col) => col.primaryKey())
-    .$call(withTimestamps)
-    .execute();
-  await createUpdatedAtTrigger(db, 'pies', 'system');
-  await createAuditLogTrigger(db, 'pies', 'system');
+  // pies.record_linkage
 }
 
 /**
@@ -169,26 +269,55 @@ export async function up(db: Kysely<unknown>): Promise<void> {
  * @param db Database
  */
 export async function down(db: Kysely<unknown>): Promise<void> {
+  //
   // Drop PIES tables and triggers
-  await dropAuditLogTrigger(db, 'pies', 'system');
-  await dropUpdatedAtTrigger(db, 'pies', 'system');
-  await db.schema.withSchema('pies').dropTable('system').execute();
+  //
 
+  // pies.record_linkage
+
+  // pies.process_event
   await dropAuditLogTrigger(db, 'pies', 'process_event');
   await dropUpdatedAtTrigger(db, 'pies', 'process_event');
-  await db.schema
-    .withSchema('pies')
-    .dropIndex('process_event_system_record_id_index')
-    .execute();
+  await dropIndex(db, 'pies', 'process_event', ['system_record_id']);
   await db.schema.withSchema('pies').dropTable('process_event').execute();
 
+  // pies.system_record
+  await dropAuditLogTrigger(db, 'pies', 'system_record');
+  await dropUpdatedAtTrigger(db, 'pies', 'system_record');
+  await db.schema.withSchema('pies').dropTable('system_record').execute();
+
+  // pies.record_kind
+  await dropAuditLogTrigger(db, 'pies', 'record_kind');
+  await dropUpdatedAtTrigger(db, 'pies', 'record_kind');
+  await db.schema.withSchema('pies').dropTable('record_kind').execute();
+
+  // pies.coding
   await dropAuditLogTrigger(db, 'pies', 'coding');
   await dropUpdatedAtTrigger(db, 'pies', 'coding');
   await dropIndex(db, 'pies', 'coding', ['code_set']);
   await dropIndex(db, 'pies', 'coding', ['code']);
   await db.schema.withSchema('pies').dropTable('coding').execute();
 
+  // pies.version
+  await dropAuditLogTrigger(db, 'pies', 'version');
+  await dropUpdatedAtTrigger(db, 'pies', 'version');
+  await db.schema.withSchema('pies').dropTable('version').execute();
+
+  // pies.transaction
+  await dropAuditLogTrigger(db, 'pies', 'transaction');
+  await dropUpdatedAtTrigger(db, 'pies', 'transaction');
+  await db.schema.withSchema('pies').dropTable('transaction').execute();
+
+  // pies.system
+  await dropAuditLogTrigger(db, 'pies', 'system');
+  await dropUpdatedAtTrigger(db, 'pies', 'system');
+  await db.schema.withSchema('pies').dropTable('system').execute();
+
+  //
   // Drop audit tables
+  //
+
+  // audit.logged_actions
   await dropIndex(db, 'audit', 'logged_actions', ['action']);
   await dropIndex(db, 'audit', 'logged_actions', ['action_timestamp']);
   await dropIndex(db, 'audit', 'logged_actions', ['table_name']);
@@ -199,7 +328,9 @@ export async function down(db: Kysely<unknown>): Promise<void> {
   await sql`DROP FUNCTION IF EXISTS pies.set_updated_at_func`.execute(db);
   await sql`DROP FUNCTION IF EXISTS audit.if_modified_func`.execute(db);
 
+  //
   // Drop audit and pies schemas
+  //
   await db.schema.dropSchema('pies').execute();
   await db.schema.dropSchema('audit').execute();
 }
