@@ -262,6 +262,48 @@ export async function up(db: Kysely<unknown>): Promise<void> {
   await createAuditLogTrigger(db, 'pies', 'process_event');
 
   // pies.record_linkage
+  await db.schema
+    .withSchema('pies')
+    .createTable('record_linkage')
+    .addColumn('id', 'integer', (col) =>
+      col.primaryKey().generatedAlwaysAsIdentity()
+    )
+    .addColumn('transaction_id', 'uuid', (col) =>
+      col
+        .notNull()
+        .references('transaction.id')
+        .onUpdate('cascade')
+        .onDelete('cascade')
+    )
+    .addColumn('system_record_id', 'integer', (col) =>
+      col
+        .notNull()
+        .references('system_record.id')
+        .onUpdate('cascade')
+        .onDelete('cascade')
+    )
+    .addColumn('linked_system_record_id', 'integer', (col) =>
+      col
+        .notNull()
+        .references('system_record.id')
+        .onUpdate('cascade')
+        .onDelete('cascade')
+    )
+    .addColumn('linkage_kind', 'text', (col) => col.notNull())
+    .addUniqueConstraint('record_linkage_forward_unique', [
+      'system_record_id',
+      'linked_system_record_id'
+    ])
+    .addUniqueConstraint('record_linkage_reverse_unique', [
+      'linked_system_record_id',
+      'system_record_id'
+    ])
+    .$call(withTimestamps)
+    .execute();
+  await createIndex(db, 'pies', 'record_linkage', ['system_record_id']);
+  await createIndex(db, 'pies', 'record_linkage', ['linked_system_record_id']);
+  await createUpdatedAtTrigger(db, 'pies', 'record_linkage');
+  await createAuditLogTrigger(db, 'pies', 'record_linkage');
 }
 
 /**
@@ -274,6 +316,11 @@ export async function down(db: Kysely<unknown>): Promise<void> {
   //
 
   // pies.record_linkage
+  await dropAuditLogTrigger(db, 'pies', 'record_linkage');
+  await dropUpdatedAtTrigger(db, 'pies', 'record_linkage');
+  await dropIndex(db, 'pies', 'record_linkage', ['linked_system_record_id']);
+  await dropIndex(db, 'pies', 'record_linkage', ['system_record_id']);
+  await db.schema.withSchema('pies').dropTable('record_linkage').execute();
 
   // pies.process_event
   await dropAuditLogTrigger(db, 'pies', 'process_event');
