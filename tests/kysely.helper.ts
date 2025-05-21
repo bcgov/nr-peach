@@ -11,6 +11,7 @@ vi.mock('kysely', async (importActual) => ({
       createIndex: vi.fn().mockReturnThis(),
       dropIndex: vi.fn().mockReturnThis(),
       execute: vi.fn((qb: Kysely<unknown>) => qb),
+      ifExists: vi.fn().mockReturnThis(),
       on: vi.fn().mockReturnThis(),
       withSchema: vi.fn().mockReturnThis()
     };

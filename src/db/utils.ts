@@ -93,6 +93,7 @@ export function dropIndex(
   return qb.schema
     .withSchema(schema)
     .dropIndex(`${table}_${columns.join('_')}_index`)
+    .ifExists()
     .execute();
 }
 

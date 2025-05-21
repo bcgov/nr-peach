@@ -102,6 +102,8 @@ describe('DB Utils', () => {
       'test_table_column1_column2_index'
     );
     // @ts-expect-error ts2339
+    expect(qb.schema.ifExists).toHaveBeenCalled();
+    // @ts-expect-error ts2339
     expect(qb.schema.execute).toHaveBeenCalled();
   });
 
