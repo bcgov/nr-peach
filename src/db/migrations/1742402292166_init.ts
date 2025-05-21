@@ -144,7 +144,6 @@ export async function up(db: Kysely<unknown>): Promise<void> {
     )
     .addColumn('code', 'text', (col) => col.notNull())
     .addColumn('code_display', 'text')
-    .addColumn('code_set', sql`_text`, (col) => col.notNull())
     .addColumn('code_system', 'text', (col) => col.notNull())
     .addColumn('version_id', 'text', (col) =>
       col
@@ -153,16 +152,14 @@ export async function up(db: Kysely<unknown>): Promise<void> {
         .onUpdate('cascade')
         .onDelete('cascade')
     )
-    .addUniqueConstraint('coding_code_code_set_code_system_version_id_unique', [
+    .addUniqueConstraint('coding_code_code_system_version_id_unique', [
       'code',
-      'code_set',
       'code_system',
       'version_id'
     ])
     .$call(withTimestamps)
     .execute();
   await createIndex(db, 'pies', 'coding', ['code']);
-  await createIndex(db, 'pies', 'coding', ['code_set']);
   await createUpdatedAtTrigger(db, 'pies', 'coding');
   await createAuditLogTrigger(db, 'pies', 'coding');
 
@@ -174,13 +171,6 @@ export async function up(db: Kysely<unknown>): Promise<void> {
       col.primaryKey().generatedAlwaysAsIdentity()
     )
     .addColumn('kind', 'text', (col) => col.notNull())
-    .addColumn('version_id', 'text', (col) =>
-      col
-        .notNull()
-        .references('version.id')
-        .onUpdate('cascade')
-        .onDelete('cascade')
-    )
     .$call(withTimestamps)
     .execute();
   await createUpdatedAtTrigger(db, 'pies', 'record_kind');
@@ -254,7 +244,7 @@ export async function up(db: Kysely<unknown>): Promise<void> {
     )
     .addColumn('status', 'text')
     .addColumn('status_code', 'text')
-    .addColumn('description', 'text')
+    .addColumn('status_description', 'text')
     .$call(withTimestamps)
     .execute();
   await createIndex(db, 'pies', 'process_event', ['system_record_id']);
@@ -271,6 +261,7 @@ export async function up(db: Kysely<unknown>): Promise<void> {
     .addColumn('transaction_id', 'uuid', (col) =>
       col
         .notNull()
+        .unique()
         .references('transaction.id')
         .onUpdate('cascade')
         .onDelete('cascade')
@@ -289,7 +280,6 @@ export async function up(db: Kysely<unknown>): Promise<void> {
         .onUpdate('cascade')
         .onDelete('cascade')
     )
-    .addColumn('linkage_kind', 'text', (col) => col.notNull())
     .addUniqueConstraint('record_linkage_forward_unique', [
       'system_record_id',
       'linked_system_record_id'
@@ -341,7 +331,6 @@ export async function down(db: Kysely<unknown>): Promise<void> {
   // pies.coding
   await dropAuditLogTrigger(db, 'pies', 'coding');
   await dropUpdatedAtTrigger(db, 'pies', 'coding');
-  await dropIndex(db, 'pies', 'coding', ['code_set']);
   await dropIndex(db, 'pies', 'coding', ['code']);
   await db.schema.withSchema('pies').dropTable('coding').execute();
 
