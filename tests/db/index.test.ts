@@ -13,7 +13,7 @@ import {
 
 import type { LogEvent, QueryId, RootOperationNode } from 'kysely';
 import type { Mock } from 'vitest';
-import type { DB } from '../../src/db/schema.d.js';
+import type { DB } from '../../src/db/models.d.ts';
 
 describe('dialectConfig', () => {
   it('should yield a dialectConfig', () => {
