@@ -1,4 +1,4 @@
-#!/usr/bin/env node
+#!/usr/bin/env node --experimental-transform-types
 
 import { config } from 'dotenv';
 import http from 'node:http';

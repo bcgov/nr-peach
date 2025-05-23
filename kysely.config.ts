@@ -1,3 +1,5 @@
+#!/usr/bin/env node --experimental-transform-types
+
 import { defineConfig } from 'kysely-ctl';
 
 import { db } from './src/db/index.ts';
