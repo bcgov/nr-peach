@@ -56,7 +56,16 @@ runs:
         push: true
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
+        annotations: ${{ steps.meta.outputs.annotations }}
     - name: Inspect Docker Image
       shell: bash
       run: |
         docker image inspect ghcr.io/${{ env.GH_USERNAME }}/${{ inputs.image_name }}:latest
+    - name: Attest
+      uses: actions/attest@v2.3.0
+      id: attest
+      with:
+        subject-name: ghcr.io/${{ env.GH_USERNAME }}/${{ inputs.image_name }}
+        subject-digest: ${{ steps.builder.outputs.digest }}
+        predicate-type: 'https://in-toto.io/attestation/release/v0.1'
+        predicate: '{"purl":"pkg:oci/${{ env.GH_USERNAME }}/${{ inputs.image_name }}"}'
