@@ -51,7 +51,7 @@ describe('Problem', () => {
     expect(problem.title).toBe('Bad Request');
     expect(problem.detail).toBeUndefined();
     expect(problem.type).toBe('https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/400');
-    // @ts-expect-error ts2339
+    // @ts-expect-error ts(2339)
     expect(problem.custom).toBe('extra');
   });
 

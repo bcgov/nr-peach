@@ -35,7 +35,7 @@ export function getGitRevision(): string {
         .trim();
     }
   } catch (err: unknown) {
-    // @ts-expect-error ts18046
+    // @ts-expect-error ts(18046)
     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     log.warn(err.message, { function: 'getGitRevision' });
     return '';
