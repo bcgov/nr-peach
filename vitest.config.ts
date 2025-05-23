@@ -1,5 +1,3 @@
-#!/usr/bin/env node --experimental-transform-types
-
 // Configure Vitest (https://vitest.dev/config/)
 import { coverageConfigDefaults, defineConfig } from 'vitest/config';
 
