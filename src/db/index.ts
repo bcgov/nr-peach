@@ -5,7 +5,7 @@ import { Pool } from 'pg';
 import { getLogger } from '../utils/index.ts';
 
 import type { LogEvent, PostgresDialectConfig } from 'kysely';
-import type { Database } from './schema.d.ts';
+import type { DB } from './schema.d.ts';
 
 // Load environment variables, prioritizing .env over .env.default
 config({ path: ['.env', '.env.default'] });
@@ -109,7 +109,7 @@ export function handleLogEvent(event: LogEvent): void {
 
 // Database interface is passed to Kysely's constructor, and from now on, Kysely knows your database structure.
 // Dialect is passed to Kysely's constructor, and from now on, Kysely knows how to communicate with your database.
-export const db = new Kysely<Database>({
+export const db = new Kysely<DB>({
   dialect: new PostgresDialect(dialectConfig),
   log: handleLogEvent,
   plugins: [new CamelCasePlugin()]

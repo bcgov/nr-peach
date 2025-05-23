@@ -1,0 +1,20 @@
+{
+  "camelCase": true,
+  "dateParser": "timestamp",
+  "defaultSchemas": ["pies"],
+  "dialect": "postgres",
+  "domains": false,
+  "excludePattern": null,
+  "includePattern": "pies.*",
+  "logLevel": "info",
+  "numericParser": "number",
+  "outFile": "./src/db/schema.d.ts",
+  "overrides": {},
+  "partitions": false,
+  "print": false,
+  "runtimeEnums": false,
+  "singularize": false,
+  "typeOnlyImports": true,
+  "url": "env(DATABASE_URL)",
+  "verify": false
+}

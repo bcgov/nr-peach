@@ -13,7 +13,7 @@ import {
 
 import type { LogEvent, QueryId, RootOperationNode } from 'kysely';
 import type { Mock } from 'vitest';
-import type { Database } from '../../src/db/schema.d.js';
+import type { DB } from '../../src/db/schema.d.js';
 
 describe('dialectConfig', () => {
   it('should yield a dialectConfig', () => {
@@ -129,6 +129,6 @@ describe('handleLogEvent', () => {
 describe('db', () => {
   it('should yield a database', () => {
     expect(db).toBeDefined();
-    expect(db).toBeInstanceOf(Kysely<Database>);
+    expect(db).toBeInstanceOf(Kysely<DB>);
   });
 });
