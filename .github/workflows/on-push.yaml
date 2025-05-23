@@ -3,7 +3,6 @@ name: Push
 env:
   ACRONYM: peach
   APP_NAME: nr-peach
-  # NAMESPACE_PREFIX:
 
 on:
   push:
@@ -21,6 +20,9 @@ jobs:
     name: Build & Push
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    permissions:
+      contents: read
+      packages: write
     steps:
       - name: Checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4

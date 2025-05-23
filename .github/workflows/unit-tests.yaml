@@ -16,6 +16,9 @@ jobs:
     outputs:
       HAS_SONAR_SECRETS: ${{ steps.check-secrets.outputs.HAS_SONAR_SECRETS }}
     timeout-minutes: 10
+    permissions:
+      contents: read
+      pull-requests: write
     strategy:
       fail-fast: true
       matrix:
@@ -80,6 +83,8 @@ jobs:
     if: needs.test-app.outputs.HAS_SONAR_SECRETS == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    permissions:
+      contents: read
     steps:
       - name: Checkout Repository
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
