@@ -27,12 +27,7 @@ export function createAuditLogTrigger(
  * @param columns Columns
  * @returns Query Builder Promise
  */
-export function createIndex(
-  qb: Kysely<unknown>,
-  schema: string,
-  table: string,
-  columns: string[]
-): Promise<void> {
+export function createIndex(qb: Kysely<unknown>, schema: string, table: string, columns: string[]): Promise<void> {
   return qb.schema
     .withSchema(schema)
     .createIndex(`${table}_${columns.join('_')}_index`)
@@ -65,15 +60,8 @@ export function createUpdatedAtTrigger(
  * @param table Table
  * @returns Query Builder Promise
  */
-export function dropAuditLogTrigger(
-  qb: Kysely<unknown>,
-  schema: string,
-  table: string
-): Promise<QueryResult<unknown>> {
-  return sql`DROP TRIGGER IF EXISTS audit_${sql.raw(table)}_au_trigger ON ${sql.id(
-    schema,
-    table
-  )}`.execute(qb);
+export function dropAuditLogTrigger(qb: Kysely<unknown>, schema: string, table: string): Promise<QueryResult<unknown>> {
+  return sql`DROP TRIGGER IF EXISTS audit_${sql.raw(table)}_au_trigger ON ${sql.id(schema, table)}`.execute(qb);
 }
 
 /**
@@ -84,12 +72,7 @@ export function dropAuditLogTrigger(
  * @param columns Columns
  * @returns Query Builder Promise
  */
-export function dropIndex(
-  qb: Kysely<unknown>,
-  schema: string,
-  table: string,
-  columns: string[]
-): Promise<void> {
+export function dropIndex(qb: Kysely<unknown>, schema: string, table: string, columns: string[]): Promise<void> {
   return qb.schema
     .withSchema(schema)
     .dropIndex(`${table}_${columns.join('_')}_index`)
@@ -109,10 +92,7 @@ export function dropUpdatedAtTrigger(
   schema: string,
   table: string
 ): Promise<QueryResult<unknown>> {
-  return sql`DROP TRIGGER IF EXISTS pies_${sql.raw(table)}_bu_trigger ON ${sql.id(
-    schema,
-    table
-  )}`.execute(qb);
+  return sql`DROP TRIGGER IF EXISTS pies_${sql.raw(table)}_bu_trigger ON ${sql.id(schema, table)}`.execute(qb);
 }
 
 /**
@@ -120,13 +100,9 @@ export function dropUpdatedAtTrigger(
  * @param qb The table builder to add timestamps to.
  * @returns The table builder with timestamps added. Should be invoked within a $call.
  */
-export function withTimestamps<TB extends string>(
-  qb: CreateTableBuilder<TB>
-): CreateTableBuilder<TB> {
+export function withTimestamps<TB extends string>(qb: CreateTableBuilder<TB>): CreateTableBuilder<TB> {
   return qb
-    .addColumn('created_at', 'timestamp', (col) =>
-      col.notNull().defaultTo(sql`now()`)
-    )
+    .addColumn('created_at', 'timestamp', (col) => col.notNull().defaultTo(sql`now()`))
     .addColumn('created_by', 'text', (col) => col.notNull())
     .addColumn('updated_at', 'timestamp')
     .addColumn('updated_by', 'text');

@@ -11,9 +11,7 @@ describe('getDocHTML', () => {
     );
     // eslint-disable-next-line quotes
     expect(result).toContain("<redoc spec-url='/docs/openapi.yaml' />");
-    expect(result).toContain(
-      '<script src="https://cdn.redoc.ly/redoc/latest/bundles/redoc.standalone.js"></script>'
-    );
+    expect(result).toContain('<script src="https://cdn.redoc.ly/redoc/latest/bundles/redoc.standalone.js"></script>');
   });
 
   it('should return a valid HTML string with a custom version', () => {
@@ -27,8 +25,6 @@ describe('getDocHTML', () => {
     );
     // eslint-disable-next-line quotes
     expect(result).toContain("<redoc spec-url='/docs/openapi.yaml' />");
-    expect(result).toContain(
-      '<script src="https://cdn.redoc.ly/redoc/latest/bundles/redoc.standalone.js"></script>'
-    );
+    expect(result).toContain('<script src="https://cdn.redoc.ly/redoc/latest/bundles/redoc.standalone.js"></script>');
   });
 });

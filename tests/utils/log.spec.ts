@@ -1,11 +1,6 @@
 import { createLogger, format, transports } from 'winston';
 
-import {
-  dynamicMeta,
-  getLogger,
-  httpLogger,
-  NullTransport
-} from '../../src/utils/log.ts';
+import { dynamicMeta, getLogger, httpLogger, NullTransport } from '../../src/utils/log.ts';
 
 import type { Request, Response } from 'express';
 
@@ -155,11 +150,7 @@ describe('Logger', () => {
     beforeEach(() => {
       logger = createLogger({
         exitOnError: false,
-        format: format.combine(
-          format.errors({ stack: true }),
-          format.timestamp(),
-          format.simple()
-        ),
+        format: format.combine(format.errors({ stack: true }), format.timestamp(), format.simple()),
         level: 'http'
       });
     });
@@ -172,18 +163,14 @@ describe('Logger', () => {
     it('should add Console transport in non-test environments', () => {
       if (process.env.NODE_ENV !== 'test') {
         logger.add(new transports.Console({ handleExceptions: true }));
-        expect(
-          logger.transports.some((t) => t instanceof transports.Console)
-        ).toBe(true);
+        expect(logger.transports.some((t) => t instanceof transports.Console)).toBe(true);
       }
     });
 
     it('should add NullTransport in test environments', () => {
       if (process.env.NODE_ENV === 'test') {
         logger.add(new NullTransport({}));
-        expect(logger.transports.some((t) => t instanceof NullTransport)).toBe(
-          true
-        );
+        expect(logger.transports.some((t) => t instanceof NullTransport)).toBe(true);
       }
     });
   });

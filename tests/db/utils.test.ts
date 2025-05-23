@@ -48,9 +48,7 @@ describe('DB Utils', () => {
     // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(qb.schema.withSchema).toHaveBeenCalledWith('public');
     // eslint-disable-next-line @typescript-eslint/unbound-method
-    expect(qb.schema.createIndex).toHaveBeenCalledWith(
-      'test_table_column1_column2_index'
-    );
+    expect(qb.schema.createIndex).toHaveBeenCalledWith('test_table_column1_column2_index');
     // @ts-expect-error ts2339
     expect(qb.schema.on).toHaveBeenCalledWith('test_table');
     // @ts-expect-error ts2339
@@ -81,11 +79,10 @@ describe('DB Utils', () => {
   it('should drop an audit log trigger', async () => {
     const execute = await dropAuditLogTrigger(qb, 'public', 'test_table');
 
-    expect(sql).toHaveBeenCalledWith(
-      ['DROP TRIGGER IF EXISTS audit_', '_au_trigger ON ', ''],
-      'test_table',
-      ['public', 'test_table']
-    );
+    expect(sql).toHaveBeenCalledWith(['DROP TRIGGER IF EXISTS audit_', '_au_trigger ON ', ''], 'test_table', [
+      'public',
+      'test_table'
+    ]);
     // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(sql.raw).toHaveBeenCalledWith('test_table');
     // eslint-disable-next-line @typescript-eslint/unbound-method
@@ -98,9 +95,7 @@ describe('DB Utils', () => {
     // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(qb.schema.withSchema).toHaveBeenCalledWith('public');
     // eslint-disable-next-line @typescript-eslint/unbound-method
-    expect(qb.schema.dropIndex).toHaveBeenCalledWith(
-      'test_table_column1_column2_index'
-    );
+    expect(qb.schema.dropIndex).toHaveBeenCalledWith('test_table_column1_column2_index');
     // @ts-expect-error ts2339
     expect(qb.schema.ifExists).toHaveBeenCalled();
     // @ts-expect-error ts2339
@@ -110,11 +105,10 @@ describe('DB Utils', () => {
   it('should drop an updated at trigger', async () => {
     const execute = await dropUpdatedAtTrigger(qb, 'public', 'test_table');
 
-    expect(sql).toHaveBeenCalledWith(
-      ['DROP TRIGGER IF EXISTS pies_', '_bu_trigger ON ', ''],
-      'test_table',
-      ['public', 'test_table']
-    );
+    expect(sql).toHaveBeenCalledWith(['DROP TRIGGER IF EXISTS pies_', '_bu_trigger ON ', ''], 'test_table', [
+      'public',
+      'test_table'
+    ]);
     // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(sql.raw).toHaveBeenCalledWith('test_table');
     // eslint-disable-next-line @typescript-eslint/unbound-method
@@ -129,17 +123,9 @@ describe('DB Utils', () => {
     const result = withTimestamps(tableBuilder);
 
     // eslint-disable-next-line @typescript-eslint/unbound-method
-    expect(result.addColumn).toHaveBeenCalledWith(
-      'created_at',
-      'timestamp',
-      expect.any(Function)
-    );
+    expect(result.addColumn).toHaveBeenCalledWith('created_at', 'timestamp', expect.any(Function));
     // eslint-disable-next-line @typescript-eslint/unbound-method
-    expect(result.addColumn).toHaveBeenCalledWith(
-      'created_by',
-      'text',
-      expect.any(Function)
-    );
+    expect(result.addColumn).toHaveBeenCalledWith('created_by', 'text', expect.any(Function));
     // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(result.addColumn).toHaveBeenCalledWith('updated_at', 'timestamp');
     // eslint-disable-next-line @typescript-eslint/unbound-method

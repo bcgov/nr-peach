@@ -14,15 +14,7 @@ vi.mock('node:process', () => ({
 
 describe('getGitRevision', () => {
   const gitHeadPath = join('/', 'mocked', 'cwd', '.git', 'HEAD');
-  const gitRefPath = join(
-    '/',
-    'mocked',
-    'cwd',
-    '.git',
-    'refs',
-    'heads',
-    'main'
-  );
+  const gitRefPath = join('/', 'mocked', 'cwd', '.git', 'refs', 'heads', 'main');
 
   it('should return the git hash from HEAD when it does not contain a ref', () => {
     vi.mocked(existsSync).mockReturnValue(true);

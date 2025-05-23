@@ -4,11 +4,7 @@ import formats from 'ajv-formats';
 import { getLogger } from '../utils/index.ts';
 
 import type { AnySchemaObject, Plugin } from 'ajv';
-import type {
-  AnyValidateFunction,
-  ErrorObject,
-  Options
-} from 'ajv/dist/core.js';
+import type { AnyValidateFunction, ErrorObject, Options } from 'ajv/dist/core.js';
 import type { FormatsPluginOptions } from 'ajv-formats';
 
 const log = getLogger(import.meta.filename);

@@ -1,10 +1,6 @@
 import { Ajv } from 'ajv';
 
-import {
-  createAjvInstance,
-  loadSchema,
-  validateSchema
-} from '../../src/validators/index.ts';
+import { createAjvInstance, loadSchema, validateSchema } from '../../src/validators/index.ts';
 
 describe('createAjvInstance', () => {
   it('should create an Ajv instance with default options', () => {
@@ -63,9 +59,7 @@ describe('loadSchema', () => {
 
     global.fetch = vi.fn().mockResolvedValue({ ok: false });
 
-    await expect(loadSchema(schemaUri)).rejects.toThrow(
-      `Failed to load schema ${schemaUri}`
-    );
+    await expect(loadSchema(schemaUri)).rejects.toThrow(`Failed to load schema ${schemaUri}`);
   });
 });
 

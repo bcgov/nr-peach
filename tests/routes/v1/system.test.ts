@@ -1,11 +1,7 @@
 import express from 'express';
 import request from 'supertest';
 
-import {
-  deleteRecordsValidator,
-  getRecordsValidator,
-  getSystemsValidator
-} from '../../../src/validators/index.ts';
+import { deleteRecordsValidator, getRecordsValidator, getSystemsValidator } from '../../../src/validators/index.ts';
 
 import router from '../../../src/routes/v1/system.ts';
 

@@ -11,27 +11,19 @@ describe('Problem', () => {
     expect(problem.status).toBe(404);
     expect(problem.title).toBe('Not Found');
     expect(problem.detail).toBe('Resource not found');
-    expect(problem.type).toBe(
-      'https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/404'
-    );
+    expect(problem.type).toBe('https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/404');
   });
 
   it('should throw an error if status is garbage', () => {
-    expect(() => new Problem(0)).toThrow(
-      '"status" must be a valid HTTP Error Status Code ([RFC7231], Section 6)'
-    );
+    expect(() => new Problem(0)).toThrow('"status" must be a valid HTTP Error Status Code ([RFC7231], Section 6)');
   });
 
   it('should throw an error if status is invalid', () => {
-    expect(() => new Problem(200)).toThrow(
-      '"status" must be a valid HTTP Error Status Code ([RFC7231], Section 6)'
-    );
+    expect(() => new Problem(200)).toThrow('"status" must be a valid HTTP Error Status Code ([RFC7231], Section 6)');
   });
 
   it('should throw an error if title is missing and cannot be determined', () => {
-    expect(() => new Problem(499)).toThrow(
-      'missing "title". a short, human-readable summary of the problem type'
-    );
+    expect(() => new Problem(499)).toThrow('missing "title". a short, human-readable summary of the problem type');
   });
 
   it('should default to a standard title when not custom defined', () => {
@@ -40,9 +32,7 @@ describe('Problem', () => {
     expect(problem.status).toBe(422);
     expect(problem.title).toBe('Unprocessable Entity');
     expect(problem.detail).toBeUndefined();
-    expect(problem.type).toBe(
-      'https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/422'
-    );
+    expect(problem.type).toBe('https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/422');
   });
 
   it('should default type to about:blank if not provided', () => {
@@ -51,24 +41,16 @@ describe('Problem', () => {
     expect(problem.status).toBe(404);
     expect(problem.title).toBe('Not Found');
     expect(problem.detail).toBeUndefined();
-    expect(problem.type).toBe(
-      'https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/404'
-    );
+    expect(problem.type).toBe('https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/404');
   });
 
   it('should include extra properties if provided', () => {
-    const problem = new Problem(
-      400,
-      { title: 'Bad Request' },
-      { custom: 'extra' }
-    );
+    const problem = new Problem(400, { title: 'Bad Request' }, { custom: 'extra' });
 
     expect(problem.status).toBe(400);
     expect(problem.title).toBe('Bad Request');
     expect(problem.detail).toBeUndefined();
-    expect(problem.type).toBe(
-      'https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/400'
-    );
+    expect(problem.type).toBe('https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/400');
     // @ts-expect-error ts2339
     expect(problem.custom).toBe('extra');
   });

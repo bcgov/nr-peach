@@ -8,9 +8,7 @@ import * as validators from '../../src/validators/index.ts';
 import type { Application, Request, RequestHandler, Response } from 'express';
 
 describe('validateRequest', () => {
-  const mockHandler = vi.fn((_req: Request, res: Response) =>
-    res.status(200).send('Success')
-  );
+  const mockHandler = vi.fn((_req: Request, res: Response) => res.status(200).send('Success'));
   const sendSpy = vi.spyOn(Problem.prototype, 'send');
   const validateSchemaSpy = vi.spyOn(validators, 'validateSchema');
 
@@ -36,9 +34,7 @@ describe('validateRequest', () => {
       mockHandler as unknown as RequestHandler
     );
 
-    const response = await request(app)
-      .post('/test')
-      .send({ name: 'John Doe' });
+    const response = await request(app).post('/test').send({ name: 'John Doe' });
 
     expect(response.status).toBe(200);
     expect(mockHandler).toHaveBeenCalledTimes(1);

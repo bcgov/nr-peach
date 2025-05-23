@@ -83,10 +83,7 @@ export function getLogger(filename?: string): Logger {
  * @param res Express response object
  * @returns Dynamic meta object
  */
-export function dynamicMeta(
-  req: Request,
-  res: Response & { responseTime?: number }
-): Record<string, unknown> {
+export function dynamicMeta(req: Request, res: Response & { responseTime?: number }): Record<string, unknown> {
   return {
     contentLength: res.get('content-length'),
     httpVersion: req.httpVersion,

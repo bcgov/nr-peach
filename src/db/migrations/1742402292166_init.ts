@@ -82,16 +82,12 @@ export async function up(db: Kysely<unknown>): Promise<void> {
   await db.schema
     .withSchema('audit')
     .createTable('logged_actions')
-    .addColumn('id', 'integer', (col) =>
-      col.primaryKey().generatedAlwaysAsIdentity()
-    )
+    .addColumn('id', 'integer', (col) => col.primaryKey().generatedAlwaysAsIdentity())
     .addColumn('schema_name', 'text', (col) => col.notNull())
     .addColumn('table_name', 'text', (col) => col.notNull())
     .addColumn('db_user', 'text', (col) => col.notNull())
     .addColumn('updated_by_username', 'text')
-    .addColumn('action_timestamp', 'timestamp', (col) =>
-      col.notNull().defaultTo(sql`now()`)
-    )
+    .addColumn('action_timestamp', 'timestamp', (col) => col.notNull().defaultTo(sql`now()`))
     .addColumn('action', 'text', (col) => col.notNull())
     .addColumn('original_data', 'json')
     .addColumn('new_data', 'json')
@@ -139,24 +135,14 @@ export async function up(db: Kysely<unknown>): Promise<void> {
   await db.schema
     .withSchema('pies')
     .createTable('coding')
-    .addColumn('id', 'integer', (col) =>
-      col.primaryKey().generatedAlwaysAsIdentity()
-    )
+    .addColumn('id', 'integer', (col) => col.primaryKey().generatedAlwaysAsIdentity())
     .addColumn('code', 'text', (col) => col.notNull())
     .addColumn('code_display', 'text')
     .addColumn('code_system', 'text', (col) => col.notNull())
     .addColumn('version_id', 'text', (col) =>
-      col
-        .notNull()
-        .references('version.id')
-        .onUpdate('cascade')
-        .onDelete('cascade')
+      col.notNull().references('version.id').onUpdate('cascade').onDelete('cascade')
     )
-    .addUniqueConstraint('coding_code_code_system_version_id_unique', [
-      'code',
-      'code_system',
-      'version_id'
-    ])
+    .addUniqueConstraint('coding_code_code_system_version_id_unique', ['code', 'code_system', 'version_id'])
     .$call(withTimestamps)
     .execute();
   await createIndex(db, 'pies', 'coding', ['code']);
@@ -167,9 +153,7 @@ export async function up(db: Kysely<unknown>): Promise<void> {
   await db.schema
     .withSchema('pies')
     .createTable('record_kind')
-    .addColumn('id', 'integer', (col) =>
-      col.primaryKey().generatedAlwaysAsIdentity()
-    )
+    .addColumn('id', 'integer', (col) => col.primaryKey().generatedAlwaysAsIdentity())
     .addColumn('kind', 'text', (col) => col.notNull())
     .$call(withTimestamps)
     .execute();
@@ -180,28 +164,15 @@ export async function up(db: Kysely<unknown>): Promise<void> {
   await db.schema
     .withSchema('pies')
     .createTable('system_record')
-    .addColumn('id', 'integer', (col) =>
-      col.primaryKey().generatedAlwaysAsIdentity()
-    )
+    .addColumn('id', 'integer', (col) => col.primaryKey().generatedAlwaysAsIdentity())
     .addColumn('system_id', 'text', (col) =>
-      col
-        .notNull()
-        .references('system.id')
-        .onUpdate('cascade')
-        .onDelete('cascade')
+      col.notNull().references('system.id').onUpdate('cascade').onDelete('cascade')
     )
     .addColumn('record_id', 'text', (col) => col.notNull())
     .addColumn('record_kind_id', 'integer', (col) =>
-      col
-        .notNull()
-        .references('record_kind.id')
-        .onUpdate('cascade')
-        .onDelete('cascade')
+      col.notNull().references('record_kind.id').onUpdate('cascade').onDelete('cascade')
     )
-    .addUniqueConstraint('system_record_system_id_record_id_unique', [
-      'system_id',
-      'record_id'
-    ])
+    .addUniqueConstraint('system_record_system_id_record_id_unique', ['system_id', 'record_id'])
     .$call(withTimestamps)
     .execute();
   await createIndex(db, 'pies', 'system_record', ['record_id']);
@@ -213,34 +184,18 @@ export async function up(db: Kysely<unknown>): Promise<void> {
   await db.schema
     .withSchema('pies')
     .createTable('process_event')
-    .addColumn('id', 'integer', (col) =>
-      col.primaryKey().generatedAlwaysAsIdentity()
-    )
+    .addColumn('id', 'integer', (col) => col.primaryKey().generatedAlwaysAsIdentity())
     .addColumn('transaction_id', 'uuid', (col) =>
-      col
-        .notNull()
-        .references('transaction.id')
-        .onUpdate('cascade')
-        .onDelete('cascade')
+      col.notNull().references('transaction.id').onUpdate('cascade').onDelete('cascade')
     )
     .addColumn('system_record_id', 'integer', (col) =>
-      col
-        .notNull()
-        .references('system_record.id')
-        .onUpdate('cascade')
-        .onDelete('cascade')
+      col.notNull().references('system_record.id').onUpdate('cascade').onDelete('cascade')
     )
     .addColumn('start_date', 'timestamp', (col) => col.notNull())
     .addColumn('end_date', 'timestamp')
-    .addColumn('is_datetime', 'boolean', (col) =>
-      col.notNull().defaultTo(false)
-    )
+    .addColumn('is_datetime', 'boolean', (col) => col.notNull().defaultTo(false))
     .addColumn('coding_id', 'integer', (col) =>
-      col
-        .notNull()
-        .references('coding.id')
-        .onUpdate('cascade')
-        .onDelete('cascade')
+      col.notNull().references('coding.id').onUpdate('cascade').onDelete('cascade')
     )
     .addColumn('status', 'text')
     .addColumn('status_code', 'text')
@@ -255,39 +210,18 @@ export async function up(db: Kysely<unknown>): Promise<void> {
   await db.schema
     .withSchema('pies')
     .createTable('record_linkage')
-    .addColumn('id', 'integer', (col) =>
-      col.primaryKey().generatedAlwaysAsIdentity()
-    )
+    .addColumn('id', 'integer', (col) => col.primaryKey().generatedAlwaysAsIdentity())
     .addColumn('transaction_id', 'uuid', (col) =>
-      col
-        .notNull()
-        .unique()
-        .references('transaction.id')
-        .onUpdate('cascade')
-        .onDelete('cascade')
+      col.notNull().unique().references('transaction.id').onUpdate('cascade').onDelete('cascade')
     )
     .addColumn('system_record_id', 'integer', (col) =>
-      col
-        .notNull()
-        .references('system_record.id')
-        .onUpdate('cascade')
-        .onDelete('cascade')
+      col.notNull().references('system_record.id').onUpdate('cascade').onDelete('cascade')
     )
     .addColumn('linked_system_record_id', 'integer', (col) =>
-      col
-        .notNull()
-        .references('system_record.id')
-        .onUpdate('cascade')
-        .onDelete('cascade')
+      col.notNull().references('system_record.id').onUpdate('cascade').onDelete('cascade')
     )
-    .addUniqueConstraint('record_linkage_forward_unique', [
-      'system_record_id',
-      'linked_system_record_id'
-    ])
-    .addUniqueConstraint('record_linkage_reverse_unique', [
-      'linked_system_record_id',
-      'system_record_id'
-    ])
+    .addUniqueConstraint('record_linkage_forward_unique', ['system_record_id', 'linked_system_record_id'])
+    .addUniqueConstraint('record_linkage_reverse_unique', ['linked_system_record_id', 'system_record_id'])
     .$call(withTimestamps)
     .execute();
   await createIndex(db, 'pies', 'record_linkage', ['system_record_id']);

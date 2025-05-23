@@ -34,9 +34,6 @@ export const pies = {
  * @param version - The version of the schema. Defaults to the latest version defined in `pies.version.latest`.
  * @returns The fully constructed URI for the specified pie schema.
  */
-export function getPiesSchemaUri(
-  schema: string,
-  version: string = pies.version.latest
-): string {
+export function getPiesSchemaUri(schema: string, version: string = pies.version.latest): string {
   return `${pies.root}/${version}/${pies.spec.dir}/${schema}${pies.schemaSuffix}`;
 }

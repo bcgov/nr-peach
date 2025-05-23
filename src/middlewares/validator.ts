@@ -18,23 +18,13 @@ export interface RequestValidationOptions {
  * @param opts An object containing validation schemas for `body`, `query`, `params`, or `headers`.
  * @returns An Express `RequestHandler` that validates the request.
  */
-export function validateRequest(
-  opts: RequestValidationOptions = {}
-): RequestHandler {
+export function validateRequest(opts: RequestValidationOptions = {}): RequestHandler {
   return async function (req, res, next): Promise<void> {
-    const reqErrors: Partial<
-      Record<keyof RequestValidationOptions, ErrorObject[]>
-    > = {};
+    const reqErrors: Partial<Record<keyof RequestValidationOptions, ErrorObject[]>> = {};
 
-    for (const [key, value] of Object.entries(opts) as [
-      keyof RequestValidationOptions,
-      string | AnySchemaObject
-    ][]) {
+    for (const [key, value] of Object.entries(opts) as [keyof RequestValidationOptions, string | AnySchemaObject][]) {
       if (value) {
-        const { valid, errors } = await validateSchema(
-          value,
-          req[key as keyof Request]
-        );
+        const { valid, errors } = await validateSchema(value, req[key as keyof Request]);
         if (!valid && errors) reqErrors[key] = errors;
       }
     }

@@ -3,13 +3,7 @@ import { mockSqlExecuteReturn } from '../kysely.helper.ts';
 
 import { Kysely, sql } from 'kysely';
 
-import {
-  checkDatabaseHealth,
-  checkDatabaseSchema,
-  db,
-  dialectConfig,
-  handleLogEvent
-} from '../../src/db/index.ts';
+import { checkDatabaseHealth, checkDatabaseSchema, db, dialectConfig, handleLogEvent } from '../../src/db/index.ts';
 
 import type { LogEvent, QueryId, RootOperationNode } from 'kysely';
 import type { Mock } from 'vitest';
@@ -24,9 +18,7 @@ describe('dialectConfig', () => {
 
 describe('checkDatabaseHealth', () => {
   it('should return true when the database is healthy', async () => {
-    (sql as unknown as Mock).mockImplementation(
-      mockSqlExecuteReturn({ rows: [{ result: 1 }] })
-    );
+    (sql as unknown as Mock).mockImplementation(mockSqlExecuteReturn({ rows: [{ result: 1 }] }));
     const result = await checkDatabaseHealth();
 
     expect(sql).toHaveBeenCalledWith(['SELECT 1 AS result']);
@@ -34,9 +26,7 @@ describe('checkDatabaseHealth', () => {
   });
 
   it('should return false and log an error when the database is unhealthy', async () => {
-    (sql as unknown as Mock).mockImplementation(
-      mockSqlExecuteReturn(Promise.reject(new Error('Database error')))
-    );
+    (sql as unknown as Mock).mockImplementation(mockSqlExecuteReturn(Promise.reject(new Error('Database error'))));
     const result = await checkDatabaseHealth();
 
     expect(sql).toHaveBeenCalledWith(['SELECT 1 AS result']);

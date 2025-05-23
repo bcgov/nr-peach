@@ -5,12 +5,9 @@ import type { Request, Response } from 'express';
 
 const CONTENT_TYPE = 'application/problem+json';
 const DEFAULT_TYPE = 'about:blank';
-const ERR_STATUS =
-  '"status" must be a valid HTTP Error Status Code ([RFC7231], Section 6)';
-const ERR_TITLE =
-  'missing "title". a short, human-readable summary of the problem type';
-const STATUS_CODES_WEB =
-  'https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/';
+const ERR_STATUS = '"status" must be a valid HTTP Error Status Code ([RFC7231], Section 6)';
+const ERR_TITLE = 'missing "title". a short, human-readable summary of the problem type';
+const STATUS_CODES_WEB = 'https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/';
 
 /**
  * A Problem Details object error generator which extends the `Error` class.
@@ -66,10 +63,7 @@ export default class Problem extends Error {
     }
 
     let title = opts?.title;
-    if (
-      !opts?.title &&
-      Object.prototype.hasOwnProperty.call(STATUS_CODES, status)
-    ) {
+    if (!opts?.title && Object.prototype.hasOwnProperty.call(STATUS_CODES, status)) {
       title = STATUS_CODES[status];
     }
     if (!title) throw new Error(ERR_TITLE);

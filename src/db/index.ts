@@ -31,9 +31,7 @@ export const dialectConfig: PostgresDialectConfig = {
  */
 export async function checkDatabaseHealth(): Promise<boolean> {
   try {
-    const result = await sql<{ result: number }>`SELECT 1 AS result`.execute(
-      db
-    );
+    const result = await sql<{ result: number }>`SELECT 1 AS result`.execute(db);
     log.debug('Database is healthy');
     return result.rows?.[0]?.result === 1;
   } catch (error) {

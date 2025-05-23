@@ -23,16 +23,14 @@ router.get(
         'img-src': [
           "'self'", // eslint-disable-line quotes
           'data:',
-          (_req: Request, res: Response): string =>
-            `'nonce-${res.locals.cspNonce}'`,
+          (_req: Request, res: Response): string => `'nonce-${res.locals.cspNonce}'`,
           'https://cdn.redoc.ly'
         ],
         // @ts-expect-error ts2322
         'media-src': [
           "'self'", // eslint-disable-line quotes
           'data:',
-          (_req: Request, res: Response): string =>
-            `'nonce-${res.locals.cspNonce}'`
+          (_req: Request, res: Response): string => `'nonce-${res.locals.cspNonce}'`
         ],
         'script-src': [
           'blob:',

@@ -11,12 +11,7 @@ describe('GET /', () => {
     const response = await request(app).get('/');
     expect(response.status).toBe(200);
     expect(response.body).toEqual({
-      endpoints: [
-        '/process-events',
-        '/record-linkages',
-        '/systems',
-        '/system-records'
-      ]
+      endpoints: ['/process-events', '/record-linkages', '/systems', '/system-records']
     });
   });
 });

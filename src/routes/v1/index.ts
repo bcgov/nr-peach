@@ -10,12 +10,7 @@ const router = Router();
 
 router.get('/', (_req: Request, res: Response): void => {
   res.status(200).json({
-    endpoints: [
-      '/process-events',
-      '/record-linkages',
-      '/systems',
-      '/system-records'
-    ]
+    endpoints: ['/process-events', '/record-linkages', '/systems', '/system-records']
   });
 });
 
