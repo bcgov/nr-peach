@@ -1,7 +1,7 @@
 {
   "camelCase": true,
   "dateParser": "timestamp",
-  "defaultSchemas": ["pies"],
+  "defaultSchemas": ["public"],
   "dialect": "postgres",
   "domains": false,
   "excludePattern": null,

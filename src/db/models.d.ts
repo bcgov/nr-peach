@@ -10,7 +10,7 @@ export type Generated<T> =
 
 export type Timestamp = ColumnType<Date, Date | string, Date | string>;
 
-export interface Coding {
+export interface PiesCoding {
   code: string;
   codeDisplay: string | null;
   codeSystem: string;
@@ -22,7 +22,7 @@ export interface Coding {
   versionId: string;
 }
 
-export interface ProcessEvent {
+export interface PiesProcessEvent {
   codingId: number;
   createdAt: Generated<Timestamp>;
   createdBy: string;
@@ -39,7 +39,7 @@ export interface ProcessEvent {
   updatedBy: string | null;
 }
 
-export interface RecordKind {
+export interface PiesRecordKind {
   createdAt: Generated<Timestamp>;
   createdBy: string;
   id: Generated<number>;
@@ -48,7 +48,7 @@ export interface RecordKind {
   updatedBy: string | null;
 }
 
-export interface RecordLinkage {
+export interface PiesRecordLinkage {
   createdAt: Generated<Timestamp>;
   createdBy: string;
   id: Generated<number>;
@@ -59,7 +59,7 @@ export interface RecordLinkage {
   updatedBy: string | null;
 }
 
-export interface System {
+export interface PiesSystem {
   createdAt: Generated<Timestamp>;
   createdBy: string;
   id: string;
@@ -67,7 +67,7 @@ export interface System {
   updatedBy: string | null;
 }
 
-export interface SystemRecord {
+export interface PiesSystemRecord {
   createdAt: Generated<Timestamp>;
   createdBy: string;
   id: Generated<number>;
@@ -78,7 +78,7 @@ export interface SystemRecord {
   updatedBy: string | null;
 }
 
-export interface Transaction {
+export interface PiesTransaction {
   createdAt: Generated<Timestamp>;
   createdBy: string;
   id: string;
@@ -86,7 +86,7 @@ export interface Transaction {
   updatedBy: string | null;
 }
 
-export interface Version {
+export interface PiesVersion {
   createdAt: Generated<Timestamp>;
   createdBy: string;
   id: string;
@@ -95,12 +95,12 @@ export interface Version {
 }
 
 export interface DB {
-  coding: Coding;
-  processEvent: ProcessEvent;
-  recordKind: RecordKind;
-  recordLinkage: RecordLinkage;
-  system: System;
-  systemRecord: SystemRecord;
-  transaction: Transaction;
-  version: Version;
+  'pies.coding': PiesCoding;
+  'pies.processEvent': PiesProcessEvent;
+  'pies.recordKind': PiesRecordKind;
+  'pies.recordLinkage': PiesRecordLinkage;
+  'pies.system': PiesSystem;
+  'pies.systemRecord': PiesSystemRecord;
+  'pies.transaction': PiesTransaction;
+  'pies.version': PiesVersion;
 }
