@@ -1,6 +1,6 @@
 import { config } from 'dotenv';
 import { CamelCasePlugin, Kysely, PostgresDialect, sql } from 'kysely';
-import { Pool } from 'pg';
+import { Pool, types } from 'pg';
 
 import { getLogger } from '../utils/index.ts';
 
@@ -11,6 +11,10 @@ import type { DB } from './models.d.ts';
 config({ path: ['.env', '.env.default'] });
 
 const log = getLogger(import.meta.filename);
+
+// Handle bigint parsing {@see https://kysely.dev/docs/recipes/data-types#runtime-javascript-types}
+const int8TypeId = 20; // PostgreSQL's bigint type is represented as int8 in Kysely
+types.setTypeParser(int8TypeId, (value: string): number => parseInt(value, 10));
 
 export const dialectConfig: PostgresDialectConfig = {
   pool: new Pool({
