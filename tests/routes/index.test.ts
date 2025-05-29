@@ -29,7 +29,7 @@ describe('GET /live', () => {
   it('should return 200 with status "ok"', async () => {
     const response = await request(app).get('/live');
     expect(response.status).toBe(200);
-    expect(response.body).toEqual({ status: 'ok' });
+    expect(response.body).toEqual({ detail: 'Server is ok' });
   });
 });
 
@@ -42,13 +42,13 @@ describe('GET /ready', () => {
     state.ready = true;
     const response = await request(app).get('/ready');
     expect(response.status).toBe(200);
-    expect(response.body).toEqual({ status: 'ready' });
+    expect(response.body).toEqual({ detail: 'Server is ready' });
   });
 
   it('should return 503 with status "not ready" when state.ready is false', async () => {
     state.ready = false;
     const response = await request(app).get('/ready');
     expect(response.status).toBe(503);
-    expect(response.body).toEqual({ status: 'not ready' });
+    expect(response.body).toEqual(expect.objectContaining({ detail: 'Server is not ready' }));
   });
 });

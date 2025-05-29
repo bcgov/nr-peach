@@ -1,8 +1,9 @@
 import { Router } from 'express';
 
-import { state } from '../state.ts';
 import docs from './docs.ts';
 import v1 from './v1/index.ts';
+import { state } from '../state.ts';
+import { Problem } from '../utils/index.ts';
 
 import type { Request, Response } from 'express';
 
@@ -20,15 +21,15 @@ router.get('/api', (_req: Request, res: Response): void => {
 
 /** Liveness Endpoint */
 router.get('/live', (_req: Request, res: Response): void => {
-  res.status(200).json({ status: 'ok' });
+  res.status(200).json({ detail: 'Server is ok' });
 });
 
 /** Readiness Endpoint */
-router.get('/ready', (_req: Request, res: Response): void => {
+router.get('/ready', (req: Request, res: Response): void => {
   if (state.ready) {
-    res.status(200).json({ status: 'ready' });
+    res.status(200).json({ detail: 'Server is ready' });
   } else {
-    res.status(503).json({ status: 'not ready' });
+    new Problem(503, { detail: 'Server is not ready' }).send(req, res);
   }
 });
 

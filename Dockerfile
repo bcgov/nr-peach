@@ -32,12 +32,12 @@ RUN rm -rf /usr/local/lib/node_modules/npm \
  && addgroup -S appgroup && adduser -S appuser -G appgroup
 
 # Install File Structure
-COPY --chown=appuser:appgroup --chmod=755 --from=build ${APP_ROOT}/node_modules ${APP_ROOT}/node_modules
-COPY --chown=appuser:appgroup --chmod=755 .git ${APP_ROOT}/.git
-COPY --chown=appuser:appgroup --chmod=755 . ${APP_ROOT}
+COPY --chown=appuser:appgroup --chmod=555 --from=build ${APP_ROOT}/node_modules ${APP_ROOT}/node_modules
+COPY --chown=appuser:appgroup --chmod=555 .git ${APP_ROOT}/.git
+COPY --chown=appuser:appgroup --chmod=555 . ${APP_ROOT}
 
 # Run the app as appuser and limit heap size to 50 MB
 USER appuser:appgroup
 EXPOSE ${APP_PORT}
-HEALTHCHECK --interval=30s --timeout=3s CMD wget --quiet --spider http://localhost:${APP_PORT}/live || exit 1
+HEALTHCHECK --interval=10s --timeout=3s CMD wget --quiet --spider http://localhost:${APP_PORT}/live || exit 1
 CMD ["node", "--experimental-transform-types", "--max-old-space-size=50", "server.ts"]

@@ -6,7 +6,7 @@
   "description": "NR Permitting Exchange, Aggregation and Collection Hub",
   "author": "NRM Permitting and Data Solutions <NRM.PermittingAndData@gov.bc.ca>",
   "type": "module",
-  "main": "index.ts",
+  "main": "server.ts",
   "scripts": {
     "codegen": "kysely-codegen --url $(node --experimental-transform-types dburl.helper.ts)",
     "clean": "rimraf coverage",
