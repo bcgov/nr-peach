@@ -22,16 +22,20 @@ jobs:
     timeout-minutes: 10
     permissions:
       attestations: write
-      id-token: write
       contents: read
+      id-token: write
       packages: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4.2.2
       - name: Build & Push
-        uses: ./.github/actions/build-push-container
+        uses: bcgov/action-builder-ghcr@v4.0.0
         with:
-          context: .
-          image_name: ${{ env.APP_NAME }}
-          github_username: ${{ github.repository_owner }}
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          package: ${{ env.APP_NAME }}
+          build_context: .
+          tags: |
+            ${{ github.event.number }}
+            ${{ github.sha }}
+            latest
+          tag_fallback: latest
+          token: ${{ secrets.GITHUB_TOKEN }}
