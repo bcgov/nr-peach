@@ -2,6 +2,12 @@ import express from 'express';
 import request from 'supertest';
 
 import {
+  deleteProcessEventsController,
+  getProcessEventsController,
+  postProcessEventsController,
+  putProcessEventsController
+} from '../../../src/controllers/index.ts';
+import {
   deleteProcessEventsValidator,
   getProcessEventsValidator,
   postProcessEventsValidator,
@@ -15,40 +21,51 @@ import type { NextFunction } from 'express';
 const app = express();
 app.use(router);
 
+vi.mock('../../../src/controllers/index.ts', () => ({
+  deleteProcessEventsController: vi.fn((_req, _res, next: NextFunction): void => next()),
+  getProcessEventsController: vi.fn((_req, _res, next: NextFunction): void => next()),
+  postProcessEventsController: vi.fn((_req, _res, next: NextFunction): void => next()),
+  putProcessEventsController: vi.fn((_req, _res, next: NextFunction): void => next())
+}));
+
 vi.mock('../../../src/middlewares/index.ts', () => ({
   validateRequest: () => vi.fn((_req, _res, next: NextFunction): void => next())
 }));
 
+beforeEach(() => {
+  vi.resetAllMocks();
+});
+
 describe('Process Routes', () => {
   describe('GET /process-events', () => {
-    it('should return 501', async () => {
-      const response = await request(app).get('/process-events');
+    it('should call the validator and controller', async () => {
+      await request(app).get('/process-events');
       expect(getProcessEventsValidator).toHaveBeenCalled();
-      expect(response.status).toBe(501);
+      expect(getProcessEventsController).toHaveBeenCalled();
     });
   });
 
   describe('POST /process-events', () => {
-    it('should return 501', async () => {
-      const response = await request(app).post('/process-events').send({});
+    it('should call the validator and controller', async () => {
+      await request(app).post('/process-events').send({});
       expect(postProcessEventsValidator).toHaveBeenCalled();
-      expect(response.status).toBe(501);
+      expect(postProcessEventsController).toHaveBeenCalled();
     });
   });
 
   describe('PUT /process-events', () => {
-    it('should return 501', async () => {
-      const response = await request(app).put('/process-events').send({});
+    it('should call the validator and controller', async () => {
+      await request(app).put('/process-events').send({});
       expect(putProcessEventsValidator).toHaveBeenCalled();
-      expect(response.status).toBe(501);
+      expect(putProcessEventsController).toHaveBeenCalled();
     });
   });
 
   describe('DELETE /process-events', () => {
-    it('should return 501', async () => {
-      const response = await request(app).delete('/process-events');
+    it('should call the validator and controller', async () => {
+      await request(app).delete('/process-events');
       expect(deleteProcessEventsValidator).toHaveBeenCalled();
-      expect(response.status).toBe(501);
+      expect(deleteProcessEventsController).toHaveBeenCalled();
     });
   });
 });
