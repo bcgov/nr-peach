@@ -32,6 +32,7 @@ src/                       - Node.js web application
 ├── repositories/          - Repository Layer
 ├── routes/                - Routes Layer
 ├── services/              - Services Layer
+├── types/                 - TypeScript Declarations
 ├── utils/                 - Utilities
 └── validators/            - Validator Layer
 tests/                     - Node.js web application tests

@@ -5,7 +5,7 @@ import { Pool, types } from 'pg';
 import { getLogger } from '../utils/index.ts';
 
 import type { LogEvent, PostgresDialectConfig } from 'kysely';
-import type { DB } from './models.d.ts';
+import type { DB } from '../types/index.js';
 
 // Load environment variables, prioritizing .env over .env.default
 config({ path: ['.env', '.env.default'] });
@@ -117,5 +117,4 @@ export const db = new Kysely<DB>({
   plugins: [new CamelCasePlugin()]
 });
 
-export type * from './models.d.ts';
 export * from './utils.ts';

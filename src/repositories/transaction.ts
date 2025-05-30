@@ -1,7 +1,7 @@
 import { BaseRepository } from './index.ts';
 
 import type { InsertResult, DeleteResult } from 'kysely';
-import type { PiesTransaction } from '../db/index.ts';
+import type { PiesTransaction } from '../types/index.ts';
 
 export class TransactionRepository extends BaseRepository<PiesTransaction, string> {
   create(item: Partial<PiesTransaction>): Promise<InsertResult> {

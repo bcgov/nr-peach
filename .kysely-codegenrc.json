@@ -8,7 +8,7 @@
   "includePattern": "pies.*",
   "logLevel": "info",
   "numericParser": "number",
-  "outFile": "./src/db/models.d.ts",
+  "outFile": "./src/types/models.d.ts",
   "overrides": {},
   "partitions": false,
   "print": false,

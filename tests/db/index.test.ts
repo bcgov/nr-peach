@@ -7,7 +7,7 @@ import { checkDatabaseHealth, checkDatabaseSchema, db, dialectConfig, handleLogE
 
 import type { LogEvent, QueryId, RootOperationNode } from 'kysely';
 import type { Mock } from 'vitest';
-import type { DB } from '../../src/db/models.d.ts';
+import type { DB } from '../../src/types/index.ts';
 
 describe('dialectConfig', () => {
   it('should yield a dialectConfig', () => {

@@ -1,7 +1,7 @@
 import { db as defaultDb } from '../db/index.ts';
 
 import type { DeleteResult, InsertResult, InsertType, Kysely, Transaction } from 'kysely';
-import type { DB } from '../db/index.ts';
+import type { DB } from '../types/index.ts';
 
 /**
  * Abstract base class for repository implementations.
