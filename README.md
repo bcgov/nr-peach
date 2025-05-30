@@ -29,6 +29,7 @@ src/                       - Node.js web application
 ├── docs/                  - API Documentation
 ├── middlewares/           - Middleware Layer
 ├── public/                - Public Assets
+├── repositories/          - Repository Layer
 ├── routes/                - Routes Layer
 ├── services/              - Services Layer
 ├── utils/                 - Utilities
@@ -84,11 +85,11 @@ npm run migrate:latest
 This command ensures that your database schema is up-to-date.
 
 ```sh
-npm run serve
+npm run dev
 ```
 
-This command starts a local development server. Most changes are reflected live
-without having to restart the server.
+This command starts a local development server watching the source code
+directory. Most user changes will automatically reboot the server.
 
 ### Run Production
 

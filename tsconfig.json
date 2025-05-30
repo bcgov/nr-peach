@@ -8,6 +8,6 @@
     "resolveJsonModule": true,
     "rewriteRelativeImportExtensions": true,
     "types": ["vitest/globals"],
-    "verbatimModuleSyntax": false
+    "verbatimModuleSyntax": true
   }
 }
