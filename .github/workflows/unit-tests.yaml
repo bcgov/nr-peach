@@ -28,17 +28,17 @@ jobs:
           - '22.x'
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+        uses: actions/checkout@v4.2.2
       - name: Check SonarCloud Secrets
         id: check-secrets
         run: |
           echo "HAS_SONAR_SECRETS=${{ secrets.SONAR_TOKEN != '' }}" >> $GITHUB_OUTPUT
       - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        uses: actions/setup-node@v4.4.0
         with:
           node-version: ${{ matrix.node-version }}
       - name: Cache node modules
-        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4
+        uses: actions/cache@v4.2.3
         id: cache-app
         env:
           cache-name: cache-node-modules
@@ -61,14 +61,14 @@ jobs:
           CI: true
       - name: Save Coverage Results
         if: matrix.node-version == '22.x'
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: actions/upload-artifact@v4.6.2
         with:
           name: coverage-app
           path: ${{ github.workspace }}/coverage
           retention-days: 1
       - name: Monitor Coverage
         if: "matrix.node-version == '22.x' && ! github.event.pull_request.head.repo.fork"
-        uses: slavcodev/coverage-monitor-action@398c4cbbb710e549a8407fdef96ae8b9454d0463 # v1
+        uses: slavcodev/coverage-monitor-action@1.10.0
         with:
           comment_mode: update
           comment_footer: false
@@ -88,11 +88,11 @@ jobs:
       contents: read
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+        uses: actions/checkout@v4.2.2
         with:
           fetch-depth: 0
       - name: Cache node modules
-        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4
+        uses: actions/cache@v4.2.3
         id: cache-app
         env:
           cache-name: cache-node-modules
@@ -104,11 +104,11 @@ jobs:
             ${{ runner.os }}-app-
             ${{ runner.os }}-
       - name: Restore Coverage Results
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        uses: actions/download-artifact@v4.3.0
         with:
           name: coverage-app
           path: ${{ github.workspace }}/coverage
       - name: SonarCloud Scan
-        uses: SonarSource/sonarqube-scan-action@2500896589ef8f7247069a56136f8dc177c27ccf # v5.2.0
+        uses: SonarSource/sonarqube-scan-action@v5.2.0
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
