@@ -1,6 +1,6 @@
-import { db as defaultDb } from '../db/index.ts';
+import { db } from '../db/index.ts';
 
-import type { DeleteResult, InsertResult, InsertType, Kysely, Transaction } from 'kysely';
+import type { DeleteResult, InsertResult, InsertType, Kysely, Transaction, UpdateType } from 'kysely';
 import type { DB } from '../types/index.ts';
 
 /**
@@ -9,7 +9,7 @@ import type { DB } from '../types/index.ts';
  * @template T - The type of the entity managed by the repository.
  * @template ID - The type of the primary key identifier for the entity.
  */
-export default abstract class BaseRepository<T, ID> {
+export abstract class BaseRepository<T, ID> {
   /**
    * The database instance used for executing queries.
    * Can be either a `Kysely` instance or a `Transaction` instance.
@@ -22,12 +22,12 @@ export default abstract class BaseRepository<T, ID> {
    * If not provided, the default database instance (`defaultDb`) will be used.
    */
   constructor(dbInstance?: Kysely<DB> | Transaction<DB>) {
-    this.db = dbInstance ?? defaultDb;
+    this.db = dbInstance ?? db;
   }
 
   /**
    * Create a new entity in the database.
-   * @param {Partial<T>} item - The entity to be created.
+   * @param {InsertType<T>} item - The entity to be created.
    * @returns {Promise<InsertResult>} A promise that resolves to the result of the insert operation.
    */
   abstract create(item: InsertType<T>): Promise<InsertResult>;
@@ -45,7 +45,7 @@ export default abstract class BaseRepository<T, ID> {
    * @param {Partial<T>} item - The partial entity data to update.
    * @returns {Promise<T>} A promise that resolves to the updated entity.
    */
-  abstract update(id: ID, item: Partial<T>): Promise<T>;
+  abstract update(id: ID, item: UpdateType<T>): Promise<T>;
 
   /**
    * Delete an entity from the database by its identifier.
@@ -53,4 +53,12 @@ export default abstract class BaseRepository<T, ID> {
    * @returns {Promise<DeleteResult>} A promise that resolves to the result of the delete operation.
    */
   abstract delete(id: ID): Promise<DeleteResult>;
+
+  // TODO: Uncomment if we want to enforce this interface in BaseRepository
+  // /**
+  //  * Upserts an existing entity in the database.
+  //  * @param {InsertType<T>} item - The partial entity data to update.
+  //  * @returns {Promise<InsertResult>} A promise that resolves to the updated entity.
+  //  */
+  // abstract upsert(item: InsertType<T>): Promise<InsertResult>;
 }

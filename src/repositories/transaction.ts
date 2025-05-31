@@ -18,11 +18,23 @@ export class TransactionRepository extends BaseRepository<PiesTransaction, strin
     return this.db.selectFrom('pies.transaction').where('id', '=', id).selectAll().executeTakeFirst();
   }
 
+  /** @deprecated Updates to pies.transaction are not allowed. */
   update(): never {
     throw new Error('Updates to pies.transaction are not allowed.');
   }
 
   delete(id: string): Promise<DeleteResult> {
     return this.db.deleteFrom('pies.transaction').where('id', '=', id).executeTakeFirst();
+  }
+
+  upsert(item: Partial<PiesTransaction>): Promise<InsertResult> {
+    return this.db
+      .insertInto('pies.transaction')
+      .values({
+        id: item.id ?? '',
+        createdBy: 'SYSTEM'
+      })
+      .onConflict((oc) => oc.column('id').doNothing())
+      .executeTakeFirst();
   }
 }
