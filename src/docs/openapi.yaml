@@ -67,8 +67,6 @@ paths:
               $ref: >-
                 https://raw.githubusercontent.com/bcgov/nr-pies/refs/heads/main/docs/spec/element/message/process_event_set.schema.json
       responses:
-        '201':
-          description: Created - Added a new Record with the associated ProcessEvents
         '202':
           description: >-
             Accepted - Merged an existing Record with the associated
@@ -101,10 +99,6 @@ paths:
       responses:
         '201':
           description: Created - Added a new Record with the associated ProcessEvents
-        '202':
-          description: >-
-            Accepted - Merged an existing Record with the associated
-            ProcessEvents
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
