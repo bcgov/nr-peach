@@ -3,7 +3,14 @@ import { mockSqlExecuteReturn } from '../kysely.helper.ts';
 
 import { Kysely, sql } from 'kysely';
 
-import { checkDatabaseHealth, checkDatabaseSchema, db, dialectConfig, handleLogEvent } from '../../src/db/index.ts';
+import {
+  checkDatabaseHealth,
+  checkDatabaseSchema,
+  db,
+  dialectConfig,
+  handleLogEvent,
+  transactionWrapper
+} from '../../src/db/index.ts';
 
 import type { LogEvent, QueryId, RootOperationNode } from 'kysely';
 import type { Mock } from 'vitest';
@@ -114,6 +121,25 @@ describe('handleLogEvent', () => {
     handleLogEvent(event);
     expect(handleLogEvent(event)).toBeUndefined();
   });
+});
+
+// TODO: Uncomment and figure out how to properly implement the following tests
+describe('transactionWrapper', () => {
+  it('should execute a transaction with the default serializable isolation level', async () => {
+    const callback = vi.fn().mockResolvedValue('result');
+
+    const result = await transactionWrapper(callback);
+
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    expect(db.transaction).toHaveBeenCalledTimes(1);
+    // expect(qb.setIsolationLevel).toHaveBeenCalledWith('serializable');
+    // expect(qb.execute).toHaveBeenCalledWith(callback);
+    expect(result).toBe('result');
+  });
+
+  // it('should execute a transaction with a specified isolation level', async () => {});
+
+  // it('should throw an error if the transaction fails', () => {});
 });
 
 describe('db', () => {

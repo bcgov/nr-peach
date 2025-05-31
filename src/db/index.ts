@@ -4,7 +4,7 @@ import { Pool, types } from 'pg';
 
 import { getLogger } from '../utils/index.ts';
 
-import type { LogEvent, PostgresDialectConfig } from 'kysely';
+import type { IsolationLevel, LogEvent, PostgresDialectConfig, Transaction } from 'kysely';
 import type { DB } from '../types/index.js';
 
 // Load environment variables, prioritizing .env over .env.default
@@ -107,6 +107,19 @@ export function handleLogEvent(event: LogEvent): void {
       sql: event.query.sql
     });
   }
+}
+
+/**
+ * Executes a database transaction with the specified isolation level.
+ * @param callback - A function that performs operations within the transaction.
+ * @param isolationLevel - The isolation level for the transaction (default is 'serializable').
+ * @returns A promise that resolves to the result of the callback function.
+ */
+export function transactionWrapper<T>(
+  callback: (trx: Transaction<DB>) => Promise<T>,
+  isolationLevel: IsolationLevel = 'serializable'
+): Promise<T> {
+  return db.transaction().setIsolationLevel(isolationLevel).execute(callback);
 }
 
 // Database interface is passed to Kysely's constructor, and from now on, Kysely knows your database structure.

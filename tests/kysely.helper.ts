@@ -1,4 +1,6 @@
-import type { Kysely } from 'kysely';
+import { Kysely } from 'kysely';
+
+import type { KyselyConfig } from 'kysely';
 
 vi.mock('kysely', async (importActual) => ({
   ...(await importActual<typeof Kysely>()),
@@ -15,6 +17,10 @@ vi.mock('kysely', async (importActual) => ({
       on: vi.fn().mockReturnThis(),
       withSchema: vi.fn().mockReturnThis()
     };
+    // TODO: Figure out how to properly mock transaction call flow
+    execute = vi.fn((cb: () => Kysely<unknown>) => cb());
+    transaction = vi.fn(() => new Kysely({} as KyselyConfig));
+    setIsolationLevel = vi.fn().mockReturnThis();
   },
   sql: Object.assign(vi.fn(), {
     id: vi.fn((...args: unknown[]) => args),
