@@ -5,6 +5,7 @@ import type { RequestHandler } from 'express';
 
 export const deleteProcessEventsValidator: RequestHandler = validateRequest({
   query: {
+    type: 'object',
     properties: { record_id, system_id },
     required: ['record_id']
   }
@@ -12,6 +13,7 @@ export const deleteProcessEventsValidator: RequestHandler = validateRequest({
 
 export const getProcessEventsValidator: RequestHandler = validateRequest({
   query: {
+    type: 'object',
     properties: { record_id, system_id },
     required: ['record_id']
   }

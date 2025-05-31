@@ -5,6 +5,7 @@ import type { RequestHandler } from 'express';
 
 export const deleteRecordLinkagesValidator: RequestHandler = validateRequest({
   query: {
+    type: 'object',
     properties: {
       record_id,
       system_id,
@@ -17,6 +18,7 @@ export const deleteRecordLinkagesValidator: RequestHandler = validateRequest({
 
 export const getRecordLinkagesValidator: RequestHandler = validateRequest({
   query: {
+    type: 'object',
     properties: {
       record_id,
       system_id,
