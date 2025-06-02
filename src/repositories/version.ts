@@ -7,10 +7,7 @@ export class VersionRepository extends BaseRepository<PiesVersion, string> {
   create(item: Partial<PiesVersion>): Promise<InsertResult> {
     return this.db
       .insertInto('pies.version')
-      .values({
-        id: item.id ?? '',
-        createdBy: 'SYSTEM'
-      })
+      .values({ id: item.id ?? '' })
       .executeTakeFirst();
   }
 
@@ -30,10 +27,7 @@ export class VersionRepository extends BaseRepository<PiesVersion, string> {
   upsert(item: Partial<PiesVersion>): Promise<InsertResult> {
     return this.db
       .insertInto('pies.version')
-      .values({
-        id: item.id ?? '',
-        createdBy: 'SYSTEM'
-      })
+      .values({ id: item.id ?? '' })
       .onConflict((oc) => oc.column('id').doNothing())
       .executeTakeFirst();
   }

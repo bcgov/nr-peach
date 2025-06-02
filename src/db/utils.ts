@@ -2,6 +2,8 @@ import { sql } from 'kysely';
 
 import type { CreateTableBuilder, Kysely, QueryResult } from 'kysely';
 
+export const SYSTEM_USER = 'SYSTEM';
+
 /**
  * Create Audit Log Trigger for a given table.
  * @param qb Query Builder
@@ -103,7 +105,7 @@ export function dropUpdatedAtTrigger(
 export function withTimestamps<TB extends string>(qb: CreateTableBuilder<TB>): CreateTableBuilder<TB> {
   return qb
     .addColumn('created_at', 'timestamp', (col) => col.notNull().defaultTo(sql`now()`))
-    .addColumn('created_by', 'text', (col) => col.notNull())
+    .addColumn('created_by', 'text', (col) => col.notNull().defaultTo(SYSTEM_USER))
     .addColumn('updated_at', 'timestamp')
     .addColumn('updated_by', 'text');
 }

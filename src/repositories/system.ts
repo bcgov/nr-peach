@@ -7,10 +7,7 @@ export class SystemRepository extends BaseRepository<PiesSystem, string> {
   create(item: Partial<PiesSystem>): Promise<InsertResult> {
     return this.db
       .insertInto('pies.system')
-      .values({
-        id: item.id ?? '',
-        createdBy: 'SYSTEM'
-      })
+      .values({ id: item.id ?? '' })
       .executeTakeFirst();
   }
 
@@ -30,10 +27,7 @@ export class SystemRepository extends BaseRepository<PiesSystem, string> {
   upsert(item: Partial<PiesSystem>): Promise<InsertResult> {
     return this.db
       .insertInto('pies.system')
-      .values({
-        id: item.id ?? '',
-        createdBy: 'SYSTEM'
-      })
+      .values({ id: item.id ?? '' })
       .onConflict((oc) => oc.column('id').doNothing())
       .executeTakeFirst();
   }

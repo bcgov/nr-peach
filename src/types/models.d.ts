@@ -15,7 +15,7 @@ export interface PiesCoding {
   codeDisplay: string | null;
   codeSystem: string;
   createdAt: Generated<Timestamp>;
-  createdBy: string;
+  createdBy: Generated<string>;
   id: Generated<number>;
   updatedAt: Timestamp | null;
   updatedBy: string | null;
@@ -25,7 +25,7 @@ export interface PiesCoding {
 export interface PiesProcessEvent {
   codingId: number;
   createdAt: Generated<Timestamp>;
-  createdBy: string;
+  createdBy: Generated<string>;
   endDate: Timestamp | null;
   id: Generated<number>;
   isDatetime: Generated<boolean>;
@@ -41,7 +41,7 @@ export interface PiesProcessEvent {
 
 export interface PiesRecordKind {
   createdAt: Generated<Timestamp>;
-  createdBy: string;
+  createdBy: Generated<string>;
   id: Generated<number>;
   kind: string;
   updatedAt: Timestamp | null;
@@ -50,7 +50,7 @@ export interface PiesRecordKind {
 
 export interface PiesRecordLinkage {
   createdAt: Generated<Timestamp>;
-  createdBy: string;
+  createdBy: Generated<string>;
   id: Generated<number>;
   linkedSystemRecordId: number;
   systemRecordId: number;
@@ -61,7 +61,7 @@ export interface PiesRecordLinkage {
 
 export interface PiesSystem {
   createdAt: Generated<Timestamp>;
-  createdBy: string;
+  createdBy: Generated<string>;
   id: string;
   updatedAt: Timestamp | null;
   updatedBy: string | null;
@@ -69,7 +69,7 @@ export interface PiesSystem {
 
 export interface PiesSystemRecord {
   createdAt: Generated<Timestamp>;
-  createdBy: string;
+  createdBy: Generated<string>;
   id: Generated<number>;
   recordId: string;
   recordKindId: number;
@@ -80,7 +80,7 @@ export interface PiesSystemRecord {
 
 export interface PiesTransaction {
   createdAt: Generated<Timestamp>;
-  createdBy: string;
+  createdBy: Generated<string>;
   id: string;
   updatedAt: Timestamp | null;
   updatedBy: string | null;
@@ -88,7 +88,7 @@ export interface PiesTransaction {
 
 export interface PiesVersion {
   createdAt: Generated<Timestamp>;
-  createdBy: string;
+  createdBy: Generated<string>;
   id: string;
   updatedAt: Timestamp | null;
   updatedBy: string | null;
