@@ -46,7 +46,7 @@ const log = createLogger({
   format: format.combine(
     format.errors({ stack: true }), // Force errors to show stacktrace
     format.timestamp(), // Add ISO timestamp to each entry
-    process.env.NODE_ENV === 'production' ? format.json() : format.simple()
+    process.env.NODE_ENV === 'production' ? format.json() : format.prettyPrint({ colorize: true })
   ),
   level: process.env.APP_LOGLEVEL ?? DEFAULT_LOG_LEVEL
 });
