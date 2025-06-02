@@ -1,34 +1,18 @@
 import { BaseRepository } from './index.ts';
 
-import type { InsertResult, DeleteResult } from 'kysely';
-import type { PiesSystem } from '../types/index.ts';
+import type { Kysely, Transaction } from 'kysely';
+import type { DB, PiesSystem } from '../types/index.ts';
 
-export class SystemRepository extends BaseRepository<PiesSystem, string> {
-  create(item: Partial<PiesSystem>): Promise<InsertResult> {
-    return this.db
-      .insertInto('pies.system')
-      .values({ id: item.id ?? '' })
-      .executeTakeFirst();
+export class SystemRepository extends BaseRepository<'pies.system', PiesSystem, string> {
+  constructor(db?: Kysely<DB> | Transaction<DB>) {
+    super('pies.system', db);
   }
 
-  read(id: string): Promise<object | undefined> {
-    return this.db.selectFrom('pies.system').where('id', '=', id).selectAll().executeTakeFirst();
+  read(id: string) {
+    return this.db.selectFrom(this.tableName).where('id', '=', id).selectAll().$castTo<PiesSystem>();
   }
 
-  /** @deprecated Updates to pies.system are not allowed. */
-  update(): never {
-    throw new Error('Updates to pies.system are not allowed.');
-  }
-
-  delete(id: string): Promise<DeleteResult> {
-    return this.db.deleteFrom('pies.system').where('id', '=', id).executeTakeFirst();
-  }
-
-  upsert(item: Partial<PiesSystem>): Promise<InsertResult> {
-    return this.db
-      .insertInto('pies.system')
-      .values({ id: item.id ?? '' })
-      .onConflict((oc) => oc.column('id').doNothing())
-      .executeTakeFirst();
+  delete(id: string) {
+    return this.db.deleteFrom(this.tableName).where('id', '=', id);
   }
 }

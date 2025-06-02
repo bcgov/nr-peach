@@ -10,9 +10,9 @@ export const mergeProcessEventSetService = (id: string, data: ProcessEventSet): 
 
 export const replaceProcessEventSetService = (data: ProcessEventSet): Promise<void> => {
   return transactionWrapper(async (trx) => {
-    await new SystemRepository(trx).upsert({ id: data.system_id });
-    await new TransactionRepository(trx).upsert({ id: data.transaction_id });
-    await new VersionRepository(trx).upsert({ id: data.version });
+    await new SystemRepository(trx).upsert({ id: data.system_id }).execute();
+    await new TransactionRepository(trx).upsert({ id: data.transaction_id }).execute();
+    await new VersionRepository(trx).upsert({ id: data.version }).execute();
   });
 };
 
