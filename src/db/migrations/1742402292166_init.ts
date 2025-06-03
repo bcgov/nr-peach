@@ -155,6 +155,10 @@ export async function up(db: Kysely<unknown>): Promise<void> {
     .createTable('record_kind')
     .addColumn('id', 'integer', (col) => col.primaryKey().generatedAlwaysAsIdentity())
     .addColumn('kind', 'text', (col) => col.notNull())
+    .addColumn('version_id', 'text', (col) =>
+      col.notNull().references('version.id').onUpdate('cascade').onDelete('cascade')
+    )
+    .addUniqueConstraint('record_kind_version_id_kind_unique', ['version_id', 'kind'])
     .$call(withTimestamps)
     .execute();
   await createUpdatedAtTrigger(db, 'pies', 'record_kind');

@@ -46,6 +46,7 @@ export interface PiesRecordKind {
   kind: string;
   updatedAt: Timestamp | null;
   updatedBy: string | null;
+  versionId: string;
 }
 
 export interface PiesRecordLinkage {
