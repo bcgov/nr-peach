@@ -27,9 +27,10 @@ export interface PiesProcessEvent {
   createdAt: Generated<Timestamp>;
   createdBy: Generated<string>;
   endDate: Timestamp | null;
+  endTime: string | null;
   id: Generated<number>;
-  isDatetime: Generated<boolean>;
   startDate: Timestamp;
+  startTime: string | null;
   status: string | null;
   statusCode: string | null;
   statusDescription: string | null;

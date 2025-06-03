@@ -195,9 +195,10 @@ export async function up(db: Kysely<unknown>): Promise<void> {
     .addColumn('system_record_id', 'integer', (col) =>
       col.notNull().references('system_record.id').onUpdate('cascade').onDelete('cascade')
     )
-    .addColumn('start_date', 'timestamptz', (col) => col.notNull())
-    .addColumn('end_date', 'timestamptz')
-    .addColumn('is_datetime', 'boolean', (col) => col.notNull().defaultTo(false))
+    .addColumn('start_date', 'date', (col) => col.notNull())
+    .addColumn('start_time', 'timetz')
+    .addColumn('end_date', 'date')
+    .addColumn('end_time', 'timetz')
     .addColumn('coding_id', 'integer', (col) =>
       col.notNull().references('coding.id').onUpdate('cascade').onDelete('cascade')
     )
