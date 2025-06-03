@@ -123,11 +123,11 @@ describe('DB Utils', () => {
     const result = withTimestamps(tableBuilder);
 
     // eslint-disable-next-line @typescript-eslint/unbound-method
-    expect(result.addColumn).toHaveBeenCalledWith('created_at', 'timestamp', expect.any(Function));
+    expect(result.addColumn).toHaveBeenCalledWith('created_at', 'timestamptz', expect.any(Function));
     // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(result.addColumn).toHaveBeenCalledWith('created_by', 'text', expect.any(Function));
     // eslint-disable-next-line @typescript-eslint/unbound-method
-    expect(result.addColumn).toHaveBeenCalledWith('updated_at', 'timestamp');
+    expect(result.addColumn).toHaveBeenCalledWith('updated_at', 'timestamptz');
     // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(result.addColumn).toHaveBeenCalledWith('updated_by', 'text');
   });

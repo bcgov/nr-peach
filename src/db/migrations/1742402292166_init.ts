@@ -87,7 +87,7 @@ export async function up(db: Kysely<unknown>): Promise<void> {
     .addColumn('table_name', 'text', (col) => col.notNull())
     .addColumn('db_user', 'text', (col) => col.notNull())
     .addColumn('updated_by_username', 'text')
-    .addColumn('action_timestamp', 'timestamp', (col) => col.notNull().defaultTo(sql`now()`))
+    .addColumn('action_timestamp', 'timestamptz', (col) => col.notNull().defaultTo(sql`now()`))
     .addColumn('action', 'text', (col) => col.notNull())
     .addColumn('original_data', 'json')
     .addColumn('new_data', 'json')
@@ -195,8 +195,8 @@ export async function up(db: Kysely<unknown>): Promise<void> {
     .addColumn('system_record_id', 'integer', (col) =>
       col.notNull().references('system_record.id').onUpdate('cascade').onDelete('cascade')
     )
-    .addColumn('start_date', 'timestamp', (col) => col.notNull())
-    .addColumn('end_date', 'timestamp')
+    .addColumn('start_date', 'timestamptz', (col) => col.notNull())
+    .addColumn('end_date', 'timestamptz')
     .addColumn('is_datetime', 'boolean', (col) => col.notNull().defaultTo(false))
     .addColumn('coding_id', 'integer', (col) =>
       col.notNull().references('coding.id').onUpdate('cascade').onDelete('cascade')

@@ -104,8 +104,8 @@ export function dropUpdatedAtTrigger(
  */
 export function withTimestamps<TB extends string>(qb: CreateTableBuilder<TB>): CreateTableBuilder<TB> {
   return qb
-    .addColumn('created_at', 'timestamp', (col) => col.notNull().defaultTo(sql`now()`))
+    .addColumn('created_at', 'timestamptz', (col) => col.notNull().defaultTo(sql`CURRENT_TIMESTAMP`))
     .addColumn('created_by', 'text', (col) => col.notNull().defaultTo(SYSTEM_USER))
-    .addColumn('updated_at', 'timestamp')
+    .addColumn('updated_at', 'timestamptz')
     .addColumn('updated_by', 'text');
 }
