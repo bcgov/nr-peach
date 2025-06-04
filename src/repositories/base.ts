@@ -9,11 +9,9 @@ import type {
   InsertResult,
   Kysely,
   OperandValueExpression,
+  Selectable,
   SelectQueryBuilder,
   Transaction
-  // UpdateObject,
-  // UpdateQueryBuilder,
-  // UpdateResult
 } from 'kysely';
 import type { DB } from '../types/index.ts';
 
@@ -48,9 +46,9 @@ export abstract class BaseRepository<TB extends keyof DB, R extends DB[TB]> {
    * @param id - The primary key value of the record to retrieve.
    * @returns A query builder instance configured to select the record with the specified ID.
    */
-  read(id: OperandValueExpression<DB, TB, R>): SelectQueryBuilder<DB, TB, R> {
+  read(id: OperandValueExpression<DB, TB, R>): SelectQueryBuilder<DB, TB, Selectable<R>> {
     const builder = this.db.selectFrom(this.tableName).selectAll() as unknown as SelectQueryBuilder<DB, TB, R>;
-    return builder.where(sql.ref(this.idColumn), '=', id);
+    return builder.where(sql.ref(this.idColumn), '=', id).$castTo<Selectable<R>>();
   }
 
   /**
@@ -58,11 +56,10 @@ export abstract class BaseRepository<TB extends keyof DB, R extends DB[TB]> {
    * @param item - The data to upsert.
    * @returns A query builder for the upsert operation.
    */
-  upsert(item: InsertObject<DB, TB>): InsertQueryBuilder<DB, TB, R> {
+  upsert(item: InsertObject<DB, TB>): InsertQueryBuilder<DB, TB, Selectable<DB[TB]>> {
     return this.create(item)
       .onConflict((oc) => oc.column('id').doNothing())
-      .returningAll()
-      .$castTo<R>();
+      .returningAll();
   }
 
   /**
