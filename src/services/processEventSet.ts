@@ -20,16 +20,6 @@ export const replaceProcessEventSetService = (data: ProcessEventSet): Promise<vo
   return transactionWrapper(async (trx) => {
     await new SystemRepository(trx).upsert({ id: data.system_id }).execute();
     await new TransactionRepository(trx).upsert({ id: data.transaction_id }).execute();
-    // let version = await new VersionRepository(trx)
-    //   .upsert({ id: data.version })
-    //   .returningAll()
-    //   .$castTo<PiesVersion>()
-    //   .executeTakeFirst();
-
-    // let version = await new VersionRepository(trx).upsert({ id: data.version }).executeTakeFirst();
-    // console.log('version', version);
-    // version ??= await new VersionRepository(trx).read(data.version).executeTakeFirstOrThrow();
-    // console.log('version after read', version);
 
     const version = await readableUpsert(new VersionRepository(trx), { id: data.version }, data.version);
     const recordKind = await readableUpsert(
@@ -38,12 +28,11 @@ export const replaceProcessEventSetService = (data: ProcessEventSet): Promise<vo
       data.kind
     );
 
-    // await new RecordKindRepository(trx).upsert({ kind: data.kind, versionId: version.id }).execute();
     await new SystemRecordRepository(trx)
       .upsert({
         systemId: data.system_id,
         recordId: data.record_id,
-        recordKindId: Number(recordKind.id)
+        recordKindId: recordKind.id
       })
       .execute();
   });
