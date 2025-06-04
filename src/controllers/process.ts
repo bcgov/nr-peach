@@ -1,4 +1,4 @@
-import { TransactionRepository } from '../repositories/index.ts';
+import { RecordKindRepository, TransactionRepository } from '../repositories/index.ts';
 import { replaceProcessEventSetService } from '../services/processEventSet.ts';
 
 import type { Request, Response } from 'express';
@@ -10,7 +10,8 @@ export const deleteProcessEventsController = async (req: Request, res: Response)
 };
 
 export const getProcessEventsController = async (req: Request, res: Response): Promise<void> => {
-  const result = await new TransactionRepository().read('01950719-b154-72f5-8437-5572df032a69').execute();
+  // const result = await new TransactionRepository().read('01950719-b154-72f5-8437-5572df032a69').execute();
+  const result = await new RecordKindRepository().read(1).execute();
   res.status(200).json(result);
 };
 
