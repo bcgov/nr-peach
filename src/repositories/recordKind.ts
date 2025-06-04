@@ -1,22 +1,20 @@
 import { BaseRepository } from './index.ts';
 
-import type { InsertObject, InsertQueryBuilder, InsertResult, Kysely, Transaction } from 'kysely';
+import type { InsertObject, InsertQueryBuilder, Kysely, Transaction } from 'kysely';
 import type { DB, PiesRecordKind } from '../types/index.ts';
 
-export class RecordKindRepository extends BaseRepository<'pies.recordKind', PiesRecordKind, number> {
+export class RecordKindRepository extends BaseRepository<'pies.recordKind', PiesRecordKind> {
   constructor(db?: Kysely<DB> | Transaction<DB>) {
-    super('pies.recordKind', db);
+    super('pies.recordKind', 'id', db);
   }
 
-  upsert(item: InsertObject<DB, 'pies.recordKind'>): InsertQueryBuilder<DB, 'pies.recordKind', InsertResult> {
-    return super.upsert(item).onConflict((oc) => oc.constraint('record_kind_version_id_kind_unique').doNothing());
-  }
-
-  read(id: number) {
-    return this.db.selectFrom(this.tableName).where('id', '=', id).selectAll().$castTo<PiesRecordKind>();
-  }
-
-  delete(id: number) {
-    return this.db.deleteFrom(this.tableName).where('id', '=', id);
+  override upsert(
+    item: InsertObject<DB, 'pies.recordKind'>
+  ): InsertQueryBuilder<DB, 'pies.recordKind', PiesRecordKind> {
+    return super
+      .upsert(item)
+      .onConflict((oc) => oc.constraint('record_kind_version_id_kind_unique').doNothing())
+      .returningAll()
+      .$castTo<PiesRecordKind>();
   }
 }

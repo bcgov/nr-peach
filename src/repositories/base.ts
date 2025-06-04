@@ -1,12 +1,14 @@
+import { sql } from 'kysely';
+
 import { db } from '../db/index.ts';
 
 import type {
   DeleteQueryBuilder,
-  DeleteResult,
   InsertObject,
   InsertQueryBuilder,
   InsertResult,
   Kysely,
+  OperandValueExpression,
   SelectQueryBuilder,
   Transaction
   // UpdateObject,
@@ -19,31 +21,16 @@ import type { DB } from '../types/index.ts';
  * Abstract base class for repository implementations.
  * Provides a structure for CRUD operations and database interaction.
  * @template TB - The key of the table in the database.
- * @template O - The type of the entity managed by the repository.
- * @template ID - The type of the primary key identifier for the entity.
+ * @template R - The key of the primary key identifier for the entity.
  */
-export abstract class BaseRepository<TB extends keyof DB, O, ID> {
-  /**
-   * The database instance used for executing queries.
-   * Can be either a `Kysely` instance or a `Transaction` instance.
-   */
-  protected db: Kysely<DB> | Transaction<DB>;
+export abstract class BaseRepository<TB extends keyof DB, R extends DB[TB]> {
+  private db: Kysely<DB> | Transaction<DB>;
+  private idColumn: string;
+  private tableName: TB;
 
-  /**
-   * The name of the database table and schema associated with this repository.
-   * This property is intended to be set by derived classes to specify
-   * the table that the repository interacts with.
-   */
-  protected tableName: TB;
-
-  /**
-   * Constructs a new instance of the repository.
-   * @param tableName - The name of the table associated with the repository.
-   * @param [dbInstance] - Optional database instance.
-   * If not provided, the default database instance (`defaultDb`) will be used.
-   */
-  constructor(tableName: TB, dbInstance?: Kysely<DB> | Transaction<DB>) {
+  constructor(tableName: TB, idColumn: string, dbInstance?: Kysely<DB> | Transaction<DB>) {
     this.tableName = tableName;
+    this.idColumn = idColumn;
     this.db = dbInstance ?? db;
   }
 
@@ -57,34 +44,34 @@ export abstract class BaseRepository<TB extends keyof DB, O, ID> {
   }
 
   /**
+   * Read an entity from the database by its identifier.
+   * @param id - The primary key value of the record to retrieve.
+   * @returns A query builder instance configured to select the record with the specified ID.
+   */
+  read(id: OperandValueExpression<DB, TB, R>): SelectQueryBuilder<DB, TB, R> {
+    const builder = this.db.selectFrom(this.tableName).selectAll() as unknown as SelectQueryBuilder<DB, TB, R>;
+    return builder.where(sql.ref(this.idColumn), '=', id);
+  }
+
+  /**
    * Upsert an entity into the table, with conflict resolution set to do nothing if a conflict occurs.
    * @param item - The data to upsert.
    * @returns A query builder for the upsert operation.
    */
-  upsert(item: InsertObject<DB, TB>): InsertQueryBuilder<DB, TB, InsertResult> {
-    return this.create(item).onConflict((oc) => oc.column('id').doNothing());
+  upsert(item: InsertObject<DB, TB>): InsertQueryBuilder<DB, TB, R> {
+    return this.create(item)
+      .onConflict((oc) => oc.column('id').doNothing())
+      .returningAll()
+      .$castTo<R>();
   }
 
   /**
-   * Read an entity from the database by its identifier.
-   * @param id - The identifier of the entity to be read.
-   * @returns A promise that resolves to the entity if found, or `null` if not found.
-   */
-  abstract read(id: ID): SelectQueryBuilder<DB, TB, O>;
-
-  /**
-   * Update an existing entity in the table.
-   * @param {ID} id - The identifier of the entity to be updated.
-   * @param {Partial<O>} item - The partial entity data to update.
-   * @returns {Promise<O>} A promise that resolves to the updated entity.
-   */
-  // TODO: Uncomment and enforce the update method when needed.
-  // abstract update(id: ID, item: UpdateObject<DB, TB>): UpdateQueryBuilder<DB, TB, TB, UpdateResult>;
-
-  /**
    * Delete an entity from the table by its identifier.
-   * @param {ID} id - The identifier of the entity to be deleted.
-   * @returns {Promise<DeleteResult>} A promise that resolves to the result of the delete operation.
+   * @param id - The primary key value of the record to delete.
+   * @returns A query builder instance configured to delete the specified record.
    */
-  abstract delete(id: ID): DeleteQueryBuilder<DB, TB, DeleteResult>;
+  delete(id: OperandValueExpression<DB, TB, R>): DeleteQueryBuilder<DB, TB, R> {
+    const builder = this.db.deleteFrom(this.tableName) as unknown as DeleteQueryBuilder<DB, TB, R>;
+    return builder.where(sql.ref(this.idColumn), '=', id);
+  }
 }
