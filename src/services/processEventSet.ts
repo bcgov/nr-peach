@@ -21,12 +21,8 @@ export const replaceProcessEventSetService = (data: ProcessEventSet): Promise<vo
     await new SystemRepository(trx).upsert({ id: data.system_id }).execute();
     await new TransactionRepository(trx).upsert({ id: data.transaction_id }).execute();
 
-    const version = await readableUpsert(new VersionRepository(trx), { id: data.version }, data.version);
-    const recordKind = await readableUpsert(
-      new RecordKindRepository(trx),
-      { kind: data.kind, versionId: version.id },
-      data.kind // TODO: This does not actually work as we do not know the primary key to look it up with
-    );
+    const version = await readableUpsert(new VersionRepository(trx), { id: data.version });
+    const recordKind = await readableUpsert(new RecordKindRepository(trx), { kind: data.kind, versionId: version.id });
     await new SystemRecordRepository(trx)
       .upsert({
         recordId: data.record_id,

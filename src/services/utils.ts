@@ -1,6 +1,6 @@
 import { BaseRepository } from '../repositories/index.ts';
 
-import type { InsertObject, OperandValueExpression } from 'kysely';
+import type { FilterObject, InsertObject } from 'kysely';
 import type { DB } from '../types/index.ts';
 
 /**
@@ -9,14 +9,12 @@ import type { DB } from '../types/index.ts';
  * @template TB - The table name, constrained to keys of the database schema `DB`.
  * @param repo - The repository instance for the target table.
  * @param data - The data object to insert or update.
- * @param id - The identifier used to read the row. Normally the primary key of the table.
  * @returns A promise that resolves to the upserted or retrieved row.
  */
 export async function readableUpsert<TB extends keyof DB>(
   repo: BaseRepository<TB>,
-  data: InsertObject<DB, TB>,
-  id: OperandValueExpression<DB, TB, DB[TB]>
+  data: FilterObject<DB, TB> & InsertObject<DB, TB>
 ) {
   const upsertRow = await repo.upsert(data).executeTakeFirst();
-  return upsertRow ?? (await repo.read(id).executeTakeFirstOrThrow());
+  return upsertRow ?? (await repo.find(data).executeTakeFirstOrThrow());
 }
