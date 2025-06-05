@@ -137,7 +137,6 @@ export async function up(db: Kysely<unknown>): Promise<void> {
     .createTable('coding')
     .addColumn('id', 'integer', (col) => col.primaryKey().generatedAlwaysAsIdentity())
     .addColumn('code', 'text', (col) => col.notNull())
-    .addColumn('code_display', 'text')
     .addColumn('code_system', 'text', (col) => col.notNull())
     .addColumn('version_id', 'text', (col) =>
       col.notNull().references('version.id').onUpdate('cascade').onDelete('cascade')
