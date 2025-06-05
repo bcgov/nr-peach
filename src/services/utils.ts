@@ -11,7 +11,7 @@ import type { DB } from '../types/index.ts';
  * @param data - The data object to insert or update.
  * @returns A promise that resolves to the upserted or retrieved row.
  */
-export async function readableUpsert<TB extends keyof DB>(
+export async function returnableUpsert<TB extends keyof DB>(
   repo: BaseRepository<TB>,
   data: FilterObject<DB, TB> & InsertObject<DB, TB>
 ) {

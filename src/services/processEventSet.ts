@@ -7,7 +7,7 @@ import {
   VersionRepository
 } from '../repositories/index.ts';
 
-import { readableUpsert } from './utils.ts';
+import { returnableUpsert } from './utils.ts';
 
 import type { ProcessEventSet } from '../types/index.js';
 
@@ -21,8 +21,11 @@ export const replaceProcessEventSetService = (data: ProcessEventSet): Promise<vo
     await new SystemRepository(trx).upsert({ id: data.system_id }).execute();
     await new TransactionRepository(trx).upsert({ id: data.transaction_id }).execute();
 
-    const version = await readableUpsert(new VersionRepository(trx), { id: data.version });
-    const recordKind = await readableUpsert(new RecordKindRepository(trx), { kind: data.kind, versionId: version.id });
+    const version = await returnableUpsert(new VersionRepository(trx), { id: data.version });
+    const recordKind = await returnableUpsert(new RecordKindRepository(trx), {
+      kind: data.kind,
+      versionId: version.id
+    });
     await new SystemRecordRepository(trx)
       .upsert({
         recordId: data.record_id,
