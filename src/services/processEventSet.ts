@@ -1,5 +1,6 @@
 import { transactionWrapper } from '../db/index.ts';
 import {
+  CodingRepository,
   RecordKindRepository,
   SystemRepository,
   SystemRecordRepository,
@@ -26,13 +27,20 @@ export const replaceProcessEventSetService = (data: ProcessEventSet): Promise<vo
       kind: data.kind,
       versionId: version.id
     });
-    await new SystemRecordRepository(trx)
-      .upsert({
-        recordId: data.record_id,
-        recordKindId: recordKind.id,
-        systemId: data.system_id
+    await returnableUpsert(new SystemRecordRepository(trx), {
+      recordId: data.record_id,
+      recordKindId: recordKind.id,
+      systemId: data.system_id
+    });
+    await Promise.all(
+      data.process_event.map(async (pe) => {
+        await returnableUpsert(new CodingRepository(trx), {
+          code: pe.process.code,
+          codeSystem: pe.process.code_system,
+          versionId: version.id
+        });
       })
-      .execute();
+    );
   });
 };
 
