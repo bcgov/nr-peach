@@ -8,7 +8,7 @@ import {
   VersionRepository
 } from '../repositories/index.ts';
 
-import { returnableUpsert } from './utils.ts';
+import { isValidCoding, returnableUpsert } from './index.ts';
 
 import type { ProcessEventSet } from '../types/index.js';
 
@@ -34,6 +34,10 @@ export const replaceProcessEventSetService = (data: ProcessEventSet): Promise<vo
     });
     await Promise.all(
       data.process_event.map(async (pe) => {
+        if (!isValidCoding(pe.process.code_system, pe.process.code)) {
+          throw new Error(`Invalid Process element: '${pe.process.code}' - '${pe.process.code_system}'`);
+        }
+
         await returnableUpsert(new CodingRepository(trx), {
           code: pe.process.code,
           codeSystem: pe.process.code_system,
