@@ -9,10 +9,10 @@ export class RecordKindRepository extends BaseRepository<'pies.recordKind'> {
   }
 
   override upsert(
-    item: InsertObject<DB, 'pies.recordKind'>
+    data: InsertObject<DB, 'pies.recordKind'>
   ): InsertQueryBuilder<DB, 'pies.recordKind', Selectable<DB['pies.recordKind']>> {
     return super
-      .upsert(item)
+      .upsert(data)
       .onConflict((oc) => oc.constraint('record_kind_version_id_kind_unique').doNothing())
       .returningAll();
   }
