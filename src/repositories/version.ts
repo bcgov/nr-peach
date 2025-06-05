@@ -1,10 +1,10 @@
 import { BaseRepository } from './index.ts';
 
 import type { Kysely, Transaction } from 'kysely';
-import type { DB, PiesVersion } from '../types/index.ts';
+import type { DB } from '../types/index.ts';
 
-export class VersionRepository extends BaseRepository<'pies.version', PiesVersion> {
+export class VersionRepository extends BaseRepository<'pies.version'> {
   constructor(db?: Kysely<DB> | Transaction<DB>) {
-    super('pies.version', 'id', db);
+    super('pies.version', db);
   }
 }
