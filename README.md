@@ -86,6 +86,12 @@ npm run migrate:latest
 This command ensures that your database schema is up-to-date.
 
 ```sh
+npm run seed:run
+```
+
+This command pre-populates your database with common data entries non-destructively.
+
+```sh
 npm run dev
 ```
 
