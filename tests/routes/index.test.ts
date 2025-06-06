@@ -38,17 +38,25 @@ describe('GET /ready', () => {
     state.ready = false;
   });
 
-  it('should return 200 with status "ready" when state.ready is true', async () => {
+  it('should return 200 when state.ready is true', async () => {
     state.ready = true;
     const response = await request(app).get('/ready');
     expect(response.status).toBe(200);
     expect(response.body).toEqual({ detail: 'Server is ready' });
   });
 
-  it('should return 503 with status "not ready" when state.ready is false', async () => {
+  it('should return 503 when state.ready is false', async () => {
     state.ready = false;
     const response = await request(app).get('/ready');
     expect(response.status).toBe(503);
     expect(response.body).toEqual(expect.objectContaining({ detail: 'Server is not ready' }));
+  });
+});
+
+describe('GET /teapot', () => {
+  it('should return 418', async () => {
+    const response = await request(app).get('/teapot');
+    expect(response.status).toBe(418);
+    expect(response.body).toEqual(expect.objectContaining({ title: "I'm a Teapot" })); // eslint-disable-line quotes
   });
 });

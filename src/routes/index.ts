@@ -33,6 +33,11 @@ router.get('/ready', (req: Request, res: Response): void => {
   }
 });
 
+/** Teapot Endpoint */
+router.get('/teapot', (req: Request, res: Response): void => {
+  new Problem(418).send(req, res);
+});
+
 router.use('/docs', docs);
 router.use('/api/v1', v1);
 
