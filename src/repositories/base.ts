@@ -3,6 +3,7 @@ import { sql } from 'kysely';
 import { db } from '../db/index.ts';
 
 import type {
+  AnyColumn,
   DeleteQueryBuilder,
   FilterObject,
   InsertObject,
@@ -33,7 +34,7 @@ export abstract class BaseRepository<TB extends keyof DB> {
   protected db: Kysely<DB> | Transaction<DB>;
 
   /** The name of the primary key column for the table. */
-  protected idColumn: string;
+  protected idColumn: AnyColumn<DB, TB>;
 
   /** The name of the table this repository operates on. */
   protected tableName: TB;
@@ -45,7 +46,7 @@ export abstract class BaseRepository<TB extends keyof DB> {
    * If not provided, a default instance is used.
    * @param idColumn - Optional. The name of the ID column for the table. Defaults to 'id' if not specified.
    */
-  constructor(tableName: TB, dbInstance?: Kysely<DB> | Transaction<DB>, idColumn?: string) {
+  constructor(tableName: TB, dbInstance?: Kysely<DB> | Transaction<DB>, idColumn?: AnyColumn<DB, TB>) {
     this.db = dbInstance ?? db;
     this.idColumn = idColumn ?? 'id';
     this.tableName = tableName;
@@ -97,7 +98,7 @@ export abstract class BaseRepository<TB extends keyof DB> {
    */
   upsert(data: InsertObject<DB, TB>): InsertQueryBuilder<DB, TB, Selectable<DB[TB]>> {
     return this.create(data)
-      .onConflict((oc) => oc.column('id').doNothing())
+      .onConflict((oc) => oc.column(this.idColumn).doNothing())
       .returningAll();
   }
 }
