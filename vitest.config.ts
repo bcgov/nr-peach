@@ -6,7 +6,7 @@ export default defineConfig({
     clearMocks: true,
     coverage: {
       enabled: true, // Set true to always emit coverage on success
-      exclude: ['*.ts', '**/migrations/**', ...coverageConfigDefaults.exclude],
+      exclude: ['*.ts', '**/migrations/**', '**/seeds/**', ...coverageConfigDefaults.exclude],
       reporter: ['clover', 'html', 'json', 'lcov', 'text', 'text-summary'],
       reportOnFailure: true
     },
