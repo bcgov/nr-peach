@@ -15,12 +15,25 @@ import { isValidCoding, returnableUpsert } from './index.ts';
 import type { ProcessEventSet } from '../types/index.js';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-export const mergeProcessEventSetService = (id: string, data: ProcessEventSet): Promise<void> => {
+export const mergeProcessEventSetService = (data: ProcessEventSet): Promise<void> => {
   throw new Error('mergeProcessEventSetService not implemented');
 };
 
 export const replaceProcessEventSetService = (data: ProcessEventSet): Promise<void> => {
   return transactionWrapper(async (trx) => {
+    // TODO: Should we extracct this to be its own middleware or part of the validation stack?
+    // Validate ProcessEvent element contents
+    data.process_event.map((pe, index) => {
+      if (!isValidCoding(pe.process.code_system, pe.process.code)) {
+        throw new Problem(
+          422,
+          { detail: `Invalid ProcessEvent element at index ${index}` },
+          { errors: { code: pe.process.code, codeSystem: pe.process.code_system } }
+        );
+      }
+    });
+
+    // Update atomic fact tables
     await Promise.all([
       new SystemRepository(trx).upsert({ id: data.system_id }).execute(),
       new TransactionRepository(trx).upsert({ id: data.transaction_id }).execute(),
@@ -36,24 +49,26 @@ export const replaceProcessEventSetService = (data: ProcessEventSet): Promise<vo
       recordKindId: recordKind.id,
       systemId: data.system_id
     });
+
+    // Prune existing process events for the system record
+    await new ProcessEventRepository(trx).prune(systemRecord.id).execute();
+
+    // Insert new process events
     await Promise.all(
       data.process_event.map(async (pe, index) => {
-        if (!isValidCoding(pe.process.code_system, pe.process.code)) {
-          throw new Problem(422, {
-            detail: `Invalid Process element at index ${index}: '${pe.process.code}' - '${pe.process.code_system}'`
-          });
-        }
-
         const coding = await returnableUpsert(new CodingRepository(trx), {
           code: pe.process.code,
           codeSystem: pe.process.code_system,
           versionId: data.version
         });
 
-        // TODO: Full logic for replace requires "pruning" and creating all of the process events.
-        // TODO: Look into better ways of handling date validation and conversion.
+        // TODO: Look into better ways of handling date/datetime validation and conversion.
         const startDate = pe.event.start_date ? new Date(pe.event.start_date) : undefined;
-        if (!startDate) throw new Error('Start date is required for ProcessEvent');
+        if (!startDate) {
+          throw new Problem(422, {
+            detail: `Invalid ProcessEvent element at index ${index}: 'start_date' or 'start_datetime' is required`
+          });
+        }
         await new ProcessEventRepository(trx)
           .create({
             codingId: coding.id,
