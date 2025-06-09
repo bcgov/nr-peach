@@ -21,9 +21,9 @@ export const mergeProcessEventSetService = (data: ProcessEventSet): Promise<void
 
 export const replaceProcessEventSetService = (data: ProcessEventSet): Promise<void> => {
   return transactionWrapper(async (trx) => {
-    // TODO: Should we extracct this to be its own middleware or part of the validation stack?
+    // TODO: Should we extract this to be its own middleware or part of the validation stack?
     // Validate ProcessEvent element contents
-    data.process_event.map((pe, index) => {
+    data.process_event.forEach((pe, index) => {
       if (!isValidCoding(pe.process.code_system, pe.process.code)) {
         throw new Problem(
           422,

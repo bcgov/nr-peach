@@ -48,6 +48,7 @@
     "kysely": "0.28.2",
     "kysely-codegen": "0.18.5",
     "kysely-ctl": "0.13.1",
+    "lru-cache": "11.1.0",
     "pg": "8.16.0",
     "serve-favicon": "2.5.0",
     "winston": "3.17.0",
