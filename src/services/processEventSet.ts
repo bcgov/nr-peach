@@ -35,9 +35,9 @@ export const replaceProcessEventSetService = (data: ProcessEventSet): Promise<vo
 
     // Update atomic fact tables
     await Promise.all([
-      new SystemRepository(trx).upsert({ id: data.system_id }).execute(),
-      new TransactionRepository(trx).upsert({ id: data.transaction_id }).execute(),
-      new VersionRepository(trx).upsert({ id: data.version }).execute()
+      new TransactionRepository(trx).create({ id: data.transaction_id }).execute(),
+      returnableUpsert(new SystemRepository(trx), { id: data.system_id }),
+      returnableUpsert(new VersionRepository(trx), { id: data.version })
     ]);
 
     const recordKind = await returnableUpsert(new RecordKindRepository(trx), {
