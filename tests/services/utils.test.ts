@@ -1,5 +1,7 @@
+import { createHash } from 'node:crypto';
+
 import { BaseRepository } from '../../src/repositories/base.ts';
-import { returnableUpsert } from '../../src/services/utils.ts';
+import { cacheWrapper, findThenUpsert, lruCache, returnableUpsert } from '../../src/services/utils.ts';
 
 import type { Kysely, Transaction } from 'kysely';
 import type { DB } from '../../src/types/index.ts';
@@ -15,58 +17,149 @@ class MockRepo extends BaseRepository<'pies.version'> {
 }
 const mockData = { id: '0.1.0' };
 
-// TODO: Fix these tests to work with the refactored implementation with LRU cache
-describe.skip('returnableUpsert', () => {
+describe('cacheWrapper', () => {
+  const cacheKey = 'pies.version:key';
+  const mockCallback = vi.fn();
+
+  beforeEach(() => {
+    lruCache.clear();
+    mockCallback.mockReset();
+  });
+
+  it('returns cached result if available', async () => {
+    const cachedResult = { id: 1, name: 'cached' };
+    lruCache.set(cacheKey, cachedResult);
+
+    const result = await cacheWrapper(cacheKey, mockCallback);
+
+    expect(result).toEqual(cachedResult);
+    expect(mockCallback).not.toHaveBeenCalled();
+  });
+
+  it('executes callback and caches result on cache miss', async () => {
+    const callbackResult = { id: 2, name: 'new' };
+    mockCallback.mockResolvedValue(callbackResult);
+
+    const result = await cacheWrapper(cacheKey, mockCallback);
+
+    expect(result).toEqual(callbackResult);
+    expect(mockCallback).toHaveBeenCalled();
+    expect(lruCache.get(cacheKey)).toEqual(callbackResult);
+  });
+
+  it('removes cache entry if callback throws an error', async () => {
+    mockCallback.mockRejectedValue(new Error('Callback error'));
+
+    await expect(cacheWrapper(cacheKey, mockCallback)).rejects.toThrow('Callback error');
+    expect(lruCache.has(cacheKey)).toBe(false);
+  });
+
+  it('supports passing arguments to the callback', async () => {
+    const callbackResult = { id: 3, name: 'with args' };
+    mockCallback.mockResolvedValue(callbackResult);
+
+    const result = await cacheWrapper(cacheKey, mockCallback, 'arg1', 'arg2');
+
+    expect(result).toEqual(callbackResult);
+    expect(mockCallback).toHaveBeenCalledWith('arg1', 'arg2');
+  });
+});
+
+describe('findThenUpsert', () => {
   let repo: MockRepo;
 
   beforeEach(() => {
     repo = new MockRepo();
   });
 
-  it('returns the upserted row if upsert returns a row', async () => {
+  it('returns the found row if find returns a row', async () => {
     const upsertResult = { ...mockData, updated: true };
-    repo.upsert.mockReturnValue({
+    repo.find.mockReturnValue({
       executeTakeFirst: vi.fn().mockResolvedValue(upsertResult)
     });
 
     // find should not be called
-    repo.find.mockReturnValue({
+    repo.upsert.mockReturnValue({
       executeTakeFirstOrThrow: vi.fn()
     });
 
-    const result = await returnableUpsert(repo, mockData);
+    const result = await findThenUpsert(repo, mockData);
     expect(result).toEqual(upsertResult);
-    expect(repo.upsert).toHaveBeenCalledWith(mockData);
-    expect(repo.find).not.toHaveBeenCalled();
+    expect(repo.find).toHaveBeenCalledWith(mockData);
+    expect(repo.upsert).not.toHaveBeenCalled();
   });
 
-  it('calls find and returns the found row if upsert returns undefined', async () => {
-    repo.upsert.mockReturnValue({
+  it('calls upsert and returns the found row if find returns undefined', async () => {
+    repo.find.mockReturnValue({
       executeTakeFirst: vi.fn().mockResolvedValue(undefined)
     });
 
     const foundRow = { ...mockData, found: true };
-    repo.find.mockReturnValue({
+    repo.upsert.mockReturnValue({
       executeTakeFirstOrThrow: vi.fn().mockResolvedValue(foundRow)
     });
 
-    const result = await returnableUpsert(repo, mockData);
+    const result = await findThenUpsert(repo, mockData);
     expect(result).toEqual(foundRow);
-    expect(repo.upsert).toHaveBeenCalledWith(mockData);
     expect(repo.find).toHaveBeenCalledWith(mockData);
+    expect(repo.upsert).toHaveBeenCalledWith(mockData);
   });
 
   it('throws if both upsert and find fail', async () => {
-    repo.upsert.mockReturnValue({
+    repo.find.mockReturnValue({
       executeTakeFirst: vi.fn().mockResolvedValue(undefined)
     });
 
-    repo.find.mockReturnValue({
+    repo.upsert.mockReturnValue({
       executeTakeFirstOrThrow: vi.fn().mockRejectedValue(new Error('Not found'))
     });
 
-    await expect(returnableUpsert(repo, mockData)).rejects.toThrow('Not found');
-    expect(repo.upsert).toHaveBeenCalledWith(mockData);
+    await expect(findThenUpsert(repo, mockData)).rejects.toThrow('Not found');
     expect(repo.find).toHaveBeenCalledWith(mockData);
+    expect(repo.upsert).toHaveBeenCalledWith(mockData);
+  });
+});
+
+describe('returnableUpsert', () => {
+  let repo: MockRepo;
+
+  beforeEach(() => {
+    repo = new MockRepo();
+  });
+
+  it('calls findThenUpsert when cache is disabled', async () => {
+    const upsertResult = { ...mockData, updated: true };
+    repo.find.mockReturnValue({
+      executeTakeFirst: vi.fn().mockResolvedValue(upsertResult)
+    });
+
+    // find should not be called
+    repo.upsert.mockReturnValue({
+      executeTakeFirstOrThrow: vi.fn()
+    });
+
+    const result = await returnableUpsert(repo, mockData, false);
+    expect(result).toEqual(upsertResult);
+    expect(repo.find).toHaveBeenCalledWith(mockData);
+    expect(repo.upsert).not.toHaveBeenCalled();
+  });
+
+  it('caches the result when cache is enabled', async () => {
+    const upsertResult = { ...mockData, cached: true };
+    repo.find.mockReturnValue({
+      executeTakeFirst: vi.fn().mockResolvedValue(undefined)
+    });
+    repo.upsert.mockReturnValue({
+      executeTakeFirstOrThrow: vi.fn().mockResolvedValue(upsertResult)
+    });
+
+    const result = await returnableUpsert(repo, mockData, true);
+    expect(result).toEqual(upsertResult);
+    expect(repo.find).toHaveBeenCalledWith(mockData);
+    expect(repo.upsert).toHaveBeenCalledWith(mockData);
+
+    // Check cache
+    const cacheKey = `pies.version:${createHash('sha256').update(JSON.stringify(mockData)).digest('hex')}`;
+    expect(lruCache.get(cacheKey)).toEqual(upsertResult);
   });
 });
