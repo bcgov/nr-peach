@@ -23,7 +23,6 @@ export async function seed(db: Kysely<DB>): Promise<void> {
         Object.keys(codes).map((code) => ({ code, codeSystem, versionId: VERSION }))
       )
     )
-    .onConflict((oc) => oc.column('id').doNothing())
-    .onConflict((oc) => oc.constraint('coding_code_code_system_version_id_unique').doNothing())
+    .onConflict((oc) => oc.column('id').constraint('coding_code_code_system_version_id_unique').doNothing())
     .execute();
 }

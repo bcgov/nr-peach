@@ -31,13 +31,22 @@ import type { DB } from '../types/index.ts';
  */
 export abstract class BaseRepository<TB extends keyof DB> {
   /** The Kysely database instance or transaction used for executing queries. */
-  protected db: Kysely<DB> | Transaction<DB>;
+  private _db: Kysely<DB> | Transaction<DB>;
+  protected get db(): Kysely<DB> | Transaction<DB> {
+    return this._db;
+  }
 
   /** The name of the primary key column for the table. */
-  protected idColumn: AnyColumn<DB, TB>;
+  private _idColumn: AnyColumn<DB, TB>;
+  protected get idColumn(): AnyColumn<DB, TB> {
+    return this._idColumn;
+  }
 
   /** The name of the table this repository operates on. */
-  protected tableName: TB;
+  private _tableName: TB;
+  public get tableName(): TB {
+    return this._tableName;
+  }
 
   /**
    * Creates an instance of the repository for the specified table.
@@ -47,9 +56,9 @@ export abstract class BaseRepository<TB extends keyof DB> {
    * @param idColumn - Optional. The name of the ID column for the table. Defaults to 'id' if not specified.
    */
   constructor(tableName: TB, dbInstance?: Kysely<DB> | Transaction<DB>, idColumn?: AnyColumn<DB, TB>) {
-    this.db = dbInstance ?? db;
-    this.idColumn = idColumn ?? 'id';
-    this.tableName = tableName;
+    this._db = dbInstance ?? db;
+    this._idColumn = idColumn ?? 'id';
+    this._tableName = tableName;
   }
 
   /**
