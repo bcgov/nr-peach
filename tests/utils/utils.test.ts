@@ -1,7 +1,7 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-import { getGitRevision } from '../../src/utils/utils.ts';
+import { getGitRevision, sortObject } from '../../src/utils/utils.ts';
 
 vi.mock('node:fs', () => ({
   existsSync: vi.fn(),
@@ -55,5 +55,44 @@ describe('getGitRevision', () => {
     const result = getGitRevision();
 
     expect(result).toBe('');
+  });
+
+  describe('sortObject', () => {
+    it('should return a new object with keys sorted in ascending order', () => {
+      const input = { b: 2, a: 1, c: 3 };
+      const expected = { a: 1, b: 2, c: 3 };
+
+      const result = sortObject(input);
+
+      expect(result).toEqual(expected);
+      expect(Object.keys(result)).toEqual(['a', 'b', 'c']);
+    });
+
+    it('should handle an empty object', () => {
+      const input = {};
+      const expected = {};
+
+      const result = sortObject(input);
+
+      expect(result).toEqual(expected);
+    });
+
+    it('should not mutate the original object', () => {
+      const input = { b: 2, a: 1, c: 3 };
+      const inputCopy = { ...input };
+
+      sortObject(input);
+
+      expect(input).toEqual(inputCopy);
+    });
+
+    it('should work with nested objects', () => {
+      const input = { b: { y: 2 }, a: { x: 1 } };
+      const expected = { a: { x: 1 }, b: { y: 2 } };
+
+      const result = sortObject(input);
+
+      expect(result).toEqual(expected);
+    });
   });
 });

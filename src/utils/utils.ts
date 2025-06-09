@@ -41,3 +41,15 @@ export function getGitRevision(): string {
     return '';
   }
 }
+
+/**
+ * Sorts an object's keys in ascending order and returns a new object.
+ * @param obj - The object to sort.
+ * @returns A new object with sorted keys.
+ */
+export function sortObject<T extends object>(obj: T): T {
+  return (Object.keys(obj) as (keyof T)[]).sort().reduce((acc, key) => {
+    acc[key] = obj[key];
+    return acc;
+  }, {} as T);
+}
