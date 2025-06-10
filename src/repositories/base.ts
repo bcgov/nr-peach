@@ -30,35 +30,36 @@ import type { DB } from '../types/index.ts';
  * ```
  */
 export abstract class BaseRepository<TB extends keyof DB> {
+  /** The column constraints associated with the table. */
+  protected readonly constraints: readonly string[];
+
   /** The Kysely database instance or transaction used for executing queries. */
-  private readonly _db: Kysely<DB> | Transaction<DB>;
-  protected get db(): Kysely<DB> | Transaction<DB> {
-    return this._db;
-  }
+  protected readonly db: Kysely<DB> | Transaction<DB>;
 
   /** The name of the primary key column for the table. */
-  private readonly _idColumn: AnyColumn<DB, TB>;
-  protected get idColumn(): AnyColumn<DB, TB> {
-    return this._idColumn;
-  }
+  protected readonly idColumn: AnyColumn<DB, TB>;
 
   /** The name of the table this repository operates on. */
-  private readonly _tableName: TB;
-  public get tableName(): TB {
-    return this._tableName;
-  }
+  public readonly tableName: TB;
 
   /**
    * Creates an instance of the repository for the specified table.
    * @param tableName - The name of the table this repository will operate on.
    * @param dbInstance - Optional. An instance of Kysely or Transaction to use for database operations.
    * If not provided, a default instance is used.
+   * @param constraints - Optional. An array of column constraints for the table.
    * @param idColumn - Optional. The name of the ID column for the table. Defaults to 'id' if not specified.
    */
-  constructor(tableName: TB, dbInstance?: Kysely<DB> | Transaction<DB>, idColumn?: AnyColumn<DB, TB>) {
-    this._db = dbInstance ?? db;
-    this._idColumn = idColumn ?? 'id';
-    this._tableName = tableName;
+  constructor(
+    tableName: TB,
+    dbInstance?: Kysely<DB> | Transaction<DB>,
+    constraints?: readonly string[],
+    idColumn?: AnyColumn<DB, TB>
+  ) {
+    this.constraints = constraints ?? [];
+    this.db = dbInstance ?? db;
+    this.idColumn = idColumn ?? 'id';
+    this.tableName = tableName;
   }
 
   /**
@@ -115,9 +116,12 @@ export abstract class BaseRepository<TB extends keyof DB> {
    * @returns A query builder for the upsert operation.
    */
   upsert(data: InsertObject<DB, TB>): InsertQueryBuilder<DB, TB, Selectable<DB[TB]>> {
-    return this.create(data)
-      .onConflict((oc) => oc.column(this.idColumn).doNothing())
-      .returningAll();
+    const builder = this.create(data).onConflict((oc) => {
+      oc.column(this.idColumn);
+      this.constraints.forEach((constraint) => oc.constraint(constraint));
+      return oc.doNothing();
+    });
+    return builder.returningAll();
   }
 
   /**
@@ -126,8 +130,11 @@ export abstract class BaseRepository<TB extends keyof DB> {
    * @returns A query builder for the upsert operation.
    */
   upsertMany(data: readonly InsertObject<DB, TB>[]): InsertQueryBuilder<DB, TB, Selectable<DB[TB]>> {
-    return this.createMany(data)
-      .onConflict((oc) => oc.column(this.idColumn).doNothing())
-      .returningAll();
+    const builder = this.createMany(data).onConflict((oc) => {
+      oc.column(this.idColumn);
+      this.constraints.forEach((constraint) => oc.constraint(constraint));
+      return oc.doNothing();
+    });
+    return builder.returningAll();
   }
 }
