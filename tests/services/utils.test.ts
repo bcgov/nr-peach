@@ -4,7 +4,7 @@ import { BaseRepository } from '../../src/repositories/base.ts';
 import { cacheWrapper, findThenUpsert, lruCache, returnableUpsert } from '../../src/services/utils.ts';
 
 import type { Kysely, Transaction } from 'kysely';
-import type { DB } from '../../src/types/index.ts';
+import type { DB } from '../../src/types/index.d.ts';
 
 // Mocks
 class MockRepo extends BaseRepository<'pies.version'> {

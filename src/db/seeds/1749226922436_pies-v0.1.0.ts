@@ -1,7 +1,7 @@
 import { coding } from '../../services/index.ts';
 
 import type { Kysely } from 'kysely';
-import type { DB } from '../../types/index.ts';
+import type { DB } from '../../types/index.d.ts';
 
 const VERSION = '0.1.0';
 

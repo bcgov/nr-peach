@@ -5,7 +5,7 @@ import { Pool, types } from 'pg';
 import { getLogger } from '../utils/index.ts';
 
 import type { IsolationLevel, LogEvent, PostgresDialectConfig, Transaction } from 'kysely';
-import type { DB } from '../types/index.js';
+import type { DB } from '../types/index.d.ts';
 
 // Load environment variables, prioritizing .env over .env.default
 config({ path: ['.env', '.env.default'] });

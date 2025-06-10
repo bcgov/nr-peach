@@ -1,6 +1,7 @@
-import { Kysely } from 'kysely';
+import { DummyDriver, Kysely, PostgresAdapter, PostgresIntrospector, PostgresQueryCompiler } from 'kysely';
 
 import type { KyselyConfig } from 'kysely';
+import type { DB } from '../src/types/index.d.ts';
 
 vi.mock('kysely', async (importActual) => ({
   ...(await importActual<typeof Kysely>()),
@@ -32,6 +33,31 @@ vi.mock('kysely', async (importActual) => ({
     val: vi.fn((arg: unknown) => arg)
   })
 }));
+
+/**
+ * Mock Kysely database instance for testing.
+ * Uses a custom dialect with:
+ * - `PostgresAdapter` for PostgreSQL features.
+ * - `DummyDriver` as a placeholder driver.
+ * - `PostgresIntrospector` for schema introspection.
+ * - `PostgresQueryCompiler` for PostgreSQL query compilation.
+ */
+export const mockDb = new Kysely<DB>({
+  dialect: {
+    createAdapter() {
+      return new PostgresAdapter();
+    },
+    createDriver() {
+      return new DummyDriver();
+    },
+    createIntrospector(db) {
+      return new PostgresIntrospector(db);
+    },
+    createQueryCompiler() {
+      return new PostgresQueryCompiler();
+    }
+  }
+});
 
 /**
  * Mocks the execution of an SQL query by returning a function that simulates

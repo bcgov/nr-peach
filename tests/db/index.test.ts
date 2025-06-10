@@ -14,7 +14,7 @@ import {
 
 import type { LogEvent, QueryId, RootOperationNode } from 'kysely';
 import type { Mock } from 'vitest';
-import type { DB } from '../../src/types/index.ts';
+import type { DB } from '../../src/types/index.d.ts';
 
 describe('dialectConfig', () => {
   it('should yield a dialectConfig', () => {

@@ -14,7 +14,7 @@ import type {
   SelectQueryBuilder,
   Transaction
 } from 'kysely';
-import type { DB } from '../types/index.ts';
+import type { DB } from '../types/index.d.ts';
 
 /**
  * Abstract base class for repository implementations.

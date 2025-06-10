@@ -5,7 +5,7 @@ import { BaseRepository } from '../repositories/index.ts';
 import { getLogger, sortObject } from '../utils/index.ts';
 
 import type { FilterObject, InsertObject, Selectable } from 'kysely';
-import type { DB } from '../types/index.ts';
+import type { DB } from '../types/index.d.ts';
 
 const log = getLogger(import.meta.filename);
 
