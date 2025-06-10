@@ -31,19 +31,19 @@ import type { DB } from '../types/index.ts';
  */
 export abstract class BaseRepository<TB extends keyof DB> {
   /** The Kysely database instance or transaction used for executing queries. */
-  private _db: Kysely<DB> | Transaction<DB>;
+  private readonly _db: Kysely<DB> | Transaction<DB>;
   protected get db(): Kysely<DB> | Transaction<DB> {
     return this._db;
   }
 
   /** The name of the primary key column for the table. */
-  private _idColumn: AnyColumn<DB, TB>;
+  private readonly _idColumn: AnyColumn<DB, TB>;
   protected get idColumn(): AnyColumn<DB, TB> {
     return this._idColumn;
   }
 
   /** The name of the table this repository operates on. */
-  private _tableName: TB;
+  private readonly _tableName: TB;
   public get tableName(): TB {
     return this._tableName;
   }
@@ -67,6 +67,15 @@ export abstract class BaseRepository<TB extends keyof DB> {
    * @returns A query builder for the insert operation.
    */
   create(data: InsertObject<DB, TB>): InsertQueryBuilder<DB, TB, Selectable<DB[TB]>> {
+    return this.db.insertInto(this.tableName).values(data).returningAll();
+  }
+
+  /**
+   * Create multiple new entities in the table.
+   * @param data - The data array to insert.
+   * @returns A query builder for the insert operation.
+   */
+  createMany(data: readonly InsertObject<DB, TB>[]): InsertQueryBuilder<DB, TB, Selectable<DB[TB]>> {
     return this.db.insertInto(this.tableName).values(data).returningAll();
   }
 
@@ -107,6 +116,17 @@ export abstract class BaseRepository<TB extends keyof DB> {
    */
   upsert(data: InsertObject<DB, TB>): InsertQueryBuilder<DB, TB, Selectable<DB[TB]>> {
     return this.create(data)
+      .onConflict((oc) => oc.column(this.idColumn).doNothing())
+      .returningAll();
+  }
+
+  /**
+   * Upsert multiple entities into the table, with conflict resolution set to do nothing if a conflict occurs.
+   * @param data - The data array to upsert.
+   * @returns A query builder for the upsert operation.
+   */
+  upsertMany(data: readonly InsertObject<DB, TB>[]): InsertQueryBuilder<DB, TB, Selectable<DB[TB]>> {
+    return this.createMany(data)
       .onConflict((oc) => oc.column(this.idColumn).doNothing())
       .returningAll();
   }

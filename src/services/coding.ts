@@ -1,18 +1,18 @@
-type Code = string;
-type CodeDisplay = string;
-type CodeSystem = string;
-
-interface CodeMap {
-  codeSet: Code[];
-  display: CodeDisplay;
-}
-
 /**
  * A complete mapping of registered PIES code systems, their respective codes and associated metadata.
  * This object provides a structured representation of application process codes,
  * where each code is mapped to a `CodeMap` containing its code set hierarchy and display label.
  */
-export const coding: Record<CodeSystem, Record<Code, CodeMap>> = {
+export const coding: Record<
+  string, // Codesystem
+  Record<
+    string, // Code
+    {
+      codeSet: readonly string[];
+      display: string;
+    }
+  >
+> = Object.freeze({
   'https://bcgov.github.io/nr-pies/docs/spec/code_system/application_process': {
     APPLICATION: {
       codeSet: ['APPLICATION'],
@@ -91,12 +91,12 @@ export const coding: Record<CodeSystem, Record<Code, CodeMap>> = {
       display: 'Technical Review'
     }
   }
-};
+});
 
 /** A Set containing the keys of the `coding` object, representing all available code systems. */
-const codeSystemSetCache = new Set(Object.keys(coding));
+const codeSystemSetCache = new Set<keyof typeof coding>(Object.keys(coding));
 /** Caches sets of codes for each code system. */
-const codeSetCache: Record<CodeSystem, Set<Code>> = {};
+const codeSetCache: Record<string, Set<string>> = {};
 for (const codeSystem of codeSystemSetCache) {
   codeSetCache[codeSystem] = new Set(Object.keys(coding[codeSystem]));
 }
@@ -106,7 +106,7 @@ for (const codeSystem of codeSystemSetCache) {
  * @param codeSystem - The code system to validate.
  * @returns `true` if the code system is present in the cache; otherwise, `false`.
  */
-export function isValidCodeSystem(codeSystem: CodeSystem): boolean {
+export function isValidCodeSystem(codeSystem: string): boolean {
   return codeSystemSetCache.has(codeSystem);
 }
 
@@ -116,6 +116,6 @@ export function isValidCodeSystem(codeSystem: CodeSystem): boolean {
  * @param code - The code to check for validity within the code system.
  * @returns `true` if the code system is valid and the code exists in the code set cache; otherwise, `false`.
  */
-export function isValidCoding(codeSystem: CodeSystem, code: Code): boolean {
+export function isValidCoding(codeSystem: string, code: string): boolean {
   return isValidCodeSystem(codeSystem) && codeSetCache[codeSystem].has(code);
 }

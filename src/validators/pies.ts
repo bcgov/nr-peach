@@ -1,7 +1,7 @@
 /**
  * Configuration for PIES (Permitting Information Exchange Specification).
  */
-export const pies = {
+export const pies = Object.freeze({
   root: 'https://raw.githubusercontent.com/bcgov/nr-pies/refs',
   schemaSuffix: '.schema.json',
   spec: {
@@ -26,7 +26,7 @@ export const pies = {
     latest: 'heads/main'
     // v0_1_0: 'v0.1.0'
   }
-};
+});
 
 /**
  * Constructs the URI for a PIES schema based on the provided schema name and version.

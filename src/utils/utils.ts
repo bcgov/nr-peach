@@ -34,10 +34,10 @@ export function getGitRevision(): string {
         .toString()
         .trim();
     }
-  } catch (err: unknown) {
-    // @ts-expect-error ts(18046)
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-    log.warn(err.message, { function: 'getGitRevision' });
+  } catch (error) {
+    if (error instanceof Error) {
+      log.warn(error.message, { function: 'getGitRevision' });
+    }
     return '';
   }
 }
@@ -48,8 +48,10 @@ export function getGitRevision(): string {
  * @returns A new object with sorted keys.
  */
 export function sortObject<T extends object>(obj: T): T {
-  return (Object.keys(obj) as (keyof T)[]).sort().reduce((acc, key) => {
-    acc[key] = obj[key];
-    return acc;
-  }, {} as T);
+  return (Object.keys(obj) as (keyof T)[])
+    .sort((a, b) => String(a).localeCompare(String(b)))
+    .reduce((acc, key) => {
+      acc[key] = obj[key];
+      return acc;
+    }, {} as T);
 }
