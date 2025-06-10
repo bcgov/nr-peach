@@ -16,4 +16,13 @@ export class SystemRecordRepository extends BaseRepository<'pies.systemRecord'> 
       .onConflict((oc) => oc.constraint('system_record_system_id_record_id_unique').doNothing())
       .returningAll();
   }
+
+  override upsertMany(
+    data: readonly InsertObject<DB, 'pies.systemRecord'>[]
+  ): InsertQueryBuilder<DB, 'pies.systemRecord', Selectable<DB['pies.systemRecord']>> {
+    return super
+      .upsertMany(data)
+      .onConflict((oc) => oc.constraint('system_record_system_id_record_id_unique').doNothing())
+      .returningAll();
+  }
 }

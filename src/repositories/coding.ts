@@ -16,4 +16,13 @@ export class CodingRepository extends BaseRepository<'pies.coding'> {
       .onConflict((oc) => oc.constraint('coding_code_code_system_version_id_unique').doNothing())
       .returningAll();
   }
+
+  override upsertMany(
+    data: readonly InsertObject<DB, 'pies.coding'>[]
+  ): InsertQueryBuilder<DB, 'pies.coding', Selectable<DB['pies.coding']>> {
+    return super
+      .upsertMany(data)
+      .onConflict((oc) => oc.constraint('coding_code_code_system_version_id_unique').doNothing())
+      .returningAll();
+  }
 }

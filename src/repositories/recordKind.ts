@@ -16,4 +16,13 @@ export class RecordKindRepository extends BaseRepository<'pies.recordKind'> {
       .onConflict((oc) => oc.constraint('record_kind_version_id_kind_unique').doNothing())
       .returningAll();
   }
+
+  override upsertMany(
+    data: readonly InsertObject<DB, 'pies.recordKind'>[]
+  ): InsertQueryBuilder<DB, 'pies.recordKind', Selectable<DB['pies.recordKind']>> {
+    return super
+      .upsertMany(data)
+      .onConflict((oc) => oc.constraint('record_kind_version_id_kind_unique').doNothing())
+      .returningAll();
+  }
 }
