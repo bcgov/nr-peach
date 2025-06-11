@@ -29,7 +29,7 @@ vi.mock('../../../src/controllers/index.ts', () => ({
 }));
 
 vi.mock('../../../src/middlewares/index.ts', () => ({
-  validateRequest: () => vi.fn((_req, _res, next: NextFunction): void => next())
+  validateRequestSchema: () => vi.fn((_req, _res, next: NextFunction): void => next())
 }));
 
 beforeEach(() => {

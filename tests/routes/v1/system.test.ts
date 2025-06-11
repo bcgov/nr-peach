@@ -11,7 +11,7 @@ const app = express();
 app.use(router);
 
 vi.mock('../../../src/middlewares/index.ts', () => ({
-  validateRequest: () => vi.fn((_req, _res, next: NextFunction): void => next())
+  validateRequestSchema: () => vi.fn((_req, _res, next: NextFunction): void => next())
 }));
 
 describe('System Routes', () => {

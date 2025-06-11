@@ -1,13 +1,13 @@
 import express from 'express';
 import request from 'supertest';
 
-import { validateRequest } from '../../src/middlewares/validator.ts';
+import { validateRequestSchema } from '../../src/middlewares/validator.ts';
 import Problem from '../../src/utils/problem.ts';
 import * as validators from '../../src/validators/index.ts';
 
 import type { Application, Request, RequestHandler, Response } from 'express';
 
-describe('validateRequest', () => {
+describe('validateRequestSchema', () => {
   const mockHandler = vi.fn((_req: Request, res: Response) => res.status(200).send('Success'));
   const sendSpy = vi.spyOn(Problem.prototype, 'send');
   const validateSchemaSpy = vi.spyOn(validators, 'validateSchema');
@@ -24,7 +24,7 @@ describe('validateRequest', () => {
 
     app.post(
       '/test',
-      validateRequest({
+      validateRequestSchema({
         body: {
           type: 'object',
           properties: { name: { type: 'string' } },
@@ -54,7 +54,7 @@ describe('validateRequest', () => {
 
     app.get(
       '/test',
-      validateRequest({
+      validateRequestSchema({
         query: {
           type: 'object',
           properties: { id: { type: 'string' } },
@@ -95,7 +95,7 @@ describe('validateRequest', () => {
 
     app.post(
       '/test',
-      validateRequest({
+      validateRequestSchema({
         body: {
           type: 'object',
           properties: { name: { type: 'string' } },
@@ -152,7 +152,7 @@ describe('validateRequest', () => {
 
     app.post(
       '/test',
-      validateRequest({
+      validateRequestSchema({
         body: {
           type: 'object',
           properties: { name: { type: 'string' } },

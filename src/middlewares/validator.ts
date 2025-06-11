@@ -18,7 +18,7 @@ export interface RequestValidationOptions {
  * @param opts An object containing validation schemas for `body`, `query`, `params`, or `headers`.
  * @returns An Express `RequestHandler` that validates the request.
  */
-export function validateRequest(opts: RequestValidationOptions = {}): RequestHandler {
+export function validateRequestSchema(opts: RequestValidationOptions = {}): RequestHandler {
   return async function (req, res, next): Promise<void> {
     const reqErrors: Partial<Record<keyof RequestValidationOptions, ErrorObject[]>> = {};
 
