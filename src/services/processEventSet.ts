@@ -55,25 +55,24 @@ export const replaceProcessEventSetService = (data: ProcessEventSet): Promise<vo
 
     // Insert new process events
     await Promise.all(
-      data.process_event.map(async (pe, index) => {
+      data.process_event.map(async (pe) => {
         const coding = await returnableUpsert(new CodingRepository(trx), {
           code: pe.process.code,
           codeSystem: pe.process.code_system,
           versionId: data.version
         });
 
-        // TODO: Look into better ways of handling date/datetime validation and conversion.
-        const startDate = pe.event.start_date ? new Date(pe.event.start_date) : undefined;
-        if (!startDate) {
-          throw new Problem(422, {
-            detail: `Invalid ProcessEvent element at index ${index}: 'start_date' or 'start_datetime' is required`
-          });
-        }
+        // TODO: Should there be utility functions for ISO 8601 parsing?
+        // TODO: Look into how safe validation is for date representation
+        const eventStart = pe.event.start_datetime ?? pe.event.start_date!;
+        const eventEnd = pe.event.end_datetime ?? pe.event.end_date;
         await new ProcessEventRepository(trx)
           .create({
             codingId: coding.id,
-            endDate: pe.event.end_date ? new Date(pe.event.end_date) : undefined,
-            startDate: startDate,
+            endDate: eventEnd?.split('T')[0],
+            endTime: pe.event.end_datetime ? eventEnd?.split('T')[1] : undefined,
+            startDate: eventStart.split('T')[0],
+            startTime: pe.event.start_datetime ? eventStart.split('T')[1] : undefined,
             status: pe.process.status,
             statusCode: pe.process.status_code,
             statusDescription: pe.process.status_description,
