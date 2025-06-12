@@ -1,4 +1,4 @@
-import { record_id, system_id } from './index.ts';
+import { record_id, system_id } from './common.ts';
 import { validateRequestSchema } from '../middlewares/index.ts';
 
 import type { RequestHandler } from 'express';
