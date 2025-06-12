@@ -35,7 +35,12 @@ export const replaceProcessEventSetService = (data: ProcessEventSet): Promise<vo
 
     // Update atomic fact tables
     await Promise.all([
-      new TransactionRepository(trx).create({ id: data.transaction_id }).execute(),
+      new TransactionRepository(trx)
+        .create({ id: data.transaction_id })
+        .execute()
+        .catch(() => {
+          throw new Problem(409, { detail: 'Transaction already exists' }, { transaction_id: data.transaction_id });
+        }),
       returnableUpsert(new SystemRepository(trx), { id: data.system_id }),
       returnableUpsert(new VersionRepository(trx), { id: data.version })
     ]);
