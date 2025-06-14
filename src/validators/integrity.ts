@@ -9,13 +9,19 @@ import type {
   RecordLinkage
 } from '../types/index.js';
 
+/** Defines immutable, idempotent integrity definitions mapping keys to values in `IntegrityDictionary`. */
 export const IntegrityDefinitions: Record<keyof IntegrityDictionary, keyof IntegrityDictionary> = Object.freeze({
   processEventSet: 'processEventSet',
   recordLinkage: 'recordLinkage'
 });
 
-/** Integrity validation functions for verifying the correctness of specific data structures. */
+/** A collection of integrity validators for validating PIES data structures */
 export const integrityValidators: IntegrityValidator<IntegrityDictionary> = {
+  /**
+   * Validates a `ProcessEventSet` object by checking the `code_system` and `code` fields in each `process_event`.
+   * @param data - The `ProcessEventSet` object to validate.
+   * @returns An `IntegrityResult` indicating whether the validation was successful and any errors encountered.
+   */
   processEventSet: (data: ProcessEventSet) => {
     const errors: IntegrityError[] = [];
     data.process_event.forEach((pe, index) => {
@@ -37,11 +43,18 @@ export const integrityValidators: IntegrityValidator<IntegrityDictionary> = {
         });
       }
     });
-    return { valid: !!errors.length, errors: errors.length ? errors : undefined };
+    return { valid: !errors.length, errors: errors.length ? errors : undefined };
   },
   // Nothing specific to validate above JSON schema validation for now
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  recordLinkage: (data: RecordLinkage) => ({ valid: true, errors: undefined })
+
+  /**
+   * Validates a `RecordLinkage` object.
+   * @param data - The `RecordLinkage` object to validate.
+   * @returns An `IntegrityResult` indicating whether the validation was successful and any errors encountered.
+   */
+  recordLinkage: (data: RecordLinkage) => {
+    return { valid: !!data, errors: undefined };
+  }
 };
 
 /**
