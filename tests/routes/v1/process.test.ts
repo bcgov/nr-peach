@@ -8,10 +8,12 @@ import {
   putProcessEventsController
 } from '../../../src/controllers/index.ts';
 import {
-  deleteProcessEventsValidator,
-  getProcessEventsValidator,
-  postProcessEventsValidator,
-  putProcessEventsValidator
+  deleteProcessEventsSchemaValidator,
+  getProcessEventsSchemaValidator,
+  postProcessEventsIntegrityValidator,
+  postProcessEventsSchemaValidator,
+  putProcessEventsIntegrityValidator,
+  putProcessEventsSchemaValidator
 } from '../../../src/validators/index.ts';
 
 import router from '../../../src/routes/v1/process.ts';
@@ -29,7 +31,8 @@ vi.mock('../../../src/controllers/index.ts', () => ({
 }));
 
 vi.mock('../../../src/middlewares/index.ts', () => ({
-  validateRequest: () => vi.fn((_req, _res, next: NextFunction): void => next())
+  validateRequestIntegrity: () => vi.fn((_req, _res, next: NextFunction): void => next()),
+  validateRequestSchema: () => vi.fn((_req, _res, next: NextFunction): void => next())
 }));
 
 beforeEach(() => {
@@ -37,35 +40,37 @@ beforeEach(() => {
 });
 
 describe('Process Routes', () => {
+  describe('DELETE /process-events', () => {
+    it('should call the schema validator and controller', async () => {
+      await request(app).delete('/process-events');
+      expect(deleteProcessEventsSchemaValidator).toHaveBeenCalled();
+      expect(deleteProcessEventsController).toHaveBeenCalled();
+    });
+  });
+
   describe('GET /process-events', () => {
-    it('should call the validator and controller', async () => {
+    it('should call the schema validator and controller', async () => {
       await request(app).get('/process-events');
-      expect(getProcessEventsValidator).toHaveBeenCalled();
+      expect(getProcessEventsSchemaValidator).toHaveBeenCalled();
       expect(getProcessEventsController).toHaveBeenCalled();
     });
   });
 
   describe('POST /process-events', () => {
-    it('should call the validator and controller', async () => {
+    it('should call the schema validator, integrity validator and controller', async () => {
       await request(app).post('/process-events').send({});
-      expect(postProcessEventsValidator).toHaveBeenCalled();
+      expect(postProcessEventsSchemaValidator).toHaveBeenCalled();
+      expect(postProcessEventsIntegrityValidator).toHaveBeenCalled();
       expect(postProcessEventsController).toHaveBeenCalled();
     });
   });
 
   describe('PUT /process-events', () => {
-    it('should call the validator and controller', async () => {
+    it('should call the schema validator, integrity validator and controller', async () => {
       await request(app).put('/process-events').send({});
-      expect(putProcessEventsValidator).toHaveBeenCalled();
+      expect(putProcessEventsSchemaValidator).toHaveBeenCalled();
+      expect(putProcessEventsIntegrityValidator).toHaveBeenCalled();
       expect(putProcessEventsController).toHaveBeenCalled();
-    });
-  });
-
-  describe('DELETE /process-events', () => {
-    it('should call the validator and controller', async () => {
-      await request(app).delete('/process-events');
-      expect(deleteProcessEventsValidator).toHaveBeenCalled();
-      expect(deleteProcessEventsController).toHaveBeenCalled();
     });
   });
 });

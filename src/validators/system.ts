@@ -1,9 +1,9 @@
-import { record_id, system_id } from './index.ts';
-import { validateRequest } from '../middlewares/index.ts';
+import { record_id, system_id } from './common.ts';
+import { validateRequestSchema } from '../middlewares/index.ts';
 
 import type { RequestHandler } from 'express';
 
-export const deleteRecordsValidator: RequestHandler = validateRequest({
+export const deleteRecordsSchemaValidator: RequestHandler = validateRequestSchema({
   query: {
     type: 'object',
     properties: { record_id, system_id },
@@ -11,7 +11,7 @@ export const deleteRecordsValidator: RequestHandler = validateRequest({
   }
 });
 
-export const getRecordsValidator: RequestHandler = validateRequest({
+export const getRecordsSchemaValidator: RequestHandler = validateRequestSchema({
   query: {
     type: 'object',
     properties: { record_id, system_id },
@@ -19,7 +19,7 @@ export const getRecordsValidator: RequestHandler = validateRequest({
   }
 });
 
-export const getSystemsValidator: RequestHandler = validateRequest({
+export const getSystemsSchemaValidator: RequestHandler = validateRequestSchema({
   query: {
     type: 'object',
     properties: { system_id },

@@ -1,9 +1,10 @@
-import { getPiesSchemaUri, pies, record_id, system_id } from './index.ts';
-import { validateRequest } from '../middlewares/index.ts';
+import { record_id, system_id } from './common.ts';
+import { getPiesSchemaUri, pies } from './pies.ts';
+import { validateRequestSchema } from '../middlewares/index.ts';
 
 import type { RequestHandler } from 'express';
 
-export const deleteRecordLinkagesValidator: RequestHandler = validateRequest({
+export const deleteRecordLinkagesSchemaValidator: RequestHandler = validateRequestSchema({
   query: {
     type: 'object',
     properties: {
@@ -16,7 +17,7 @@ export const deleteRecordLinkagesValidator: RequestHandler = validateRequest({
   }
 });
 
-export const getRecordLinkagesValidator: RequestHandler = validateRequest({
+export const getRecordLinkagesSchemaValidator: RequestHandler = validateRequestSchema({
   query: {
     type: 'object',
     properties: {
@@ -31,6 +32,6 @@ export const getRecordLinkagesValidator: RequestHandler = validateRequest({
   }
 });
 
-export const putRecordLinkagesValidator: RequestHandler = validateRequest({
+export const putRecordLinkagesSchemaValidator: RequestHandler = validateRequestSchema({
   body: getPiesSchemaUri(pies.spec.message.recordLinkage)
 });

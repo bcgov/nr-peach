@@ -1,6 +1,6 @@
 import { Ajv } from 'ajv';
 
-import { createAjvInstance, loadSchema, validateSchema } from '../../src/validators/index.ts';
+import { createAjvInstance, loadSchema, validateSchema } from '../../src/validators/schema.ts';
 
 describe('createAjvInstance', () => {
   it('should create an Ajv instance with default options', () => {

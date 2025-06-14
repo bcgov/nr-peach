@@ -1,9 +1,11 @@
-import { getPiesSchemaUri, pies, record_id, system_id } from './index.ts';
-import { validateRequest } from '../middlewares/index.ts';
+import { record_id, system_id } from './common.ts';
+import { getPiesSchemaUri, pies } from './pies.ts';
+import { validateRequestIntegrity, validateRequestSchema } from '../middlewares/index.ts';
+import { IntegrityDefinitions } from '../validators/index.ts';
 
 import type { RequestHandler } from 'express';
 
-export const deleteProcessEventsValidator: RequestHandler = validateRequest({
+export const deleteProcessEventsSchemaValidator: RequestHandler = validateRequestSchema({
   query: {
     type: 'object',
     properties: { record_id, system_id },
@@ -11,7 +13,7 @@ export const deleteProcessEventsValidator: RequestHandler = validateRequest({
   }
 });
 
-export const getProcessEventsValidator: RequestHandler = validateRequest({
+export const getProcessEventsSchemaValidator: RequestHandler = validateRequestSchema({
   query: {
     type: 'object',
     properties: { record_id, system_id },
@@ -19,10 +21,18 @@ export const getProcessEventsValidator: RequestHandler = validateRequest({
   }
 });
 
-export const postProcessEventsValidator: RequestHandler = validateRequest({
+export const postProcessEventsIntegrityValidator: RequestHandler = validateRequestIntegrity({
+  body: IntegrityDefinitions.processEventSet
+});
+
+export const postProcessEventsSchemaValidator: RequestHandler = validateRequestSchema({
   body: getPiesSchemaUri(pies.spec.message.processEventSet)
 });
 
-export const putProcessEventsValidator: RequestHandler = validateRequest({
+export const putProcessEventsIntegrityValidator: RequestHandler = validateRequestIntegrity({
+  body: IntegrityDefinitions.processEventSet
+});
+
+export const putProcessEventsSchemaValidator: RequestHandler = validateRequestSchema({
   body: getPiesSchemaUri(pies.spec.message.processEventSet)
 });

@@ -1,4 +1,4 @@
-import type { AnySchemaObject } from 'ajv';
+import type { AnySchemaObject } from 'ajv/dist/core.js';
 
 export const record_id: AnySchemaObject = { type: 'string' };
 

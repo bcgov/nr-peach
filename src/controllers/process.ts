@@ -1,5 +1,5 @@
 import { TransactionRepository } from '../repositories/index.ts';
-import { replaceProcessEventSetService } from '../services/processEventSet.ts';
+import { replaceProcessEventSetService } from '../services/index.ts';
 
 import type { Request, Response } from 'express';
 import type { ProcessEventSet } from '../types/index.js';

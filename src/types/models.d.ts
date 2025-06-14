@@ -12,7 +12,6 @@ export type Timestamp = ColumnType<Date, Date | string, Date | string>;
 
 export interface PiesCoding {
   code: string;
-  codeDisplay: string | null;
   codeSystem: string;
   createdAt: Generated<Timestamp>;
   createdBy: Generated<string>;
