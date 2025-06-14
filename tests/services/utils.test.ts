@@ -23,7 +23,6 @@ describe('cacheWrapper', () => {
 
   beforeEach(() => {
     lruCache.clear();
-    mockCallback.mockReset();
   });
 
   it('returns cached result if available', async () => {

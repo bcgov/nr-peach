@@ -5,7 +5,7 @@ import type { AnySchemaObject, ErrorObject } from 'ajv/dist/core.js';
 import type { RequestHandler } from 'express';
 import type {
   IntegrityDictionary,
-  IntegrityResult,
+  IntegrityError,
   RequestIntegrityOptions,
   RequestSchemaOptions
 } from '../types/index.js';
@@ -17,12 +17,12 @@ import type {
  */
 export function validateRequestIntegrity(opts: RequestIntegrityOptions = {}): RequestHandler {
   return function (req, res, next): void {
-    const reqErrors: Partial<Record<keyof RequestIntegrityOptions, IntegrityResult>> = {};
+    const reqErrors: Partial<Record<keyof RequestIntegrityOptions, IntegrityError[]>> = {};
 
     for (const [key, value] of Object.entries(opts) as [keyof RequestIntegrityOptions, keyof IntegrityDictionary][]) {
       if (value) {
         const { valid, errors } = validateIntegrity(value, req[key] as IntegrityDictionary[keyof IntegrityDictionary]);
-        if (!valid && errors) reqErrors[key] = { valid, errors };
+        if (!valid && errors) reqErrors[key] = errors;
       }
     }
 
@@ -39,7 +39,7 @@ export function validateRequestIntegrity(opts: RequestIntegrityOptions = {}): Re
 }
 
 /**
- * Validates the incoming rest by checking its body, headers, params, and query.
+ * Validates the incoming request by checking its body, headers, params, and query.
  * @param opts An object containing validation schemas for `body`, `query`, `params`, or `headers`.
  * @returns An Express `RequestHandler` that validates the request.
  */
