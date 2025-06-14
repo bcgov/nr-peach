@@ -39,7 +39,7 @@ export function validateRequestIntegrity(opts: RequestIntegrityOptions = {}): Re
 }
 
 /**
- * Validates the incoming rest by checking its body, headers, params, and query.
+ * Validates the incoming request by checking its body, headers, params, and query.
  * @param opts An object containing validation schemas for `body`, `query`, `params`, or `headers`.
  * @returns An Express `RequestHandler` that validates the request.
  */
