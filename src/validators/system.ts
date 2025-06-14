@@ -3,7 +3,7 @@ import { validateRequestSchema } from '../middlewares/index.ts';
 
 import type { RequestHandler } from 'express';
 
-export const deleteRecordsValidator: RequestHandler = validateRequestSchema({
+export const deleteRecordsSchemaValidator: RequestHandler = validateRequestSchema({
   query: {
     type: 'object',
     properties: { record_id, system_id },
@@ -11,7 +11,7 @@ export const deleteRecordsValidator: RequestHandler = validateRequestSchema({
   }
 });
 
-export const getRecordsValidator: RequestHandler = validateRequestSchema({
+export const getRecordsSchemaValidator: RequestHandler = validateRequestSchema({
   query: {
     type: 'object',
     properties: { record_id, system_id },
@@ -19,7 +19,7 @@ export const getRecordsValidator: RequestHandler = validateRequestSchema({
   }
 });
 
-export const getSystemsValidator: RequestHandler = validateRequestSchema({
+export const getSystemsSchemaValidator: RequestHandler = validateRequestSchema({
   query: {
     type: 'object',
     properties: { system_id },

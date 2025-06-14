@@ -1,7 +1,11 @@
 import express from 'express';
 import request from 'supertest';
 
-import { deleteRecordsValidator, getRecordsValidator, getSystemsValidator } from '../../../src/validators/index.ts';
+import {
+  deleteRecordsSchemaValidator,
+  getRecordsSchemaValidator,
+  getSystemsSchemaValidator
+} from '../../../src/validators/index.ts';
 
 import router from '../../../src/routes/v1/system.ts';
 
@@ -11,6 +15,7 @@ const app = express();
 app.use(router);
 
 vi.mock('../../../src/middlewares/index.ts', () => ({
+  validateRequestIntegrity: () => vi.fn((_req, _res, next: NextFunction): void => next()),
   validateRequestSchema: () => vi.fn((_req, _res, next: NextFunction): void => next())
 }));
 
@@ -18,7 +23,7 @@ describe('System Routes', () => {
   describe('GET /systems', () => {
     it('should return 501', async () => {
       const response = await request(app).get('/systems');
-      expect(getSystemsValidator).toHaveBeenCalled();
+      expect(getSystemsSchemaValidator).toHaveBeenCalled();
       expect(response.status).toBe(501);
     });
   });
@@ -26,7 +31,7 @@ describe('System Routes', () => {
   describe('GET /system-records', () => {
     it('should return 501', async () => {
       const response = await request(app).get('/system-records');
-      expect(getRecordsValidator).toHaveBeenCalled();
+      expect(getRecordsSchemaValidator).toHaveBeenCalled();
       expect(response.status).toBe(501);
     });
   });
@@ -34,7 +39,7 @@ describe('System Routes', () => {
   describe('DELETE /system-records', () => {
     it('should return 501', async () => {
       const response = await request(app).delete('/system-records');
-      expect(deleteRecordsValidator).toHaveBeenCalled();
+      expect(deleteRecordsSchemaValidator).toHaveBeenCalled();
       expect(response.status).toBe(501);
     });
   });

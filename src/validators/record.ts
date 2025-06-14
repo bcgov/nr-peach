@@ -4,7 +4,7 @@ import { validateRequestSchema } from '../middlewares/index.ts';
 
 import type { RequestHandler } from 'express';
 
-export const deleteRecordLinkagesValidator: RequestHandler = validateRequestSchema({
+export const deleteRecordLinkagesSchemaValidator: RequestHandler = validateRequestSchema({
   query: {
     type: 'object',
     properties: {
@@ -17,7 +17,7 @@ export const deleteRecordLinkagesValidator: RequestHandler = validateRequestSche
   }
 });
 
-export const getRecordLinkagesValidator: RequestHandler = validateRequestSchema({
+export const getRecordLinkagesSchemaValidator: RequestHandler = validateRequestSchema({
   query: {
     type: 'object',
     properties: {
@@ -32,6 +32,6 @@ export const getRecordLinkagesValidator: RequestHandler = validateRequestSchema(
   }
 });
 
-export const putRecordLinkagesValidator: RequestHandler = validateRequestSchema({
+export const putRecordLinkagesSchemaValidator: RequestHandler = validateRequestSchema({
   body: getPiesSchemaUri(pies.spec.message.recordLinkage)
 });
