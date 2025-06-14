@@ -1,22 +1,13 @@
 import { isValidCodeSystem, isValidCoding } from '../services/coding.ts';
 
-import type { ProcessEventSet, RecordLinkage } from '../types/index.js';
-
-export type IntegrityValidator<T> = { [K in keyof T]: (data: T[K]) => IntegrityResult };
-export interface IntegrityError {
-  instancePath: string;
-  message: string;
-  key: string;
-  value: unknown;
-}
-export interface IntegrityResult {
-  valid: boolean;
-  errors?: IntegrityError[];
-}
-export interface IntegrityDictionary {
-  processEventSet: ProcessEventSet;
-  recordLinkage: RecordLinkage;
-}
+import type {
+  IntegrityDictionary,
+  IntegrityError,
+  IntegrityResult,
+  IntegrityValidator,
+  ProcessEventSet,
+  RecordLinkage
+} from '../types/index.js';
 
 export const IntegrityDefinitions: Record<keyof IntegrityDictionary, keyof IntegrityDictionary> = Object.freeze({
   processEventSet: 'processEventSet',

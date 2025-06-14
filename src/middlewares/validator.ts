@@ -3,19 +3,12 @@ import { validateIntegrity, validateSchema } from '../validators/index.ts';
 
 import type { AnySchemaObject, ErrorObject } from 'ajv/dist/core.js';
 import type { RequestHandler } from 'express';
-import type { IncomingHttpHeaders } from 'node:http';
-import type { IntegrityDictionary, IntegrityResult } from '../validators/integrity.js';
-
-// TODO: Move to types/validator.d.ts
-export type RequestIntegrityOptions = Partial<
-  Record<'body' | 'headers' | 'params' | 'query', keyof IntegrityDictionary>
->;
-export type RequestSchemaOptions = Partial<{
-  body: AnySchemaObject | string;
-  headers: AnySchemaObject & IncomingHttpHeaders;
-  params: AnySchemaObject;
-  query: AnySchemaObject;
-}>;
+import type {
+  IntegrityDictionary,
+  IntegrityResult,
+  RequestIntegrityOptions,
+  RequestSchemaOptions
+} from '../types/index.js';
 
 /**
  * Validates the data integrity of the incoming request by checking its body, headers, params, and query.
