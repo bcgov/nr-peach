@@ -1,4 +1,4 @@
-import { BaseRepository } from './index.ts';
+import { BaseRepository } from './base.ts';
 
 import type { Kysely, Transaction } from 'kysely';
 import type { DB } from '../types/index.d.ts';

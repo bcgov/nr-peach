@@ -13,7 +13,7 @@ class MockRepo extends BaseRepository<'pies.version'> {
   }
 
   upsert = vi.fn();
-  find = vi.fn();
+  findBy = vi.fn();
 }
 const mockData = { id: '0.1.0' };
 
@@ -23,7 +23,6 @@ describe('cacheWrapper', () => {
 
   beforeEach(() => {
     lruCache.clear();
-    mockCallback.mockReset();
   });
 
   it('returns cached result if available', async () => {
@@ -74,7 +73,7 @@ describe('findThenUpsert', () => {
 
   it('returns the found row if find returns a row', async () => {
     const upsertResult = { ...mockData, updated: true };
-    repo.find.mockReturnValue({
+    repo.findBy.mockReturnValue({
       executeTakeFirst: vi.fn().mockResolvedValue(upsertResult)
     });
 
@@ -85,12 +84,12 @@ describe('findThenUpsert', () => {
 
     const result = await findThenUpsert(repo, mockData);
     expect(result).toEqual(upsertResult);
-    expect(repo.find).toHaveBeenCalledWith(mockData);
+    expect(repo.findBy).toHaveBeenCalledWith(mockData);
     expect(repo.upsert).not.toHaveBeenCalled();
   });
 
   it('calls upsert and returns the found row if find returns undefined', async () => {
-    repo.find.mockReturnValue({
+    repo.findBy.mockReturnValue({
       executeTakeFirst: vi.fn().mockResolvedValue(undefined)
     });
 
@@ -101,12 +100,12 @@ describe('findThenUpsert', () => {
 
     const result = await findThenUpsert(repo, mockData);
     expect(result).toEqual(foundRow);
-    expect(repo.find).toHaveBeenCalledWith(mockData);
+    expect(repo.findBy).toHaveBeenCalledWith(mockData);
     expect(repo.upsert).toHaveBeenCalledWith(mockData);
   });
 
   it('throws if both upsert and find fail', async () => {
-    repo.find.mockReturnValue({
+    repo.findBy.mockReturnValue({
       executeTakeFirst: vi.fn().mockResolvedValue(undefined)
     });
 
@@ -115,7 +114,7 @@ describe('findThenUpsert', () => {
     });
 
     await expect(findThenUpsert(repo, mockData)).rejects.toThrow('Not found');
-    expect(repo.find).toHaveBeenCalledWith(mockData);
+    expect(repo.findBy).toHaveBeenCalledWith(mockData);
     expect(repo.upsert).toHaveBeenCalledWith(mockData);
   });
 });
@@ -129,7 +128,7 @@ describe('returnableUpsert', () => {
 
   it('calls findThenUpsert when cache is disabled', async () => {
     const upsertResult = { ...mockData, updated: true };
-    repo.find.mockReturnValue({
+    repo.findBy.mockReturnValue({
       executeTakeFirst: vi.fn().mockResolvedValue(upsertResult)
     });
 
@@ -140,13 +139,13 @@ describe('returnableUpsert', () => {
 
     const result = await returnableUpsert(repo, mockData, false);
     expect(result).toEqual(upsertResult);
-    expect(repo.find).toHaveBeenCalledWith(mockData);
+    expect(repo.findBy).toHaveBeenCalledWith(mockData);
     expect(repo.upsert).not.toHaveBeenCalled();
   });
 
   it('caches the result when cache is enabled', async () => {
     const upsertResult = { ...mockData, cached: true };
-    repo.find.mockReturnValue({
+    repo.findBy.mockReturnValue({
       executeTakeFirst: vi.fn().mockResolvedValue(undefined)
     });
     repo.upsert.mockReturnValue({
@@ -155,7 +154,7 @@ describe('returnableUpsert', () => {
 
     const result = await returnableUpsert(repo, mockData, true);
     expect(result).toEqual(upsertResult);
-    expect(repo.find).toHaveBeenCalledWith(mockData);
+    expect(repo.findBy).toHaveBeenCalledWith(mockData);
     expect(repo.upsert).toHaveBeenCalledWith(mockData);
 
     // Check cache

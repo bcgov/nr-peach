@@ -61,7 +61,7 @@ export async function findThenUpsert<TB extends keyof DB>(
   repo: BaseRepository<TB>,
   data: FilterObject<DB, TB> & InsertObject<DB, TB>
 ): Promise<Selectable<DB[TB]>> {
-  const findRow = await repo.find(data).executeTakeFirst();
+  const findRow = await repo.findBy(data).executeTakeFirst();
   return findRow ?? (await repo.upsert(data).executeTakeFirstOrThrow());
 }
 

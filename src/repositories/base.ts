@@ -92,10 +92,11 @@ export abstract class BaseRepository<TB extends keyof DB> {
 
   /**
    * Finds entities in the table matching all of the provided data.
+   * This performs a logical AND operation across all provided fields.
    * @param data - The data to find.
    * @returns A query builder for the find operation.
    */
-  find(data: FilterObject<DB, TB>): SelectQueryBuilder<DB, TB, Selectable<DB[TB]>> {
+  findBy(data: FilterObject<DB, TB>): SelectQueryBuilder<DB, TB, Selectable<DB[TB]>> {
     const builder = this.db.selectFrom(this.tableName).selectAll() as unknown as SelectQueryBuilder<DB, TB, DB[TB]>;
     return builder.where((eb) => eb.and(data)).$castTo<Selectable<DB[TB]>>();
   }

@@ -1,3 +1,4 @@
+import { returnableUpsert } from './utils.ts';
 import { transactionWrapper } from '../db/index.ts';
 import {
   CodingRepository,
@@ -10,8 +11,6 @@ import {
 } from '../repositories/index.ts';
 import { Problem } from '../utils/index.ts';
 
-import { isValidCoding, returnableUpsert } from './index.ts';
-
 import type { ProcessEventSet } from '../types/index.js';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -21,21 +20,14 @@ export const mergeProcessEventSetService = (data: ProcessEventSet): Promise<void
 
 export const replaceProcessEventSetService = (data: ProcessEventSet): Promise<void> => {
   return transactionWrapper(async (trx) => {
-    // TODO: Should we extract this to be its own middleware or part of the validation stack?
-    // Validate ProcessEvent element contents
-    data.process_event.forEach((pe, index) => {
-      if (!isValidCoding(pe.process.code_system, pe.process.code)) {
-        throw new Problem(
-          422,
-          { detail: `Invalid ProcessEvent element at index ${index}` },
-          { errors: { code: pe.process.code, codeSystem: pe.process.code_system } }
-        );
-      }
-    });
-
     // Update atomic fact tables
     await Promise.all([
-      new TransactionRepository(trx).create({ id: data.transaction_id }).execute(),
+      new TransactionRepository(trx)
+        .create({ id: data.transaction_id })
+        .execute()
+        .catch(() => {
+          throw new Problem(409, { detail: 'Transaction already exists' }, { transaction_id: data.transaction_id });
+        }),
       returnableUpsert(new SystemRepository(trx), { id: data.system_id }),
       returnableUpsert(new VersionRepository(trx), { id: data.version })
     ]);
