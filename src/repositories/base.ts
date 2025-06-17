@@ -117,11 +117,8 @@ export abstract class BaseRepository<TB extends keyof DB> {
    * @returns A query builder for the upsert operation.
    */
   upsert(data: InsertObject<DB, TB>): InsertQueryBuilder<DB, TB, Selectable<DB[TB]>> {
-    const builder = this.create(data).onConflict((oc) => {
-      oc.column(this.idColumn);
-      this.constraints.forEach((constraint) => oc.constraint(constraint));
-      return oc.doNothing();
-    });
+    const builder = this.create(data).onConflict((oc) => oc.column(this.idColumn).doNothing());
+    this.constraints.forEach((constraint) => builder.onConflict((oc) => oc.constraint(constraint).doNothing()));
     return builder.returningAll();
   }
 
@@ -131,11 +128,8 @@ export abstract class BaseRepository<TB extends keyof DB> {
    * @returns A query builder for the upsert operation.
    */
   upsertMany(data: readonly InsertObject<DB, TB>[]): InsertQueryBuilder<DB, TB, Selectable<DB[TB]>> {
-    const builder = this.createMany(data).onConflict((oc) => {
-      oc.column(this.idColumn);
-      this.constraints.forEach((constraint) => oc.constraint(constraint));
-      return oc.doNothing();
-    });
+    const builder = this.createMany(data).onConflict((oc) => oc.column(this.idColumn).doNothing());
+    this.constraints.forEach((constraint) => builder.onConflict((oc) => oc.constraint(constraint).doNothing()));
     return builder.returningAll();
   }
 }
