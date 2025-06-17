@@ -64,7 +64,7 @@
     "@types/pg": "8.15.4",
     "@types/serve-favicon": "2.5.7",
     "@types/supertest": "6.0.3",
-    "@vitest/coverage-v8": "3.2.2",
+    "@vitest/coverage-v8": "3.2.3",
     "eslint": "9.25.1",
     "eslint-config-prettier": "10.1.2",
     "eslint-plugin-jsdoc": "50.6.11",
@@ -75,6 +75,6 @@
     "supertest": "7.1.1",
     "typescript": "5.8.3",
     "typescript-eslint": "8.31.0",
-    "vitest": "3.2.2"
+    "vitest": "3.2.3"
   }
 }
