@@ -12,10 +12,10 @@
 
 [![Issues](https://img.shields.io/github/issues/bcgov/nr-peach)](/../../issues)
 [![Pull Requests](https://img.shields.io/github/issues-pr/bcgov/nr-peach)](/../../pulls)
-[![Lifecycle:Experimental](https://img.shields.io/badge/Lifecycle-Experimental-339999)](https://github.com/bcgov/repomountie/blob/master/doc/lifecycle-badges.md)
+[![Lifecycle:Maturing](https://img.shields.io/badge/Lifecycle-Maturing-007EC6)](https://github.com/bcgov/repomountie/blob/master/doc/lifecycle-badges.md)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 
-TBD: NR Permitting Exchange, Aggregation and Collection Hub
+A microservice focused on permitting exchange, aggregation and collection using PIES.
 
 ## Directory Structure
 

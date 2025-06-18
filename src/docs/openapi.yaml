@@ -4,8 +4,8 @@ info:
   version: 0.1.0
   title: NR Peach API
   description: |
-    NR Permitting Exchange, Aggregation and Collection Hub - A PIES v0.1.0
-    compliant API
+    A microservice focused on permitting exchange, aggregation and collection
+    using PIES.
   license:
     name: Apache 2.0
     url: https://www.apache.org/licenses/LICENSE-2.0.html
@@ -18,10 +18,16 @@ security:
 tags:
   - name: Processes
     description: Operations for managing Process Events.
+    externalDocs:
+      url: https://github.com/bcgov/nr-peach/wiki/Endpoint-Notes#processes
   - name: Records
     description: Operations for managing Records and Record Linkages.
+    externalDocs:
+      url: https://github.com/bcgov/nr-peach/wiki/Endpoint-Notes#records
   - name: Systems
     description: Operations for managing Systems. May potentially proxy to JIRA API.
+    externalDocs:
+      url: https://github.com/bcgov/nr-peach/wiki/Endpoint-Notes#systems
 paths:
   /process-events:
     get:
