@@ -7,7 +7,9 @@
     "esbenp.prettier-vscode",
     "gruntfuggly.todo-tree",
     "ms-azuretools.vscode-containers",
+    "ryanluker.vscode-coverage-gutters",
     "unifiedjs.vscode-mdx",
-    "usernamehw.errorlens"
+    "usernamehw.errorlens",
+    "vitest.explorer"
   ]
 }
