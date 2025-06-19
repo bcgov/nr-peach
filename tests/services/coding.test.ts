@@ -1,15 +1,15 @@
-import { coding, isValidCodeSystem, isValidCoding } from '../../src/services/coding.ts';
+import { CodingDictionary, isValidCodeSystem, isValidCoding } from '../../src/services/coding.ts';
 
 const validCodeSystem = 'https://bcgov.github.io/nr-pies/docs/spec/code_system/application_process';
 const invalidCodeSystem = 'https://invalid-system';
 
 describe('coding object', () => {
   it('should contain the expected code system', () => {
-    expect(coding).toHaveProperty(validCodeSystem);
+    expect(CodingDictionary).toHaveProperty(validCodeSystem);
   });
 
   it('should contain known codes with correct structure', () => {
-    const codes = coding[validCodeSystem];
+    const codes = CodingDictionary[validCodeSystem];
     expect(codes).toHaveProperty('APPLICATION');
     expect(codes.APPLICATION).toEqual({
       codeSet: ['APPLICATION'],

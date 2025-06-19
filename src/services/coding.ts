@@ -3,12 +3,12 @@
  * This object provides a structured representation of application process codes,
  * where each code is mapped to a `CodeMap` containing its code set hierarchy and display label.
  */
-export const coding: Record<
+export const CodingDictionary: Record<
   string, // Codesystem
   Record<
     string, // Code
     {
-      codeSet: readonly string[];
+      codeSet: [string] | [string, string] | [string, string, string];
       display: string;
     }
   >
@@ -94,11 +94,11 @@ export const coding: Record<
 });
 
 /** A Set containing the keys of the `coding` object, representing all available code systems. */
-const codeSystemSetCache = new Set<keyof typeof coding>(Object.keys(coding));
+const codeSystemSetCache = new Set<keyof typeof CodingDictionary>(Object.keys(CodingDictionary));
 /** Caches sets of codes for each code system. */
 const codeSetCache: Record<string, Set<string>> = {};
 for (const codeSystem of codeSystemSetCache) {
-  codeSetCache[codeSystem] = new Set(Object.keys(coding[codeSystem]));
+  codeSetCache[codeSystem] = new Set(Object.keys(CodingDictionary[codeSystem]));
 }
 
 /**
