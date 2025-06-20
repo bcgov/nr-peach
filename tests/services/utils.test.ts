@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto';
 
 import { BaseRepository } from '../../src/repositories/base.ts';
-import { cacheWrapper, findThenUpsert, lruCache, returnableUpsert } from '../../src/services/utils.ts';
+import { cacheableUpsert, cacheWrapper, findByThenUpsert, lruCache } from '../../src/services/utils.ts';
 
 import type { Kysely, Transaction } from 'kysely';
 import type { DB } from '../../src/types/index.d.ts';
@@ -82,7 +82,7 @@ describe('findThenUpsert', () => {
       executeTakeFirstOrThrow: vi.fn()
     });
 
-    const result = await findThenUpsert(repo, mockData);
+    const result = await findByThenUpsert(repo, mockData);
     expect(result).toEqual(upsertResult);
     expect(repo.findBy).toHaveBeenCalledWith(mockData);
     expect(repo.upsert).not.toHaveBeenCalled();
@@ -98,7 +98,7 @@ describe('findThenUpsert', () => {
       executeTakeFirstOrThrow: vi.fn().mockResolvedValue(foundRow)
     });
 
-    const result = await findThenUpsert(repo, mockData);
+    const result = await findByThenUpsert(repo, mockData);
     expect(result).toEqual(foundRow);
     expect(repo.findBy).toHaveBeenCalledWith(mockData);
     expect(repo.upsert).toHaveBeenCalledWith(mockData);
@@ -113,7 +113,7 @@ describe('findThenUpsert', () => {
       executeTakeFirstOrThrow: vi.fn().mockRejectedValue(new Error('Not found'))
     });
 
-    await expect(findThenUpsert(repo, mockData)).rejects.toThrow('Not found');
+    await expect(findByThenUpsert(repo, mockData)).rejects.toThrow('Not found');
     expect(repo.findBy).toHaveBeenCalledWith(mockData);
     expect(repo.upsert).toHaveBeenCalledWith(mockData);
   });
@@ -137,7 +137,7 @@ describe('returnableUpsert', () => {
       executeTakeFirstOrThrow: vi.fn()
     });
 
-    const result = await returnableUpsert(repo, mockData, false);
+    const result = await cacheableUpsert(repo, mockData, false);
     expect(result).toEqual(upsertResult);
     expect(repo.findBy).toHaveBeenCalledWith(mockData);
     expect(repo.upsert).not.toHaveBeenCalled();
@@ -152,7 +152,7 @@ describe('returnableUpsert', () => {
       executeTakeFirstOrThrow: vi.fn().mockResolvedValue(upsertResult)
     });
 
-    const result = await returnableUpsert(repo, mockData, true);
+    const result = await cacheableUpsert(repo, mockData, true);
     expect(result).toEqual(upsertResult);
     expect(repo.findBy).toHaveBeenCalledWith(mockData);
     expect(repo.upsert).toHaveBeenCalledWith(mockData);

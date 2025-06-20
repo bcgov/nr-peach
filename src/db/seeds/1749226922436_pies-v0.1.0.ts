@@ -1,4 +1,4 @@
-import { coding } from '../../services/index.ts';
+import { CodingDictionary } from '../../services/index.ts';
 
 import type { Kysely } from 'kysely';
 import type { DB } from '../../types/index.d.ts';
@@ -19,7 +19,7 @@ export async function seed(db: Kysely<DB>): Promise<void> {
   await db
     .insertInto('pies.coding')
     .values(
-      Object.entries(coding).flatMap(([codeSystem, codes]) =>
+      Object.entries(CodingDictionary).flatMap(([codeSystem, codes]) =>
         Object.keys(codes).map((code) => ({ code, codeSystem, versionId: VERSION }))
       )
     )
