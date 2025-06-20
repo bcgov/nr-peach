@@ -1,21 +1,33 @@
-import { TransactionRepository } from '../repositories/index.ts';
-import { replaceProcessEventSetService } from '../services/index.ts';
+import {
+  deleteProcessEventSetService,
+  findProcessEventSetService,
+  findSingleSystemRecordService,
+  replaceProcessEventSetService
+} from '../services/index.ts';
 
 import type { Request, Response } from 'express';
-import type { ProcessEventSet } from '../types/index.js';
+import type { ProcessEventSet, SystemRecordQuery } from '../types/index.d.ts';
 
-export const deleteProcessEventsController = async (req: Request, res: Response): Promise<void> => {
-  await new TransactionRepository().delete('01950719-b154-72f5-8437-5572df032a69').execute();
-  res.status(200).json({});
+export const deleteProcessEventsController = async (
+  req: Request<never, never, never, SystemRecordQuery>,
+  res: Response
+): Promise<void> => {
+  const systemRecord = await findSingleSystemRecordService(req.query.record_id, req.query.system_id);
+  await deleteProcessEventSetService(systemRecord);
+  res.status(204).end();
 };
 
-export const getProcessEventsController = async (req: Request, res: Response): Promise<void> => {
-  const result = await new TransactionRepository().read('01950719-b154-72f5-8437-5572df032a69').execute();
+export const getProcessEventsController = async (
+  req: Request<never, never, never, SystemRecordQuery>,
+  res: Response<ProcessEventSet>
+): Promise<void> => {
+  const systemRecord = await findSingleSystemRecordService(req.query.record_id, req.query.system_id);
+  const result = await findProcessEventSetService(systemRecord);
   res.status(200).json(result);
 };
 
 export const postProcessEventsController = async (
-  req: Request<Record<string, string>, unknown, ProcessEventSet>,
+  req: Request<never, never, ProcessEventSet>,
   res: Response
 ): Promise<void> => {
   await replaceProcessEventSetService(req.body);
@@ -23,7 +35,7 @@ export const postProcessEventsController = async (
 };
 
 export const putProcessEventsController = async (
-  req: Request<Record<string, string>, unknown, ProcessEventSet>,
+  req: Request<never, never, ProcessEventSet>,
   res: Response
 ): Promise<void> => {
   await replaceProcessEventSetService(req.body);

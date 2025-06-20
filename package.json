@@ -51,6 +51,7 @@
     "lru-cache": "11.1.0",
     "pg": "8.16.0",
     "serve-favicon": "2.5.1",
+    "uuid": "11.1.0",
     "winston": "3.17.0",
     "winston-transport": "4.9.0"
   },
