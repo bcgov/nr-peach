@@ -17,19 +17,17 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
-      attestations: write
-      contents: read
-      id-token: write
-      packages: write
+      attestations: write # for actions/attest attestation persistence
+      contents: read # set to write for anchore/sbom-action artifact uploads
+      id-token: write # for actions/attest OIDC token to request a Sigstore signing certificate
+      packages: write # for docker/build-push-action to push images to GitHub Container Registry
     steps:
       - name: Checkout
         uses: actions/checkout@v4.2.2
         with:
           fetch-depth: 0
-      # - name: Set up Cosign
-      #   uses: sigstore/cosign-installer@398d4b0eeef1380460a10c8013a76f728fb906ac # v3.9.1
       # - name: Set up Docker Buildx
-      #   uses: docker/setup-buildx-action@v3
+      #   uses: docker/setup-buildx-action@v3.11.1
       - name: Login to Github Container Registry
         uses: docker/login-action@v3.4.0
         with:
@@ -40,16 +38,17 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5.7.0
         # env:
+        #   # Ref: https://github.com/orgs/community/discussions/45969#discussioncomment-13352049
         #   DOCKER_METADATA_ANNOTATIONS_LEVELS: manifest,index
         with:
           images: ghcr.io/${{ github.repository }}
           # Creates tags based off of branch names and semver tags
           tags: |
-            type=sha
+            type=sha,format=short
             type=sha,prefix=,format=long
             type=ref,event=branch
+            type=ref,event=pr
             type=raw,value=latest,enable={{is_default_branch}}
-            type=raw,value=pr-${{ github.event.pull_request.number }},enable=${{ github.event_name == 'pull_request' }}
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
             type=semver,pattern={{major}}
@@ -62,19 +61,13 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           annotations: ${{ steps.meta.outputs.annotations }}
+          # The following options require docker/setup-buildx-action.
+          # cache-from: type=gha
+          # cache-to: type=gha,mode=max
+          # platforms: linux/amd64,linux/arm64
           # provenance: true
           # sbom: true
-      # - name: Sign the images with GitHub OIDC Token
-      #   env:
-      #     DIGEST: ${{ steps.builder.outputs.digest }}
-      #     TAGS: ${{ steps.meta.outputs.tags }}
-      #   run: |
-      #     images=""
-      #     for tag in ${TAGS}; do
-      #       images+="${tag}@${DIGEST} "
-      #     done
-      #     cosign sign --yes ${images}
-      - name: Attest
+      - name: Attest (in-toto release predicate)
         uses: actions/attest@v2.4.0
         id: attest
         with:
@@ -82,14 +75,33 @@ jobs:
           subject-digest: ${{ steps.builder.outputs.digest }}
           predicate-type: 'https://in-toto.io/attestation/release/v0.1'
           predicate: '{"purl":"pkg:oci/${{ github.repository }}"}'
-      # Non-buildx variant
+      - name: Generate SBOM (SPDX) with Syft
+        uses: anchore/sbom-action@9246b90769f852b3a8921f330c59e0b3f439d6e9 # v0.20.1
+        with:
+          image: ghcr.io/${{ github.repository }}:${{ github.sha }}
       - name: Inspect image
-        run: docker image inspect ghcr.io/${{ github.repository }}:latest
-      # buildx variant
-      # - name: Inspect image
+        run: docker image inspect ghcr.io/${{ github.repository }}:${{ github.sha }}
+      # # Cosign may not be prod-ready yet. Ref: https://github.com/sigstore/cosign#what--is-not--production-ready
+      # - name: Set up Cosign
+      #   uses: sigstore/cosign-installer@398d4b0eeef1380460a10c8013a76f728fb906ac # v3.9.1
+      # - name: Sign images with Cosign
+      #   env:
+      #     TAGS: ${{ steps.meta.outputs.tags }}
       #   run: |
-      #     docker buildx imagetools inspect ghcr.io/${{ github.repository }}:${{ github.sha }} --format '{{json .}}' > manifest.json
-      #     cat manifest.json
+      #     images=""
+      #     for tag in ${TAGS}; do
+      #       images+="${tag}@${{ steps.builder.outputs.digest }} "
+      #     done
+      #     cosign sign --yes ${images}
+      # # # This step does not work - the in-toto attestation is not compatible with slsaprovenance.
+      # # - name: Generate SLSA Provenance Attestation
+      # #   run: |
+      # #     cosign attest --yes --type slsaprovenance --predicate ${{ steps.attest.outputs.bundle-path }} ghcr.io/${{ github.repository }}@${{ steps.builder.outputs.digest }}
+      # - name: Upload Provenance artifact
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: provenance
+      #     path: ${{ steps.attest.outputs.bundle-path }}
       # - name: List & Verify image attestations
       #   run: |
       #     cosign tree ghcr.io/${{ github.repository }}@${{ steps.builder.outputs.digest }}
