@@ -12,6 +12,7 @@ function getCurrentBranch(): string {
   try {
     const branch = spawnSync('git', ['rev-parse', '--abbrev-ref', 'HEAD'], {
       encoding: 'utf-8',
+      shell: true,
       stdio: ['ignore', 'pipe', 'inherit']
     });
     if (branch.status !== 0) throw new Error('Failed to get current branch name.');
@@ -28,7 +29,11 @@ function getCurrentBranch(): string {
  * @param args - Arguments for the command.
  */
 function run(cmd: string, ...args: string[]) {
-  const res = spawnSync(cmd, args, { stdio: 'inherit' });
+  const res = spawnSync(cmd, args, {
+    encoding: 'utf-8',
+    shell: true,
+    stdio: 'inherit'
+  });
   if (res.status !== 0) process.exit(res.status ?? 1);
 }
 
@@ -42,6 +47,8 @@ function main() {
     // eslint-disable-next-line no-console
     console.error(`Invalid branch name '${branch}'. Branches must match: ${validBranchRegex}. Rename to proceed.`);
     process.exit(1);
+  } else {
+    console.info(`Branch name '${branch}' is valid.`); // eslint-disable-line no-console
   }
 
   // Run any subsequent commands
