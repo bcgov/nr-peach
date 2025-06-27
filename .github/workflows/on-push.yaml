@@ -78,7 +78,7 @@ jobs:
       - name: Generate SBOM (SPDX) with Syft
         uses: anchore/sbom-action@9246b90769f852b3a8921f330c59e0b3f439d6e9 # v0.20.1
         with:
-          image: ghcr.io/${{ github.repository }}:${{ github.sha }}
+          image: ghcr.io/${{ github.repository }}@${{ steps.builder.outputs.digest }}
       - name: Inspect image
         run: docker image inspect ghcr.io/${{ github.repository }}:${{ github.sha }}
       # # Cosign may not be prod-ready yet. Ref: https://github.com/sigstore/cosign#what--is-not--production-ready
