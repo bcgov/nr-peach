@@ -23,7 +23,10 @@ export const dialectConfig: PostgresDialectConfig = {
     user: process.env.PGUSER,
     password: process.env.PGPASSWORD,
     port: +(process.env.PGPORT ?? 5432),
-    max: +(process.env.PGPOOL_MAX ?? 10)
+    connectionTimeoutMillis: +(process.env.PGPOOL_TIMEOUT ?? 3000),
+    idleTimeoutMillis: +(process.env.PGPOOL_IDLE_TIMEOUT ?? 10000),
+    max: +(process.env.PGPOOL_MAX ?? 10),
+    maxLifetimeSeconds: +(process.env.PGPOOL_MAX_LIFETIME ?? 60)
   })
 };
 
