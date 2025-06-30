@@ -5,7 +5,7 @@ import http from 'node:http';
 
 import { app } from './src/app.ts';
 import { state } from './src/state.ts';
-import { checkDatabaseHealth, checkDatabaseSchema } from './src/db/index.ts';
+import { checkDatabaseHealth, checkDatabaseSchema, shutdownDatabase } from './src/db/index.ts';
 import { getLogger } from './src/utils/index.ts';
 
 // Load environment variables, prioritizing .env over .env.default
@@ -89,10 +89,15 @@ function onError(error: { syscall?: string; code: string }): void {
  */
 function cleanup(): void {
   state.ready = false;
+  log.debug('Stop accepting new connections...');
   server.close(() => {
-    server.closeAllConnections();
-    log.info('Server shut down');
-    process.exit(0);
+    log.debug('Shutting down database connections...');
+    void shutdownDatabase(() => {
+      log.debug('Closing all server connections...');
+      server.closeAllConnections();
+      log.info('Server shut down');
+      process.exit(0);
+    });
   });
 }
 

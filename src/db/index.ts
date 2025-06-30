@@ -110,6 +110,15 @@ export function handleLogEvent(event: LogEvent): void {
 }
 
 /**
+ * Shuts down the database connection gracefully.
+ * @param cb - Optional callback function to be executed after the database is destroyed.
+ * @returns A promise that resolves when the database has been destroyed.
+ */
+export function shutdownDatabase(cb?: () => void): Promise<void> {
+  return db.destroy().then(cb);
+}
+
+/**
  * Executes a database transaction with the specified isolation level.
  * @param callback - A function that performs operations within the transaction.
  * @param isolationLevel - The isolation level for the transaction (default is 'serializable').

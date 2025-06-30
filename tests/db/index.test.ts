@@ -9,6 +9,7 @@ import {
   db,
   dialectConfig,
   handleLogEvent,
+  shutdownDatabase,
   transactionWrapper
 } from '../../src/db/index.ts';
 
@@ -120,6 +121,29 @@ describe('handleLogEvent', () => {
 
     handleLogEvent(event);
     expect(handleLogEvent(event)).toBeUndefined();
+  });
+});
+
+describe('shutdownDatabase', () => {
+  it('should call db.destroy and resolve', async () => {
+    const destroySpy = vi.spyOn(db, 'destroy').mockResolvedValueOnce(undefined);
+
+    await expect(shutdownDatabase()).resolves.toBeUndefined();
+    expect(destroySpy).toHaveBeenCalledTimes(1);
+
+    destroySpy.mockRestore();
+  });
+
+  it('should call the callback after db.destroy resolves', async () => {
+    const destroySpy = vi.spyOn(db, 'destroy').mockResolvedValueOnce(undefined);
+    const cb = vi.fn();
+
+    await shutdownDatabase(cb);
+
+    expect(destroySpy).toHaveBeenCalledTimes(1);
+    expect(cb).toHaveBeenCalledTimes(1);
+
+    destroySpy.mockRestore();
   });
 });
 

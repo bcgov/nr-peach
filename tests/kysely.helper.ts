@@ -18,6 +18,7 @@ vi.mock('kysely', async (importActual) => ({
       on: vi.fn().mockReturnThis(),
       withSchema: vi.fn().mockReturnThis()
     };
+    destroy = vi.fn();
     // TODO: Figure out how to properly mock transaction call flow
     execute = vi.fn((cb: () => Kysely<unknown>) => cb());
     transaction = vi.fn(() => new Kysely({} as KyselyConfig));
