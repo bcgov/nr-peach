@@ -3,8 +3,8 @@ import { DummyDriver, Kysely, PostgresAdapter, PostgresIntrospector, PostgresQue
 import type { KyselyConfig } from 'kysely';
 import type { DB } from '../src/types/index.d.ts';
 
-vi.mock('kysely', async (importActual) => ({
-  ...(await importActual<typeof Kysely>()),
+vi.mock('kysely', async (importOriginal) => ({
+  ...(await importOriginal<typeof Kysely>()),
   Kysely: class {
     introspection = {
       getTables: vi.fn()

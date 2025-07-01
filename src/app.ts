@@ -7,6 +7,7 @@ import favicon from 'serve-favicon';
 
 import router from './routes/index.ts';
 
+import { checkDatabaseHealth } from './db/index.ts';
 import { state } from './state.ts';
 import { getLogger, httpLogger, Problem } from './utils/index.ts';
 
@@ -31,14 +32,15 @@ app.use((_req: Request, res: Response, next: NextFunction): void => {
 if (process.env.NODE_ENV !== 'test') app.use(httpLogger);
 
 // Block requests until service is ready
-app.use((req: Request, res: Response, next: NextFunction): void => {
-  if (state.shutdown) {
-    new Problem(503, { detail: 'Server is shutting down' }).send(req, res);
-  } else if (!state.ready) {
-    new Problem(503, { detail: 'Server is not ready' }).send(req, res);
-  } else {
-    next();
+app.use(async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  if (state.shutdown) return new Problem(503, { detail: 'Server is shutting down' }).send(req, res);
+  if (!state.ready) {
+    const dbHealthy = await checkDatabaseHealth();
+    if (!dbHealthy) return new Problem(503, { detail: 'Server is not ready' }).send(req, res);
+    log.info('Database has recovered');
+    state.ready = true;
   }
+  next();
 });
 
 // Disallow all scraping
@@ -63,19 +65,21 @@ app.use((req: Request, res: Response): void => {
  * @param req - The HTTP request object.
  * @param res - The HTTP response object.
  * @param _next - The next middleware function in the stack (unused).
+ * @returns A Problem that resolves when the error has been handled.
  */
-export function errorHandler(
-  err: Error,
-  req: Request,
-  res: Response,
-  _next: NextFunction // eslint-disable-line @typescript-eslint/no-unused-vars
-): void {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export async function errorHandler(err: Error, req: Request, res: Response, _next: NextFunction): Promise<void> {
   if (err.stack) log.error(err);
 
   if (err instanceof Problem) {
-    err.send(req, res);
+    return err.send(req, res);
   } else {
-    new Problem(500, { detail: err.message ?? err.toString() }).send(req, res);
+    const dbHealthy = await checkDatabaseHealth();
+    if (!dbHealthy) {
+      state.ready = false;
+      return new Problem(503, { detail: 'Server is not ready' }).send(req, res);
+    }
+    return new Problem(500, { detail: err.message ?? err.toString() }).send(req, res);
   }
 }
 

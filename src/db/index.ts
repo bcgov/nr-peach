@@ -2,9 +2,10 @@ import { config } from 'dotenv';
 import { CamelCasePlugin, Kysely, PostgresDialect, sql } from 'kysely';
 import { Pool, types } from 'pg';
 
+import { state } from '../state.ts';
 import { getLogger } from '../utils/index.ts';
 
-import type { IsolationLevel, LogEvent, PostgresDialectConfig, Transaction } from 'kysely';
+import type { IsolationLevel, LogEvent, Transaction } from 'kysely';
 import type { DB } from '../types/index.d.ts';
 
 // Load environment variables, prioritizing .env over .env.default
@@ -16,19 +17,24 @@ const log = getLogger(import.meta.filename);
 const int8TypeId = 20; // PostgreSQL's bigint type is represented as int8 in Kysely
 types.setTypeParser(int8TypeId, (value: string): number => parseInt(value, 10));
 
-export const dialectConfig: PostgresDialectConfig = {
-  pool: new Pool({
-    host: process.env.PGHOST,
-    database: process.env.PGDATABASE,
-    user: process.env.PGUSER,
-    password: process.env.PGPASSWORD,
-    port: +(process.env.PGPORT ?? 5432),
-    connectionTimeoutMillis: +(process.env.PGPOOL_TIMEOUT ?? 3000),
-    idleTimeoutMillis: +(process.env.PGPOOL_IDLE_TIMEOUT ?? 10000),
-    max: +(process.env.PGPOOL_MAX ?? 10),
-    maxLifetimeSeconds: +(process.env.PGPOOL_MAX_LIFETIME ?? 60)
-  })
-};
+const pool = new Pool({
+  host: process.env.PGHOST,
+  database: process.env.PGDATABASE,
+  user: process.env.PGUSER,
+  password: process.env.PGPASSWORD,
+  port: +(process.env.PGPORT ?? 5432),
+  connectionTimeoutMillis: +(process.env.PGPOOL_TIMEOUT ?? 3000),
+  idleTimeoutMillis: +(process.env.PGPOOL_IDLE_TIMEOUT ?? 10000),
+  max: +(process.env.PGPOOL_MAX ?? 10),
+  min: +(process.env.PGPOOL_MIN ?? 0),
+  maxLifetimeSeconds: +(process.env.PGPOOL_MAX_LIFETIME ?? 60)
+});
+
+pool.on('error', onPoolError);
+pool.on('connect', () => log.silly('Database has connected a client', { clientCount: pool.totalCount }));
+pool.on('acquire', () => log.silly('Database has acquired a client', { clientCount: pool.totalCount }));
+pool.on('release', () => log.silly('Database has released a client', { clientCount: pool.totalCount }));
+pool.on('remove', () => log.silly('Database has removed a client', { clientCount: pool.totalCount }));
 
 /**
  * Checks the health of the database by executing a simple query.
@@ -42,7 +48,7 @@ export async function checkDatabaseHealth(): Promise<boolean> {
     log.debug('Database is healthy');
     return result.rows?.[0]?.result === 1;
   } catch (error) {
-    log.error('Database is unhealthy', error);
+    log.error('Database is unhealthy', { code: (error as { code?: string }).code });
     return false;
   }
 }
@@ -95,7 +101,7 @@ export async function checkDatabaseSchema(): Promise<boolean> {
  * @param event.query.parameters - The parameters used in the query.
  * @param event.query.sql - The SQL query string.
  */
-export function handleLogEvent(event: LogEvent): void {
+export function onLogEvent(event: LogEvent): void {
   if (event.level === 'error') {
     log.error('Query failed', {
       durationMs: event.queryDurationMillis,
@@ -110,6 +116,16 @@ export function handleLogEvent(event: LogEvent): void {
       sql: event.query.sql
     });
   }
+}
+
+/**
+ * Handles errors emitted by the database connection pool.
+ * Server assumes the worst and forces a database check on next database request.
+ * @param err - The error object emitted by the pool.
+ */
+export function onPoolError(err: Error): void {
+  log.error(`Database has errored: ${err.message}`, { clientCount: pool.totalCount });
+  state.ready = false;
 }
 
 /**
@@ -137,8 +153,8 @@ export function transactionWrapper<T>(
 // Database interface is passed to Kysely's constructor, and from now on, Kysely knows your database structure.
 // Dialect is passed to Kysely's constructor, and from now on, Kysely knows how to communicate with your database.
 export const db = new Kysely<DB>({
-  dialect: new PostgresDialect(dialectConfig),
-  log: handleLogEvent,
+  dialect: new PostgresDialect({ pool }),
+  log: onLogEvent,
   plugins: [new CamelCasePlugin()]
 });
 

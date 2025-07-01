@@ -3,12 +3,13 @@ import { mockSqlExecuteReturn } from '../kysely.helper.ts';
 
 import { Kysely, sql } from 'kysely';
 
+import { state } from '../../src/state.ts';
 import {
   checkDatabaseHealth,
   checkDatabaseSchema,
   db,
-  dialectConfig,
-  handleLogEvent,
+  onLogEvent,
+  onPoolError,
   shutdownDatabase,
   transactionWrapper
 } from '../../src/db/index.ts';
@@ -16,13 +17,6 @@ import {
 import type { LogEvent, QueryId, RootOperationNode } from 'kysely';
 import type { Mock } from 'vitest';
 import type { DB } from '../../src/types/index.d.ts';
-
-describe('dialectConfig', () => {
-  it('should yield a dialectConfig', () => {
-    expect(dialectConfig).toBeDefined();
-    expect(dialectConfig).toHaveProperty('pool');
-  });
-});
 
 describe('checkDatabaseHealth', () => {
   it('should return true when the database is healthy', async () => {
@@ -89,7 +83,7 @@ describe('checkDatabaseSchema', () => {
   });
 });
 
-describe('handleLogEvent', () => {
+describe('onLogEvent', () => {
   it('should log an error when event level is "error"', () => {
     const event: LogEvent = {
       level: 'error',
@@ -103,8 +97,8 @@ describe('handleLogEvent', () => {
       }
     };
 
-    handleLogEvent(event);
-    expect(handleLogEvent(event)).toBeUndefined();
+    onLogEvent(event);
+    expect(onLogEvent(event)).toBeUndefined();
   });
 
   it('should log a verbose message when event level is not "error"', () => {
@@ -119,8 +113,26 @@ describe('handleLogEvent', () => {
       }
     };
 
-    handleLogEvent(event);
-    expect(handleLogEvent(event)).toBeUndefined();
+    onLogEvent(event);
+    expect(onLogEvent(event)).toBeUndefined();
+  });
+});
+
+describe('onPoolError', () => {
+  let originalReady: boolean;
+
+  beforeEach(() => {
+    originalReady = state.ready;
+    state.ready = true;
+  });
+
+  afterEach(() => {
+    state.ready = originalReady;
+  });
+
+  it('should log an error and set state.ready to false', () => {
+    onPoolError(new Error('Pool connection failed'));
+    expect(state.ready).toBe(false);
   });
 });
 

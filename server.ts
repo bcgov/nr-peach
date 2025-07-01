@@ -2,6 +2,7 @@
 
 import { config } from 'dotenv';
 import http from 'node:http';
+import { isMainThread } from 'node:worker_threads';
 
 import { app } from './src/app.ts';
 import { state } from './src/state.ts';
@@ -13,17 +14,6 @@ config({ path: ['.env', '.env.default'] });
 const log = getLogger(import.meta.filename);
 const port = normalizePort(process.env.APP_PORT ?? '3000');
 
-// Prevent unhandled rejections from crashing application
-process.on('unhandledRejection', (err: Error): void => {
-  if (err?.stack) log.error(err);
-});
-
-// Graceful shutdown support
-['SIGTERM', 'SIGINT', 'SIGUSR1', 'SIGUSR2'].forEach((signal) => {
-  process.on(signal, () => shutdown(signal as NodeJS.Signals));
-});
-process.on('exit', () => log.info('Exiting...'));
-
 // Create HTTP server and listen on provided port, on all network interfaces.
 // eslint-disable-next-line @typescript-eslint/no-misused-promises
 const server = http.createServer(app);
@@ -32,13 +22,18 @@ server.listen(port, () => {
 });
 server.on('error', onError);
 
-// Start periodic 10 second connection probes
-const probeId = setInterval(() => {
-  void checkDatabaseHealth().then((result) => {
-    if (!state.ready && result) log.info('Database has recovered');
-    state.ready = result;
+if (isMainThread) {
+  // Prevent unhandled rejections from crashing application
+  process.on('unhandledRejection', (err: Error): void => {
+    if (err?.stack) log.error(err);
   });
-}, 10000);
+
+  // Graceful shutdown support
+  ['SIGTERM', 'SIGINT', 'SIGUSR1', 'SIGUSR2'].forEach((signal) => {
+    process.on(signal, () => shutdown(signal as NodeJS.Signals));
+  });
+  process.on('exit', () => log.info('Exiting...'));
+}
 
 // Perform preliminary database checks
 void startup();
@@ -108,9 +103,6 @@ function cleanup(): void {
 function shutdown(signal: NodeJS.Signals): void {
   state.shutdown = true;
   log.info(`Received ${signal} signal. Shutting down...`);
-
-  // Stop periodic 10 second connection probes
-  if (probeId) clearInterval(probeId);
   cleanup();
 }
 
