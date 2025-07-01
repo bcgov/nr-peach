@@ -71,7 +71,7 @@
     "eslint-config-prettier": "10.1.2",
     "eslint-plugin-jsdoc": "50.6.11",
     "eslint-plugin-prettier": "5.2.6",
-    "prettier": "3.5.3",
+    "prettier": "3.6.2",
     "rimraf": "6.0.1",
     "simple-git-hooks": "2.13.0",
     "supertest": "7.1.1",
