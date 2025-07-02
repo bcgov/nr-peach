@@ -1,36 +1,46 @@
+import { getDefinedOperations, mockDb } from '../database.helper.ts';
 import { BaseRepository } from '../../src/repositories/base.ts';
 import { ProcessEventRepository } from '../../src/repositories/processEvent.ts';
 
-import type { Kysely } from 'kysely';
-import type { DB } from '../../src/types/index.d.ts';
-
 describe('ProcessEventRepository', () => {
-  const OriginalRepository: unknown = Object.getPrototypeOf(ProcessEventRepository);
-  let BaseRepositoryMock: unknown;
+  describe('constructor', () => {
+    const OriginalRepository = Object.getPrototypeOf(ProcessEventRepository) as typeof BaseRepository;
+    const BaseRepositoryMock = vi.fn();
 
-  beforeEach(() => {
-    BaseRepositoryMock = vi.fn();
-    Object.setPrototypeOf(ProcessEventRepository, BaseRepositoryMock as typeof BaseRepository);
+    beforeAll(() => {
+      Object.setPrototypeOf(ProcessEventRepository, BaseRepositoryMock);
+    });
+
+    afterAll(() => {
+      Object.setPrototypeOf(ProcessEventRepository, OriginalRepository);
+    });
+
+    it('should extend BaseRepository', () => {
+      const repo = new ProcessEventRepository();
+      expect(repo).toBeInstanceOf(BaseRepository);
+    });
+
+    it('should call super with correct arguments', () => {
+      new ProcessEventRepository();
+      expect(BaseRepositoryMock).toHaveBeenCalledOnce();
+      expect(BaseRepositoryMock).toHaveBeenCalledWith('pies.processEvent', undefined);
+    });
+
+    it('should call super with db argument if provided', () => {
+      new ProcessEventRepository(mockDb);
+      expect(BaseRepositoryMock).toHaveBeenCalledWith('pies.processEvent', mockDb);
+    });
   });
 
-  afterEach(() => {
-    Object.setPrototypeOf(ProcessEventRepository, OriginalRepository as typeof BaseRepository);
-  });
+  describe('prune', () => {
+    it('should build a delete query for the given systemRecordId', () => {
+      const systemRecordId = 42;
+      const compiled = new ProcessEventRepository(mockDb).prune(systemRecordId).compile();
 
-  it('should extend BaseRepository', () => {
-    const repo = new ProcessEventRepository();
-    expect(repo).toBeInstanceOf(BaseRepository);
-  });
-
-  it('should call super with correct arguments', () => {
-    new ProcessEventRepository();
-    expect(BaseRepositoryMock).toHaveBeenCalledOnce();
-    expect(BaseRepositoryMock).toHaveBeenCalledWith('pies.processEvent', undefined);
-  });
-
-  it('should call super with db argument if provided', () => {
-    const fakeDb = {} as Kysely<DB>;
-    new ProcessEventRepository(fakeDb);
-    expect(BaseRepositoryMock).toHaveBeenCalledWith('pies.processEvent', fakeDb);
+      expect(getDefinedOperations(compiled.query)).toEqual(['kind', 'from', 'where']);
+      expect(compiled.query.kind).toBe('DeleteQueryNode');
+      expect(compiled.sql).toBe('delete from "pies"."process_event" where "system_record_id" = $1');
+      expect(compiled.parameters).toEqual([systemRecordId]);
+    });
   });
 });
