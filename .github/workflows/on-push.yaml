@@ -85,8 +85,13 @@ jobs:
         with:
           format: cyclonedx-json
           image: ghcr.io/${{ github.repository }}@${{ steps.builder.outputs.digest }}
+
       - name: Inspect image
         run: docker image inspect ghcr.io/${{ github.repository }}:${{ github.sha }}
+      - name: Verify Attestation
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh attestation verify oci://ghcr.io/${{ github.repository }}:${{ github.sha }} -R ${{ github.repository }}
 
       # # Cosign may not be prod-ready yet. Ref: https://github.com/sigstore/cosign#what--is-not--production-ready
       # - name: Set up Cosign
