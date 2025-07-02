@@ -12,7 +12,7 @@ import {
   onPoolError,
   shutdownDatabase,
   transactionWrapper
-} from '../../src/db/index.ts';
+} from '../../src/db/database.ts';
 
 import type { LogEvent, QueryId, RootOperationNode } from 'kysely';
 import type { Mock } from 'vitest';
