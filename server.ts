@@ -10,7 +10,7 @@ import { checkDatabaseHealth, checkDatabaseSchema, shutdownDatabase } from './sr
 import { getLogger } from './src/utils/index.ts';
 
 // Load environment variables, prioritizing .env over .env.default
-config({ path: ['.env', '.env.default'] });
+config({ path: ['.env', '.env.default'], quiet: true });
 const log = getLogger(import.meta.filename);
 const port = normalizePort(process.env.APP_PORT ?? '3000');
 
