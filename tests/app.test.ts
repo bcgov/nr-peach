@@ -9,8 +9,7 @@ import { Problem } from '../src/utils/index.ts';
 import type { Request, Response } from 'express';
 import type { Mock } from 'vitest';
 
-vi.mock('../src/db/index.ts', async (importOriginal) => ({
-  ...(await importOriginal()),
+vi.mock('../src/db/database.ts', () => ({
   checkDatabaseHealth: vi.fn()
 }));
 

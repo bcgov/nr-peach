@@ -1,4 +1,4 @@
-import { getDefinedOperations, mockDb } from '../database.helper.ts';
+import { getDefinedOperations, mockDb } from './repository.helper.ts';
 import { BaseRepository } from '../../src/repositories/base.ts';
 import { ProcessEventRepository } from '../../src/repositories/processEvent.ts';
 

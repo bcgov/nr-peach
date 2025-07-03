@@ -8,7 +8,7 @@ import {
 } from 'kysely';
 
 import type { RootOperationNode } from 'kysely';
-import type { DB } from '../src/types/index.d.ts';
+import type { DB } from '../../src/types/index.js';
 
 /**
  * Returns an array of keys from the given object whose values are defined and truthy.
@@ -36,22 +36,3 @@ export const mockDb = new Kysely<DB>({
   },
   plugins: [new CamelCasePlugin()]
 });
-
-/**
- * Mocks the execution of an SQL query by returning a function that simulates
- * the behavior of a tagged template literal for SQL queries.
- * @param result - The result to be returned when the `execute` function is called.
- * @returns A function that accepts a template string and its interpolated values,
- *          and returns an object containing the strings, values, and a mocked `execute` function.
- * @example
- * (sql as unknown as Mock).mockImplementation(
- *   mockSqlExecuteReturn({ rows: [{ result: 1 }] })
- * );
- */
-export const mockSqlExecuteReturn = (result: unknown) => {
-  return (strings: TemplateStringsArray, ...values: unknown[]) => ({
-    strings,
-    values,
-    execute: vi.fn(() => result)
-  });
-};
