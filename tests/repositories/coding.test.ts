@@ -1,27 +1,38 @@
+import { mockDb } from '../database.helper.ts';
 import { BaseRepository } from '../../src/repositories/base.ts';
 import { CodingRepository } from '../../src/repositories/coding.ts';
 
 describe('CodingRepository', () => {
-  const OriginalRepository: unknown = Object.getPrototypeOf(CodingRepository);
-  let BaseRepositoryMock: unknown;
+  describe('constructor', () => {
+    const OriginalRepository = Object.getPrototypeOf(CodingRepository) as typeof BaseRepository;
+    const BaseRepositoryMock = vi.fn();
 
-  beforeEach(() => {
-    BaseRepositoryMock = vi.fn();
-    Object.setPrototypeOf(CodingRepository, BaseRepositoryMock as typeof BaseRepository);
-  });
+    beforeAll(() => {
+      Object.setPrototypeOf(CodingRepository, BaseRepositoryMock);
+    });
 
-  afterEach(() => {
-    Object.setPrototypeOf(CodingRepository, OriginalRepository as typeof BaseRepository);
-  });
+    afterAll(() => {
+      Object.setPrototypeOf(CodingRepository, OriginalRepository);
+    });
 
-  it('should extend BaseRepository and call super with correct arguments', () => {
-    const repo = new CodingRepository();
-    expect(repo).toBeInstanceOf(BaseRepository);
-    expect(BaseRepositoryMock).toHaveBeenCalledOnce();
-    expect(BaseRepositoryMock).toHaveBeenCalledWith(
-      'pies.coding',
-      undefined,
-      expect.arrayContaining(['coding_code_code_system_version_id_unique'])
-    );
+    it('should extend BaseRepository', () => {
+      const repo = new CodingRepository();
+      expect(repo).toBeInstanceOf(BaseRepository);
+    });
+
+    it('should call super with correct arguments', () => {
+      new CodingRepository();
+      expect(BaseRepositoryMock).toHaveBeenCalledOnce();
+      expect(BaseRepositoryMock).toHaveBeenCalledWith('pies.coding', undefined, [
+        'coding_code_code_system_version_id_unique'
+      ]);
+    });
+
+    it('should call super with db argument if provided', () => {
+      new CodingRepository(mockDb);
+      expect(BaseRepositoryMock).toHaveBeenCalledWith('pies.coding', mockDb, [
+        'coding_code_code_system_version_id_unique'
+      ]);
+    });
   });
 });

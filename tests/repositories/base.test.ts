@@ -1,123 +1,148 @@
-import { sql } from 'kysely';
-
+import { getDefinedOperations, mockDb } from '../database.helper.ts';
 import { BaseRepository } from '../../src/repositories/base.ts';
 
 import type { Kysely, Transaction } from 'kysely';
 import type { DB } from '../../src/types/index.d.ts';
 
+// Locally extend DB interface to test against an abstract 'schema.test_table' table
 declare module '../../src/types/index.d.ts' {
   interface DB {
-    test_table: { id: number; name: string };
+    'schema.test_table': { id: number; foo: string; bar: string };
   }
 }
 
-class TestRepository extends BaseRepository<'test_table'> {
+class TestRepository extends BaseRepository<'schema.test_table'> {
   constructor(db: Kysely<DB> | Transaction<DB>) {
-    super('test_table', db);
+    super('schema.test_table', db);
   }
 }
 
 describe('BaseRepository', () => {
-  let mockDb: Kysely<DB>;
-  let repository: TestRepository;
+  const repository = new TestRepository(mockDb);
 
-  beforeEach(() => {
-    mockDb = {
-      $castTo: vi.fn().mockReturnThis(),
-      deleteFrom: vi.fn().mockReturnThis(),
-      insertInto: vi.fn().mockReturnThis(),
-      onConflict: vi.fn().mockReturnThis(),
-      returningAll: vi.fn().mockReturnThis(),
-      selectAll: vi.fn().mockReturnThis(),
-      selectFrom: vi.fn().mockReturnThis(),
-      values: vi.fn().mockReturnThis(),
-      where: vi.fn().mockReturnThis()
-    } as Partial<Kysely<DB>> as Kysely<DB>;
-    repository = new TestRepository(mockDb);
+  describe('create', () => {
+    it('should build an insert query for the given entity', () => {
+      const data = { id: 1, foo: 'Test', bar: 'Data' };
+      const compiled = repository.create(data).compile();
+
+      expect(getDefinedOperations(compiled.query)).toEqual(['kind', 'into', 'columns', 'values', 'returning']);
+      expect(compiled.query.kind).toBe('InsertQueryNode');
+      expect(compiled.sql).toBe(
+        'insert into "schema"."test_table" ("id", "foo", "bar") values ($1, $2, $3) returning *'
+      );
+      expect(compiled.parameters).toEqual([data.id, data.foo, data.bar]);
+    });
   });
 
-  it('should create a new entity', () => {
-    const data = { id: 1, name: 'Test' };
-    repository.create(data);
-    // eslint-disable-next-line @typescript-eslint/unbound-method
-    expect(mockDb.insertInto).toHaveBeenCalledWith('test_table');
-    // @ts-expect-error ts(2339)
-    expect(mockDb.values).toHaveBeenCalledWith(data);
-    // @ts-expect-error ts(2339)
-    expect(mockDb.returningAll).toHaveBeenCalled();
+  describe('createMany', () => {
+    it('should build an insert query for the multiple entities', () => {
+      const data = [
+        { id: 1, foo: 'Test1', bar: 'Data1' },
+        { id: 2, foo: 'Test2', bar: 'Data2' }
+      ];
+      const compiled = repository.createMany(data).compile();
+
+      expect(getDefinedOperations(compiled.query)).toEqual(['kind', 'into', 'columns', 'values', 'returning']);
+      expect(compiled.query.kind).toBe('InsertQueryNode');
+      expect(compiled.sql).toBe(
+        'insert into "schema"."test_table" ("id", "foo", "bar") values ($1, $2, $3), ($4, $5, $6) returning *'
+      );
+      expect(compiled.parameters).toEqual([data[0].id, data[0].foo, data[0].bar, data[1].id, data[1].foo, data[1].bar]);
+    });
   });
 
-  it('should create multiple entities', () => {
-    const data = [
-      { id: 1, name: 'Test1' },
-      { id: 2, name: 'Test2' }
-    ];
-    repository.createMany(data);
-    // eslint-disable-next-line @typescript-eslint/unbound-method
-    expect(mockDb.insertInto).toHaveBeenCalledWith('test_table');
-    // @ts-expect-error ts(2339)
-    expect(mockDb.values).toHaveBeenCalledWith(data);
-    // @ts-expect-error ts(2339)
-    expect(mockDb.returningAll).toHaveBeenCalled();
+  describe('delete', () => {
+    it('should build a delete query for the specified id', () => {
+      const id = 1;
+      const compiled = repository.delete(id).compile();
+
+      expect(getDefinedOperations(compiled.query)).toEqual(['kind', 'from', 'where']);
+      expect(compiled.query.kind).toBe('DeleteQueryNode');
+      expect(compiled.sql).toBe('delete from "schema"."test_table" where "id" = $1');
+      expect(compiled.parameters).toEqual([id]);
+    });
   });
 
-  it('should delete an entity by ID', () => {
-    const id = 1;
-    repository.delete(id);
-    // eslint-disable-next-line @typescript-eslint/unbound-method
-    expect(mockDb.deleteFrom).toHaveBeenCalledWith('test_table');
-    // @ts-expect-error ts(2339)
-    expect(mockDb.where).toHaveBeenCalledWith(sql.ref('id'), '=', id);
+  describe('findById', () => {
+    it('should build a select query by filtering', () => {
+      const filter = { foo: 'Test' };
+      const compiled = repository.findBy(filter).compile();
+
+      expect(getDefinedOperations(compiled.query)).toEqual(['kind', 'from', 'selections', 'where']);
+      expect(compiled.query.kind).toBe('SelectQueryNode');
+      expect(compiled.sql).toBe('select * from "schema"."test_table" where "foo" = $1');
+      expect(compiled.parameters).toEqual([filter.foo]);
+    });
+
+    it('should build a select query with multiple filters', () => {
+      const filter = { foo: 'Test', bar: 'Data' };
+      const compiled = repository.findBy(filter).compile();
+
+      expect(getDefinedOperations(compiled.query)).toEqual(['kind', 'from', 'selections', 'where']);
+      expect(compiled.query.kind).toBe('SelectQueryNode');
+      expect(compiled.sql).toBe('select * from "schema"."test_table" where ("foo" = $1 and "bar" = $2)');
+      expect(compiled.parameters).toEqual([filter.foo, filter.bar]);
+    });
   });
 
-  it('should find entities by filter', () => {
-    const filter = { name: 'Test' };
-    repository.findBy(filter);
-    // eslint-disable-next-line @typescript-eslint/unbound-method
-    expect(mockDb.selectFrom).toHaveBeenCalledWith('test_table');
-    // @ts-expect-error ts(2339)
-    expect(mockDb.selectAll).toHaveBeenCalled();
-    // @ts-expect-error ts(2339)
-    expect(mockDb.where).toHaveBeenCalled();
+  describe('read', () => {
+    it('should build a select query for the specified id', () => {
+      const id = 1;
+      const compiled = repository.read(id).compile();
+
+      expect(getDefinedOperations(compiled.query)).toEqual(['kind', 'from', 'selections', 'where']);
+      expect(compiled.query.kind).toBe('SelectQueryNode');
+      expect(compiled.sql).toBe('select * from "schema"."test_table" where "id" = $1');
+      expect(compiled.parameters).toEqual([id]);
+    });
   });
 
-  it('should read an entity by ID', () => {
-    const id = 1;
-    repository.read(id);
-    // eslint-disable-next-line @typescript-eslint/unbound-method
-    expect(mockDb.selectFrom).toHaveBeenCalledWith('test_table');
-    // @ts-expect-error ts(2339)
-    expect(mockDb.selectAll).toHaveBeenCalled();
-    // @ts-expect-error ts(2339)
-    expect(mockDb.where).toHaveBeenCalledWith(sql.ref('id'), '=', id);
+  describe('upsert', () => {
+    it('should build an insert query for the given entity', () => {
+      const data = { id: 1, foo: 'Test', bar: 'Data' };
+      const compiled = repository.upsert(data).compile();
+
+      expect(getDefinedOperations(compiled.query)).toEqual([
+        'kind',
+        'into',
+        'columns',
+        'values',
+        'returning',
+        'onConflict'
+      ]);
+      expect(compiled.query.kind).toBe('InsertQueryNode');
+      expect(compiled.sql).toBe(
+        'insert into "schema"."test_table" ("id", "foo", "bar") ' +
+          'values ($1, $2, $3) ' +
+          'on conflict ("id") do nothing returning *, *'
+      );
+      expect(compiled.parameters).toEqual([data.id, data.foo, data.bar]);
+    });
   });
 
-  it('should upsert an entity', () => {
-    const data = { id: 1, name: 'Test' };
-    repository.upsert(data);
-    // eslint-disable-next-line @typescript-eslint/unbound-method
-    expect(mockDb.insertInto).toHaveBeenCalledWith('test_table');
-    // @ts-expect-error ts(2339)
-    expect(mockDb.values).toHaveBeenCalledWith(data);
-    // @ts-expect-error ts(2339)
-    expect(mockDb.onConflict).toHaveBeenCalled();
-    // @ts-expect-error ts(2339)
-    expect(mockDb.returningAll).toHaveBeenCalled();
-  });
+  describe('upsertMany', () => {
+    it('should build an insert query for the multiple entities', () => {
+      const data = [
+        { id: 1, foo: 'Test1', bar: 'Data1' },
+        { id: 2, foo: 'Test2', bar: 'Data2' }
+      ];
+      const compiled = repository.upsertMany(data).compile();
 
-  it('should upsert multiple entities', () => {
-    const data = [
-      { id: 1, name: 'Test1' },
-      { id: 2, name: 'Test2' }
-    ];
-    repository.upsertMany(data);
-    // eslint-disable-next-line @typescript-eslint/unbound-method
-    expect(mockDb.insertInto).toHaveBeenCalledWith('test_table');
-    // @ts-expect-error ts(2339)
-    expect(mockDb.values).toHaveBeenCalledWith(data);
-    // @ts-expect-error ts(2339)
-    expect(mockDb.onConflict).toHaveBeenCalled();
-    // @ts-expect-error ts(2339)
-    expect(mockDb.returningAll).toHaveBeenCalled();
+      expect(getDefinedOperations(compiled.query)).toEqual([
+        'kind',
+        'into',
+        'columns',
+        'values',
+        'returning',
+        'onConflict'
+      ]);
+      expect(compiled.query.kind).toBe('InsertQueryNode');
+      expect(compiled.sql).toBe(
+        'insert into "schema"."test_table" ("id", "foo", "bar") ' +
+          'values ($1, $2, $3), ($4, $5, $6) ' +
+          'on conflict ("id") do nothing returning *, *'
+      );
+      expect(compiled.parameters).toEqual([data[0].id, data[0].foo, data[0].bar, data[1].id, data[1].foo, data[1].bar]);
+    });
   });
 });
