@@ -16,12 +16,39 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  test-preflight:
+    name: Preflight Checks
+    runs-on: ubuntu-latest
+    outputs:
+      HAS_SONAR_SECRETS: ${{ steps.check-secrets.outputs.HAS_SONAR_SECRETS }}
+      PR_EXISTS: ${{ steps.pr-check.outputs.PR_EXISTS }}
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - name: Short circuit if open PR exists for this branch (on push)
+        id: pr-check
+        if: github.event_name == 'push'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          prs=$(gh pr list --head "${{ github.ref_name }}" --state open --repo "${{ github.repository }}" --json number --jq '.[].number')
+          if [ -n "$prs" ]; then
+            echo "PR_EXISTS=true" >> $GITHUB_OUTPUT
+          else
+            echo "PR_EXISTS=false" >> $GITHUB_OUTPUT
+          fi
+      - name: Check SonarCloud Secrets
+        id: check-secrets
+        if: steps.pr-check.outputs.PR_EXISTS != 'true'
+        run: |
+          echo "HAS_SONAR_SECRETS=${{ secrets.SONAR_TOKEN != '' }}" >> $GITHUB_OUTPUT
+
   test-app:
     name: Unit Tests
+    needs: test-preflight
+    if: needs.test-preflight.outputs.PR_EXISTS != 'true'
     runs-on: ubuntu-latest
-    if: |
-      github.event_name == 'push' ||
-      (github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == true)
     outputs:
       HAS_SONAR_SECRETS: ${{ steps.check-secrets.outputs.HAS_SONAR_SECRETS }}
     timeout-minutes: 10
@@ -38,10 +65,6 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4.2.2
-      - name: Check SonarCloud Secrets
-        id: check-secrets
-        run: |
-          echo "HAS_SONAR_SECRETS=${{ secrets.SONAR_TOKEN != '' }}" >> $GITHUB_OUTPUT
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v4.4.0
         with:
@@ -62,7 +85,7 @@ jobs:
         if: steps.cache-app.outputs.cache-hit != 'true'
         run: npm ci
       - name: Lint
-        if: "matrix.node-version == '22.x'"
+        if: matrix.node-version == '22.x'
         run: npm run lint
       - name: Test
         run: npm run test
@@ -76,7 +99,7 @@ jobs:
           path: ${{ github.workspace }}/coverage
           retention-days: 1
       - name: Monitor Coverage
-        if: "matrix.node-version == '22.x' && ! github.event.pull_request.head.repo.fork"
+        if: matrix.node-version == '22.x' && ! github.event.pull_request.head.repo.fork
         uses: slavcodev/coverage-monitor-action@398c4cbbb710e549a8407fdef96ae8b9454d0463 # 1.10.0
         with:
           comment_mode: update
@@ -90,7 +113,7 @@ jobs:
   test-coverage:
     name: Publish to SonarCloud
     needs: test-app
-    if: needs.test-app.outputs.HAS_SONAR_SECRETS == 'true'
+    if: needs.test-preflight.outputs.HAS_SONAR_SECRETS == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
