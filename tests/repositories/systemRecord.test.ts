@@ -22,7 +22,7 @@ describe('SystemRecordRepository', () => {
 
     it('should call super with correct arguments', () => {
       new SystemRecordRepository();
-      expect(BaseRepositoryMock).toHaveBeenCalledOnce();
+      expect(BaseRepositoryMock).toHaveBeenCalledTimes(1);
       expect(BaseRepositoryMock).toHaveBeenCalledWith('pies.systemRecord', undefined, [
         'system_record_system_id_record_id_unique'
       ]);

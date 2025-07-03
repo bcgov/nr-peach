@@ -22,7 +22,7 @@ describe('RecordKindRepository', () => {
 
     it('should call super with correct arguments', () => {
       new RecordKindRepository();
-      expect(BaseRepositoryMock).toHaveBeenCalledOnce();
+      expect(BaseRepositoryMock).toHaveBeenCalledTimes(1);
       expect(BaseRepositoryMock).toHaveBeenCalledWith('pies.recordKind', undefined, [
         'record_kind_version_id_kind_unique'
       ]);

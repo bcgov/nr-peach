@@ -15,7 +15,7 @@ class MockRepo extends BaseRepository<'pies.version'> {
 }
 const mockData = { id: '0.1.0' };
 
-describe('findThenUpsert', () => {
+describe('findByThenUpsert', () => {
   let repo: MockRepo;
 
   beforeEach(() => {

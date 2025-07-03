@@ -22,7 +22,7 @@ describe('CodingRepository', () => {
 
     it('should call super with correct arguments', () => {
       new CodingRepository();
-      expect(BaseRepositoryMock).toHaveBeenCalledOnce();
+      expect(BaseRepositoryMock).toHaveBeenCalledTimes(1);
       expect(BaseRepositoryMock).toHaveBeenCalledWith('pies.coding', undefined, [
         'coding_code_code_system_version_id_unique'
       ]);

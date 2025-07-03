@@ -22,7 +22,7 @@ describe('TransactionRepository', () => {
 
     it('should call super with correct arguments', () => {
       new TransactionRepository();
-      expect(BaseRepositoryMock).toHaveBeenCalledOnce();
+      expect(BaseRepositoryMock).toHaveBeenCalledTimes(1);
       expect(BaseRepositoryMock).toHaveBeenCalledWith('pies.transaction', undefined);
     });
 

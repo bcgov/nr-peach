@@ -22,7 +22,7 @@ describe('VersionRepository', () => {
 
     it('should call super with correct arguments', () => {
       new VersionRepository();
-      expect(BaseRepositoryMock).toHaveBeenCalledOnce();
+      expect(BaseRepositoryMock).toHaveBeenCalledTimes(1);
       expect(BaseRepositoryMock).toHaveBeenCalledWith('pies.version', undefined);
     });
 

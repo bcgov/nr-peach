@@ -22,7 +22,7 @@ describe('SystemRepository', () => {
 
     it('should call super with correct arguments', () => {
       new SystemRepository();
-      expect(BaseRepositoryMock).toHaveBeenCalledOnce();
+      expect(BaseRepositoryMock).toHaveBeenCalledTimes(1);
       expect(BaseRepositoryMock).toHaveBeenCalledWith('pies.system', undefined);
     });
 

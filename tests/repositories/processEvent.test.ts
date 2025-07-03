@@ -22,7 +22,7 @@ describe('ProcessEventRepository', () => {
 
     it('should call super with correct arguments', () => {
       new ProcessEventRepository();
-      expect(BaseRepositoryMock).toHaveBeenCalledOnce();
+      expect(BaseRepositoryMock).toHaveBeenCalledTimes(1);
       expect(BaseRepositoryMock).toHaveBeenCalledWith('pies.processEvent', undefined);
     });
 

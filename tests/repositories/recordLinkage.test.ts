@@ -22,7 +22,7 @@ describe('RecordLinkageRepository', () => {
 
     it('should call super with correct arguments', () => {
       new RecordLinkageRepository();
-      expect(BaseRepositoryMock).toHaveBeenCalledOnce();
+      expect(BaseRepositoryMock).toHaveBeenCalledTimes(1);
       expect(BaseRepositoryMock).toHaveBeenCalledWith('pies.recordLinkage', undefined, [
         'record_linkage_forward_unique',
         'record_linkage_reverse_unique'
