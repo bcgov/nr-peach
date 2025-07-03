@@ -97,8 +97,12 @@ export abstract class BaseRepository<TB extends keyof DB> {
    * @returns A query builder for the find operation.
    */
   findBy(data: FilterObject<DB, TB>): SelectQueryBuilder<DB, TB, Selectable<DB[TB]>> {
-    const builder = this.db.selectFrom(this.tableName).selectAll() as unknown as SelectQueryBuilder<DB, TB, DB[TB]>;
-    return builder.where((eb) => eb.and(data)).$castTo<Selectable<DB[TB]>>();
+    const builder = this.db.selectFrom(this.tableName).selectAll() as unknown as SelectQueryBuilder<
+      DB,
+      TB,
+      Selectable<DB[TB]>
+    >;
+    return builder.where((eb) => eb.and(data));
   }
 
   /**
@@ -107,8 +111,12 @@ export abstract class BaseRepository<TB extends keyof DB> {
    * @returns A query builder instance configured to select the record with the specified ID.
    */
   read(id: OperandValueExpression<DB, TB, DB[TB]>): SelectQueryBuilder<DB, TB, Selectable<DB[TB]>> {
-    const builder = this.db.selectFrom(this.tableName).selectAll() as unknown as SelectQueryBuilder<DB, TB, DB[TB]>;
-    return builder.where(sql.ref(this.idColumn), '=', id).$castTo<Selectable<DB[TB]>>();
+    const builder = this.db.selectFrom(this.tableName).selectAll() as unknown as SelectQueryBuilder<
+      DB,
+      TB,
+      Selectable<DB[TB]>
+    >;
+    return builder.where(sql.ref(this.idColumn), '=', id);
   }
 
   /**
