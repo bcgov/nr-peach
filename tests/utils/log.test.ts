@@ -140,7 +140,7 @@ describe('Logger', () => {
         },
         callback
       );
-      expect(callback).toHaveBeenCalledOnce();
+      expect(callback).toHaveBeenCalledTimes(1);
     });
   });
 

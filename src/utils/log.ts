@@ -10,7 +10,7 @@ import type { LogEntry, Logger } from 'winston';
 import type { TransportStreamOptions } from 'winston-transport';
 
 // Load environment variables, prioritizing .env over .env.default
-config({ path: ['.env', '.env.default'] });
+config({ path: ['.env', '.env.default'], quiet: true });
 
 const DEFAULT_LOG_LEVEL = 'http';
 

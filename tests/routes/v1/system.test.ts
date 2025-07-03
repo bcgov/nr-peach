@@ -14,7 +14,7 @@ import type { NextFunction } from 'express';
 const app = express();
 app.use(router);
 
-vi.mock('../../../src/middlewares/index.ts', () => ({
+vi.mock('../../../src/middlewares/validator.ts', () => ({
   validateRequestIntegrity: () => vi.fn((_req, _res, next: NextFunction): void => next()),
   validateRequestSchema: () => vi.fn((_req, _res, next: NextFunction): void => next())
 }));

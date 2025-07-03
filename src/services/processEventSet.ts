@@ -1,7 +1,7 @@
 import { v7 as uuidv7 } from 'uuid';
 
 import { CodingDictionary } from './coding.ts';
-import { cacheableRead, cacheableUpsert } from './utils.ts';
+import { cacheableRead, cacheableUpsert } from './lruCache.ts';
 import { transactionWrapper } from '../db/index.ts';
 import {
   CodingRepository,

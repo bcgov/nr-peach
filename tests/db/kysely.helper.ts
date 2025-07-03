@@ -1,11 +1,7 @@
-import { DummyDriver, Kysely, PostgresAdapter, PostgresIntrospector, PostgresQueryCompiler } from 'kysely';
+import type { Kysely } from 'kysely';
 
-import type { KyselyConfig } from 'kysely';
-import type { DB } from '../src/types/index.d.ts';
-
-vi.mock('kysely', async (importActual) => ({
-  ...(await importActual<typeof Kysely>()),
-  Kysely: class {
+vi.mock('kysely', async () => {
+  class MockKysely {
     introspection = {
       getTables: vi.fn()
     };
@@ -18,12 +14,14 @@ vi.mock('kysely', async (importActual) => ({
       on: vi.fn().mockReturnThis(),
       withSchema: vi.fn().mockReturnThis()
     };
-    // TODO: Figure out how to properly mock transaction call flow
+    destroy = vi.fn();
     execute = vi.fn((cb: () => Kysely<unknown>) => cb());
-    transaction = vi.fn(() => new Kysely({} as KyselyConfig));
+    transaction = vi.fn(() => new MockKysely());
     setIsolationLevel = vi.fn().mockReturnThis();
-  },
-  sql: Object.assign(vi.fn(), {
+  }
+
+  const mockSql = vi.fn();
+  Object.assign(mockSql, {
     id: vi.fn((...args: unknown[]) => args),
     join: vi.fn((...args: unknown[]) => args),
     lit: vi.fn((arg: unknown) => arg),
@@ -31,32 +29,13 @@ vi.mock('kysely', async (importActual) => ({
     ref: vi.fn((arg: unknown) => arg),
     table: vi.fn((arg: unknown) => arg),
     val: vi.fn((arg: unknown) => arg)
-  })
-}));
+  });
 
-/**
- * Mock Kysely database instance for testing.
- * Uses a custom dialect with:
- * - `PostgresAdapter` for PostgreSQL features.
- * - `DummyDriver` as a placeholder driver.
- * - `PostgresIntrospector` for schema introspection.
- * - `PostgresQueryCompiler` for PostgreSQL query compilation.
- */
-export const mockDb = new Kysely<DB>({
-  dialect: {
-    createAdapter() {
-      return new PostgresAdapter();
-    },
-    createDriver() {
-      return new DummyDriver();
-    },
-    createIntrospector(db) {
-      return new PostgresIntrospector(db);
-    },
-    createQueryCompiler() {
-      return new PostgresQueryCompiler();
-    }
-  }
+  return {
+    ...(await vi.importActual<typeof Kysely>('kysely')),
+    Kysely: MockKysely,
+    sql: mockSql
+  };
 });
 
 /**

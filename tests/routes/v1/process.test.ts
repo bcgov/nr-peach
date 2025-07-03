@@ -23,14 +23,14 @@ import type { NextFunction } from 'express';
 const app = express();
 app.use(router);
 
-vi.mock('../../../src/controllers/index.ts', () => ({
+vi.mock('../../../src/controllers/process.ts', () => ({
   deleteProcessEventsController: vi.fn((_req, _res, next: NextFunction): void => next()),
   getProcessEventsController: vi.fn((_req, _res, next: NextFunction): void => next()),
   postProcessEventsController: vi.fn((_req, _res, next: NextFunction): void => next()),
   putProcessEventsController: vi.fn((_req, _res, next: NextFunction): void => next())
 }));
 
-vi.mock('../../../src/middlewares/index.ts', () => ({
+vi.mock('../../../src/middlewares/validator.ts', () => ({
   validateRequestIntegrity: () => vi.fn((_req, _res, next: NextFunction): void => next()),
   validateRequestSchema: () => vi.fn((_req, _res, next: NextFunction): void => next())
 }));
