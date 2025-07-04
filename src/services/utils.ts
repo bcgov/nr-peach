@@ -1,6 +1,7 @@
+import { db } from '../db/index.ts';
 import { BaseRepository } from '../repositories/index.ts';
 
-import type { FilterObject, InsertObject, Selectable } from 'kysely';
+import type { FilterObject, InsertObject, IsolationLevel, Selectable, Transaction } from 'kysely';
 import type { DB } from '../types/index.d.ts';
 
 /**
@@ -18,4 +19,17 @@ export async function findByThenUpsert<TB extends keyof DB>(
 ): Promise<Selectable<DB[TB]>> {
   const findRow = await repo.findBy(data).executeTakeFirst();
   return findRow ?? (await repo.upsert(data).executeTakeFirstOrThrow());
+}
+
+/**
+ * Executes a database transaction with the specified isolation level.
+ * @param callback - A function that performs operations within the transaction.
+ * @param isolationLevel - The isolation level for the transaction (default is 'serializable').
+ * @returns A promise that resolves to the result of the callback function.
+ */
+export function transactionWrapper<T>(
+  callback: (trx: Transaction<DB>) => Promise<T>,
+  isolationLevel: IsolationLevel = 'serializable'
+): Promise<T> {
+  return db.transaction().setIsolationLevel(isolationLevel).execute(callback);
 }

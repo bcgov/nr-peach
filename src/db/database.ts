@@ -5,7 +5,7 @@ import { Pool, types } from 'pg';
 import { state } from '../state.ts';
 import { getLogger } from '../utils/index.ts';
 
-import type { IsolationLevel, LogEvent, Transaction } from 'kysely';
+import type { LogEvent } from 'kysely';
 import type { DB } from '../types/index.d.ts';
 
 // Load environment variables, prioritizing .env over .env.default
@@ -60,7 +60,6 @@ export async function checkDatabaseHealth(): Promise<boolean> {
  * @throws Will log an error and return `false` if the database introspection fails.
  */
 export async function checkDatabaseSchema(): Promise<boolean> {
-  // TODO: Should this be in a different location?
   const expected = Object.freeze({
     schemas: ['audit', 'pies'],
     tables: [
@@ -135,19 +134,6 @@ export function onPoolError(err: Error): void {
  */
 export function shutdownDatabase(cb?: () => void): Promise<void> {
   return db.destroy().then(cb);
-}
-
-/**
- * Executes a database transaction with the specified isolation level.
- * @param callback - A function that performs operations within the transaction.
- * @param isolationLevel - The isolation level for the transaction (default is 'serializable').
- * @returns A promise that resolves to the result of the callback function.
- */
-export function transactionWrapper<T>(
-  callback: (trx: Transaction<DB>) => Promise<T>,
-  isolationLevel: IsolationLevel = 'serializable'
-): Promise<T> {
-  return db.transaction().setIsolationLevel(isolationLevel).execute(callback);
 }
 
 // Database interface is passed to Kysely's constructor, and from now on, Kysely knows your database structure.

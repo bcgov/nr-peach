@@ -15,9 +15,6 @@ vi.mock('kysely', async () => {
       withSchema: vi.fn().mockReturnThis()
     };
     destroy = vi.fn();
-    execute = vi.fn((cb: () => Kysely<unknown>) => cb());
-    transaction = vi.fn(() => new MockKysely());
-    setIsolationLevel = vi.fn().mockReturnThis();
   }
 
   const mockSql = vi.fn();

@@ -1,11 +1,12 @@
+import { db } from '../../src/db/database.ts';
 import { BaseRepository } from '../../src/repositories/base.ts';
-import { findByThenUpsert } from '../../src/services/utils.ts';
+import { findByThenUpsert, transactionWrapper } from '../../src/services/utils.ts';
 
 import type { Kysely, Transaction } from 'kysely';
+import type { Mock } from 'vitest';
 import type { DB } from '../../src/types/index.d.ts';
 
-// Mocks
-class MockRepo extends BaseRepository<'pies.version'> {
+class MockRepository extends BaseRepository<'pies.version'> {
   constructor(db?: Kysely<DB> | Transaction<DB>) {
     super('pies.version', db);
   }
@@ -16,11 +17,7 @@ class MockRepo extends BaseRepository<'pies.version'> {
 const mockData = { id: '0.1.0' };
 
 describe('findByThenUpsert', () => {
-  let repo: MockRepo;
-
-  beforeEach(() => {
-    repo = new MockRepo();
-  });
+  const repo = new MockRepository();
 
   it('returns the found row if find returns a row', async () => {
     const upsertResult = { ...mockData, updated: true };
@@ -67,5 +64,53 @@ describe('findByThenUpsert', () => {
     await expect(findByThenUpsert(repo, mockData)).rejects.toThrow('Not found');
     expect(repo.findBy).toHaveBeenCalledWith(mockData);
     expect(repo.upsert).toHaveBeenCalledWith(mockData);
+  });
+});
+
+describe('transactionWrapper', () => {
+  const originalDb = db.transaction.bind(db);
+  let mockExecute: Mock;
+  let mockSetIsolationLevel: Mock;
+  let mockTransaction: Mock;
+
+  beforeEach(() => {
+    mockExecute = vi.fn();
+    mockSetIsolationLevel = vi.fn().mockReturnValue({ execute: mockExecute });
+    mockTransaction = vi.fn().mockReturnValue({ setIsolationLevel: mockSetIsolationLevel });
+    db.transaction = mockTransaction;
+  });
+
+  afterAll(() => {
+    db.transaction = originalDb;
+  });
+
+  it('should execute a transaction with the default serializable isolation level', async () => {
+    const callback = vi.fn().mockResolvedValue('result');
+    mockExecute.mockResolvedValue('result');
+
+    const result = await transactionWrapper(callback);
+
+    expect(mockTransaction).toHaveBeenCalledTimes(1);
+    expect(mockSetIsolationLevel).toHaveBeenCalledWith('serializable');
+    expect(mockExecute).toHaveBeenCalledWith(callback);
+    expect(result).toBe('result');
+  });
+
+  it('should execute a transaction with a specified isolation level', async () => {
+    const callback = vi.fn().mockResolvedValue('custom');
+    mockExecute.mockResolvedValue('custom');
+
+    const result = await transactionWrapper(callback, 'repeatable read');
+
+    expect(mockSetIsolationLevel).toHaveBeenCalledWith('repeatable read');
+    expect(result).toBe('custom');
+  });
+
+  it('should throw an error if the transaction fails', async () => {
+    const callback = vi.fn();
+    mockExecute.mockRejectedValue(new Error('fail'));
+
+    await expect(transactionWrapper(callback)).rejects.toThrow('fail');
+    expect(mockExecute).toHaveBeenCalledWith(callback);
   });
 });

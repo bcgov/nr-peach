@@ -10,8 +10,7 @@ import {
   db,
   onLogEvent,
   onPoolError,
-  shutdownDatabase,
-  transactionWrapper
+  shutdownDatabase
 } from '../../src/db/database.ts';
 
 import type { LogEvent, QueryId, RootOperationNode } from 'kysely';
@@ -157,25 +156,6 @@ describe('shutdownDatabase', () => {
 
     destroySpy.mockRestore();
   });
-});
-
-// TODO: Uncomment and figure out how to properly implement the following tests
-describe('transactionWrapper', () => {
-  it('should execute a transaction with the default serializable isolation level', async () => {
-    const callback = vi.fn().mockResolvedValue('result');
-
-    const result = await transactionWrapper(callback);
-
-    // eslint-disable-next-line @typescript-eslint/unbound-method
-    expect(db.transaction).toHaveBeenCalledTimes(1);
-    // expect(qb.setIsolationLevel).toHaveBeenCalledWith('serializable');
-    // expect(qb.execute).toHaveBeenCalledWith(callback);
-    expect(result).toBe('result');
-  });
-
-  // it('should execute a transaction with a specified isolation level', async () => {});
-
-  // it('should throw an error if the transaction fails', () => {});
 });
 
 describe('db', () => {
