@@ -8,7 +8,7 @@ import {
 } from 'kysely';
 
 import type { RootOperationNode } from 'kysely';
-import type { DB } from '../../src/types/index.js';
+import type { DB } from '../../src/types/index.d.ts';
 
 /**
  * Returns an array of keys from the given object whose values are defined and truthy.
