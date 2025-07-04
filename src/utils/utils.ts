@@ -1,44 +1,67 @@
-import { existsSync, readFileSync } from 'node:fs';
+import { config } from 'dotenv';
+import { existsSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { cwd } from 'node:process';
 
 import { getLogger } from './log.ts';
 
+// Load environment variables, prioritizing .env over .env.default
+config({ path: ['.env', '.env.default'], quiet: true });
 const log = getLogger(import.meta.filename);
 
 /**
- * Gets the current git revision hash
+ * Gets the current Git commit hash, or undefined if not found.
  * @see https://stackoverflow.com/a/34518749
- * @returns The git revision hash, or empty string
+ * @returns The git revision hash, or undefined
  */
-export function getGitRevision(): string {
+export function getGitRevision(): string | undefined {
   try {
-    const gitDir = ((): string => {
-      let dir = '.git',
-        i = 0;
-      while (!existsSync(join(cwd(), dir)) && i < 5) {
-        dir = '../' + dir;
-        i++;
+    // Check if GIT_COMMIT environment variable is set
+    if (process.env.GIT_COMMIT) return process.env.GIT_COMMIT;
+
+    // Resolve .git directory or file
+    let gitDirPath = join(cwd(), '.git');
+    if (!existsSync(gitDirPath)) {
+      let i = 0;
+      while (!existsSync(gitDirPath) && i < 5) {
+        gitDirPath = join(cwd(), '../'.repeat(++i), '.git');
       }
-      return dir;
-    })();
+    }
 
-    const head = readFileSync(join(cwd(), `${gitDir}/HEAD`), 'utf8')
-      .toString()
-      .trim();
-
-    if (!head.includes(':')) {
-      return head;
+    // If .git is a file (worktree/submodule), read the actual git dir
+    let gitDir = gitDirPath;
+    if (
+      existsSync(gitDirPath) &&
+      statSync(gitDirPath).isFile() &&
+      readFileSync(gitDirPath).toString().startsWith('gitdir:')
+    ) {
+      const gitDirFile = readFileSync(gitDirPath, 'utf8').trim();
+      const match = /^gitdir: (.+)$/.exec(gitDirFile);
+      if (match) gitDir = join(cwd(), match[1]);
     } else {
-      return readFileSync(join(cwd(), `${gitDir}/${head.substring(5)}`), 'utf8')
-        .toString()
-        .trim();
+      // Do nothing if .git is a directory
     }
+
+    const headPath = join(gitDir, 'HEAD');
+    const head = readFileSync(headPath, 'utf8').trim();
+
+    if (!head.startsWith('ref:')) return head;
+
+    const refPath = join(gitDir, head.substring(5).trim());
+    if (existsSync(refPath)) return readFileSync(refPath, 'utf8').trim();
+
+    // Fallback: look in packed-refs
+    const packedRefsPath = join(gitDir, 'packed-refs');
+    if (existsSync(packedRefsPath)) {
+      const packed = readFileSync(packedRefsPath, 'utf8');
+      const refLine = packed.split('\n').find((line) => line.endsWith(head.substring(5).trim()));
+      if (refLine) return refLine.split(' ')[0];
+    }
+
+    return undefined;
   } catch (error) {
-    if (error instanceof Error) {
-      log.warn(error.message, { function: 'getGitRevision' });
-    }
-    return '';
+    if (error instanceof Error) log.warn(error.message, { function: 'getGitRevision' });
+    return undefined;
   }
 }
 

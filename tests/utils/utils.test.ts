@@ -1,98 +1,153 @@
-import { existsSync, readFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { existsSync, readFileSync, statSync } from 'node:fs';
 
 import { getGitRevision, sortObject } from '../../src/utils/utils.ts';
 
+import type { Mock } from 'vitest';
+
 vi.mock('node:fs', () => ({
   existsSync: vi.fn(),
-  readFileSync: vi.fn()
-}));
-
-vi.mock('node:process', () => ({
-  cwd: vi.fn(() => join('/', 'mocked', 'cwd'))
+  readFileSync: vi.fn(),
+  statSync: vi.fn()
 }));
 
 describe('getGitRevision', () => {
-  const gitHeadPath = join('/', 'mocked', 'cwd', '.git', 'HEAD');
-  const gitRefPath = join('/', 'mocked', 'cwd', '.git', 'refs', 'heads', 'main');
-
-  it('should return the git hash from HEAD when it does not contain a ref', () => {
-    vi.mocked(existsSync).mockReturnValue(true);
-    vi.mocked(readFileSync).mockReturnValue('mocked-hash');
-
-    const result = getGitRevision();
-
-    expect(result).toBe('mocked-hash');
-    expect(readFileSync).toHaveBeenCalledWith(gitHeadPath, 'utf8');
+  const mockStat = (isFile: boolean) => ({
+    isFile: () => isFile
   });
 
-  it('should return the git hash from the ref file when HEAD contains a ref', () => {
-    vi.mocked(existsSync).mockReturnValue(true);
-    vi.mocked(readFileSync)
-      .mockImplementationOnce(() => 'ref: refs/heads/main')
-      .mockImplementationOnce(() => 'mocked-ref-hash');
-
-    const result = getGitRevision();
-
-    expect(result).toBe('mocked-ref-hash');
-    expect(readFileSync).toHaveBeenCalledWith(gitHeadPath, 'utf8');
-    expect(readFileSync).toHaveBeenCalledWith(gitRefPath, 'utf8');
+  it('returns the GIT_COMMIT environment variable if set', () => {
+    process.env.GIT_COMMIT = 'envhash123';
+    expect(getGitRevision()).toBe('envhash123');
+    delete process.env.GIT_COMMIT;
   });
 
-  it('should return an empty string if the .git directory is not found', () => {
-    vi.mocked(existsSync).mockReturnValue(false);
+  it('returns the HEAD hash if HEAD is detached', () => {
+    (existsSync as Mock).mockImplementation((path: string) => {
+      // .git and HEAD exist
+      return path.endsWith('.git') || path.endsWith('HEAD');
+    });
+    (statSync as Mock).mockReturnValue(mockStat(false)); // .git is a directory
+    (readFileSync as Mock).mockImplementation((path: string) => {
+      if (path.endsWith('HEAD')) return 'abcdef1234567890\n';
+      return '';
+    });
 
-    const result = getGitRevision();
-
-    expect(result).toBe('');
+    expect(getGitRevision()).toBe('abcdef1234567890');
   });
 
-  it('return an empty string if an error occurs', () => {
-    vi.mocked(existsSync).mockImplementation(() => {
-      throw new Error('mocked error');
+  it('returns the commit hash from ref file if HEAD points to a ref', () => {
+    (existsSync as Mock).mockImplementation((path: string) => {
+      // .git, HEAD, and ref exist
+      return path.endsWith('.git') || path.endsWith('HEAD') || path.endsWith('refs/heads/main');
+    });
+    (statSync as Mock).mockReturnValue(mockStat(false)); // .git is a directory
+    (readFileSync as Mock).mockImplementation((path: string) => {
+      if (path.endsWith('HEAD')) return 'ref: refs/heads/main\n';
+      if (path.endsWith('refs/heads/main')) return '1234567890abcdef\n';
+      return '';
     });
 
-    const result = getGitRevision();
-
-    expect(result).toBe('');
+    expect(getGitRevision()).toBe('1234567890abcdef');
   });
 
-  describe('sortObject', () => {
-    it('should return a new object with keys sorted in ascending order', () => {
-      const input = { b: 2, a: 1, c: 3 };
-      const expected = { a: 1, b: 2, c: 3 };
-
-      const result = sortObject(input);
-
-      expect(result).toEqual(expected);
-      expect(Object.keys(result)).toEqual(['a', 'b', 'c']);
+  it('returns the commit hash from packed-refs if ref file does not exist', () => {
+    (existsSync as Mock).mockImplementation((path: string) => {
+      // .git, HEAD, packed-refs exist, but not the ref file
+      return path.endsWith('.git') || path.endsWith('HEAD') || path.endsWith('packed-refs');
+    });
+    (statSync as Mock).mockReturnValue(mockStat(false)); // .git is a directory
+    (readFileSync as Mock).mockImplementation((path: string) => {
+      if (path.endsWith('HEAD')) return 'ref: refs/heads/main\n';
+      if (path.endsWith('packed-refs')) return 'fedcba9876543210 refs/heads/main\n';
+      return '';
     });
 
-    it('should handle an empty object', () => {
-      const input = {};
-      const expected = {};
+    expect(getGitRevision()).toBe('fedcba9876543210');
+  });
 
-      const result = sortObject(input);
-
-      expect(result).toEqual(expected);
+  it('returns undefined if ref file does not exist', () => {
+    (existsSync as Mock).mockImplementation((path: string) => {
+      // .git, HEAD, packed-refs exist, but not the ref file
+      return path.endsWith('.git') || path.endsWith('HEAD') || path.endsWith('packed-refs');
+    });
+    (statSync as Mock).mockReturnValue(mockStat(false)); // .git is a directory
+    (readFileSync as Mock).mockImplementation((path: string) => {
+      if (path.endsWith('HEAD')) return 'ref: refs/heads/main\n';
+      return '';
     });
 
-    it('should not mutate the original object', () => {
-      const input = { b: 2, a: 1, c: 3 };
-      const inputCopy = { ...input };
+    expect(getGitRevision()).toBeUndefined();
+  });
 
-      sortObject(input);
+  it('returns undefined if .git does not exist', () => {
+    (existsSync as Mock).mockReturnValue(false);
 
-      expect(input).toEqual(inputCopy);
+    expect(getGitRevision()).toBeUndefined();
+  });
+
+  it('returns undefined and logs warning if an error is thrown', () => {
+    (existsSync as Mock).mockImplementation(() => {
+      throw new Error('fs error');
     });
 
-    it('should work with nested objects', () => {
-      const input = { b: { y: 2 }, a: { x: 1 } };
-      const expected = { a: { x: 1 }, b: { y: 2 } };
+    expect(getGitRevision()).toBeUndefined();
+  });
 
-      const result = sortObject(input);
-
-      expect(result).toEqual(expected);
+  it('resolves .git as a file (worktree/submodule) and reads gitdir', () => {
+    (existsSync as Mock).mockImplementation((path: string) => {
+      // .git file, HEAD, and ref exist
+      return path.endsWith('.git') || path.endsWith('HEAD') || path.endsWith('refs/heads/feature');
     });
+    (statSync as Mock).mockImplementation((path: string) => {
+      // .git is a file
+      return mockStat(path.endsWith('.git'));
+    });
+    (readFileSync as Mock).mockImplementation((path: string) => {
+      if (path.endsWith('.git')) return 'gitdir: .git/worktrees/feature\n';
+      if (path.endsWith('HEAD')) return 'ref: refs/heads/feature\n';
+      if (path.endsWith('refs/heads/feature')) return 'cafebabe12345678\n';
+      return '';
+    });
+
+    expect(getGitRevision()).toBe('cafebabe12345678');
+  });
+});
+
+describe('sortObject', () => {
+  it('should return a new object with keys sorted in ascending order', () => {
+    const input = { b: 2, a: 1, c: 3 };
+    const expected = { a: 1, b: 2, c: 3 };
+
+    const result = sortObject(input);
+
+    expect(result).toEqual(expected);
+    expect(Object.keys(result)).toEqual(['a', 'b', 'c']);
+  });
+
+  it('should handle an empty object', () => {
+    const input = {};
+    const expected = {};
+
+    const result = sortObject(input);
+
+    expect(result).toEqual(expected);
+  });
+
+  it('should not mutate the original object', () => {
+    const input = { b: 2, a: 1, c: 3 };
+    const inputCopy = { ...input };
+
+    sortObject(input);
+
+    expect(input).toEqual(inputCopy);
+  });
+
+  it('should work with nested objects', () => {
+    const input = { b: { y: 2 }, a: { x: 1 } };
+    const expected = { a: { x: 1 }, b: { y: 2 } };
+
+    const result = sortObject(input);
+
+    expect(result).toEqual(expected);
   });
 });
