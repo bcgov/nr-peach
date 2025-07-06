@@ -22,9 +22,12 @@ const log = getLogger(import.meta.filename);
 /**
  * Deletes the process event set for the given system record.
  * @param systemRecord - The system record for which to delete the process event set.
+ * @returns A Promise that resolves when the operation is complete.
  */
-export const deleteProcessEventSetService = async (systemRecord: Selectable<PiesSystemRecord>) => {
-  await new ProcessEventRepository().prune(systemRecord.id).execute();
+export const deleteProcessEventSetService = async (systemRecord: Selectable<PiesSystemRecord>): Promise<void> => {
+  return transactionWrapper(async (trx) => {
+    await new ProcessEventRepository(trx).prune(systemRecord.id).execute();
+  });
 };
 
 /**
