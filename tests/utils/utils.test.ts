@@ -38,12 +38,17 @@ describe('getGitRevision', () => {
   it('returns the commit hash from ref file if HEAD points to a ref', () => {
     (existsSync as Mock).mockImplementation((path: string) => {
       // .git, HEAD, and ref exist
-      return path.endsWith('.git') || path.endsWith('HEAD') || path.endsWith('refs/heads/main');
+      return (
+        path.endsWith('.git') ||
+        path.endsWith('HEAD') ||
+        path.endsWith('refs/heads/main') ||
+        path.endsWith('refs\\heads\\main')
+      );
     });
     (statSync as Mock).mockReturnValue(mockStat(false)); // .git is a directory
     (readFileSync as Mock).mockImplementation((path: string) => {
       if (path.endsWith('HEAD')) return 'ref: refs/heads/main\n';
-      if (path.endsWith('refs/heads/main')) return '1234567890abcdef\n';
+      if (path.endsWith('refs/heads/main') || path.endsWith('refs\\heads\\main')) return '1234567890abcdef\n';
       return '';
     });
 
@@ -96,7 +101,12 @@ describe('getGitRevision', () => {
   it('resolves .git as a file (worktree/submodule) and reads gitdir', () => {
     (existsSync as Mock).mockImplementation((path: string) => {
       // .git file, HEAD, and ref exist
-      return path.endsWith('.git') || path.endsWith('HEAD') || path.endsWith('refs/heads/feature');
+      return (
+        path.endsWith('.git') ||
+        path.endsWith('HEAD') ||
+        path.endsWith('refs/heads/feature') ||
+        path.endsWith('refs\\heads\\feature')
+      );
     });
     (statSync as Mock).mockImplementation((path: string) => {
       // .git is a file
@@ -105,7 +115,7 @@ describe('getGitRevision', () => {
     (readFileSync as Mock).mockImplementation((path: string) => {
       if (path.endsWith('.git')) return 'gitdir: .git/worktrees/feature\n';
       if (path.endsWith('HEAD')) return 'ref: refs/heads/feature\n';
-      if (path.endsWith('refs/heads/feature')) return 'cafebabe12345678\n';
+      if (path.endsWith('refs/heads/feature') || path.endsWith('refs\\heads\\feature')) return 'cafebabe12345678\n';
       return '';
     });
 
