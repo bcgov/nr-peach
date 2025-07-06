@@ -47,7 +47,7 @@ export async function transactionWrapper<T>(
     maxRetries: number;
   }> = {}
 ): Promise<T> {
-  const { accessMode = 'read write', initialDelay = 100, isolationLevel = 'serializable', maxRetries = 5 } = opts;
+  const { accessMode = 'read write', initialDelay = 100, isolationLevel = 'repeatable read', maxRetries = 3 } = opts;
 
   for (let attempt = 0; attempt < maxRetries - 1; attempt++) {
     try {
