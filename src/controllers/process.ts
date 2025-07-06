@@ -1,4 +1,5 @@
 import {
+  checkDuplicateTransactionHeaderService,
   deleteProcessEventSetService,
   findProcessEventSetService,
   findSingleSystemRecordService,
@@ -30,6 +31,7 @@ export const postProcessEventsController = async (
   req: Request<never, never, ProcessEventSet>,
   res: Response
 ): Promise<void> => {
+  await checkDuplicateTransactionHeaderService(req.body.transaction_id);
   await replaceProcessEventSetService(req.body);
   res.status(202).end();
 };
@@ -38,6 +40,7 @@ export const putProcessEventsController = async (
   req: Request<never, never, ProcessEventSet>,
   res: Response
 ): Promise<void> => {
+  await checkDuplicateTransactionHeaderService(req.body.transaction_id);
   await replaceProcessEventSetService(req.body);
   res.status(201).end();
 };

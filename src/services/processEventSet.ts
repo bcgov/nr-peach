@@ -119,12 +119,7 @@ export const replaceProcessEventSetService = (data: ProcessEventSet): Promise<vo
   return transactionWrapper(async (trx) => {
     // Update atomic fact tables
     await Promise.all([
-      new TransactionRepository(trx)
-        .create({ id: data.transaction_id })
-        .execute()
-        .catch(() => {
-          throw new Problem(409, { detail: 'Transaction already exists' }, { transaction_id: data.transaction_id });
-        }),
+      new TransactionRepository(trx).create({ id: data.transaction_id }).execute(),
       cacheableUpsert(new SystemRepository(trx), { id: data.system_id }),
       cacheableUpsert(new VersionRepository(trx), { id: data.version })
     ]);
