@@ -1,3 +1,5 @@
+import { DatabaseError } from 'pg';
+
 import { db } from '../../src/db/database.ts';
 import { BaseRepository } from '../../src/repositories/base.ts';
 import { findByThenUpsert, transactionWrapper } from '../../src/services/utils.ts';
@@ -68,49 +70,102 @@ describe('findByThenUpsert', () => {
 });
 
 describe('transactionWrapper', () => {
-  const originalDb = db.transaction.bind(db);
   let mockExecute: Mock;
+  let mockSetAccessMode: Mock;
   let mockSetIsolationLevel: Mock;
   let mockTransaction: Mock;
+  let transactionSpy: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
     mockExecute = vi.fn();
     mockSetIsolationLevel = vi.fn().mockReturnValue({ execute: mockExecute });
-    mockTransaction = vi.fn().mockReturnValue({ setIsolationLevel: mockSetIsolationLevel });
-    db.transaction = mockTransaction;
+    mockSetAccessMode = vi.fn().mockReturnValue({ setIsolationLevel: mockSetIsolationLevel });
+    mockTransaction = vi.fn().mockReturnValue({ setAccessMode: mockSetAccessMode });
+    transactionSpy = vi.spyOn(db, 'transaction').mockImplementation(mockTransaction);
   });
 
-  afterAll(() => {
-    db.transaction = originalDb;
+  afterEach(() => {
+    transactionSpy.mockRestore();
   });
 
-  it('should execute a transaction with the default serializable isolation level', async () => {
-    const callback = vi.fn().mockResolvedValue('result');
-    mockExecute.mockResolvedValue('result');
+  it('calls execute with the operation and returns the result with default options', async () => {
+    const expected = { foo: 'bar' };
+    const op = vi.fn().mockResolvedValue(expected);
+    mockExecute.mockImplementation(op);
 
-    const result = await transactionWrapper(callback);
-
-    expect(mockTransaction).toHaveBeenCalledTimes(1);
+    const result = await transactionWrapper(op);
+    expect(result).toBe(expected);
+    expect(mockTransaction).toHaveBeenCalled();
+    expect(mockSetAccessMode).toHaveBeenCalledWith('read write');
     expect(mockSetIsolationLevel).toHaveBeenCalledWith('serializable');
-    expect(mockExecute).toHaveBeenCalledWith(callback);
-    expect(result).toBe('result');
+    expect(mockExecute).toHaveBeenCalledWith(op);
+    expect(mockExecute).toHaveBeenCalledTimes(1);
   });
 
-  it('should execute a transaction with a specified isolation level', async () => {
-    const callback = vi.fn().mockResolvedValue('custom');
-    mockExecute.mockResolvedValue('custom');
+  it('calls execute with the operation and returns the result with options defined', async () => {
+    const expected = { foo: 'bar' };
+    const op = vi.fn().mockResolvedValue(expected);
+    mockExecute.mockImplementation(op);
 
-    const result = await transactionWrapper(callback, 'repeatable read');
-
+    const result = await transactionWrapper(op, {
+      accessMode: 'read only',
+      initialDelay: 200,
+      isolationLevel: 'repeatable read',
+      maxRetries: 1
+    });
+    expect(result).toBe(expected);
+    expect(mockTransaction).toHaveBeenCalled();
+    expect(mockSetAccessMode).toHaveBeenCalledWith('read only');
     expect(mockSetIsolationLevel).toHaveBeenCalledWith('repeatable read');
-    expect(result).toBe('custom');
+    expect(mockExecute).toHaveBeenCalledWith(op);
+    expect(mockExecute).toHaveBeenCalledTimes(1);
   });
 
-  it('should throw an error if the transaction fails', async () => {
-    const callback = vi.fn();
-    mockExecute.mockRejectedValue(new Error('fail'));
+  it('retries on serialization failure and eventually succeeds', async () => {
+    const op = vi
+      .fn()
+      .mockImplementationOnce(() => {
+        throw Object.assign(new DatabaseError('serialization', 0, 'error'), { code: '40001' });
+      })
+      .mockResolvedValue('success');
+    mockExecute.mockImplementation(op);
 
-    await expect(transactionWrapper(callback)).rejects.toThrow('fail');
-    expect(mockExecute).toHaveBeenCalledWith(callback);
+    const result = await transactionWrapper(op, { initialDelay: 1, maxRetries: 2 });
+    expect(result).toBe('success');
+    expect(mockExecute).toHaveBeenCalledTimes(2);
+  });
+
+  it('retries on deadlock detected and eventually succeeds', async () => {
+    const op = vi
+      .fn()
+      .mockImplementationOnce(() => {
+        throw Object.assign(new DatabaseError('deadlock', 0, 'error'), { code: '40P01' });
+      })
+      .mockResolvedValue('ok');
+    mockExecute.mockImplementation(op);
+
+    const result = await transactionWrapper(op, { initialDelay: 1, maxRetries: 2 });
+    expect(result).toBe('ok');
+    expect(mockExecute).toHaveBeenCalledTimes(2);
+  });
+
+  it('throws if all retries are exhausted', async () => {
+    const op = vi.fn().mockImplementation(() => {
+      throw Object.assign(new DatabaseError('serialization', 0, 'error'), { code: '40P01' });
+    });
+    mockExecute.mockImplementation(op);
+
+    await expect(transactionWrapper(op, { initialDelay: 1, maxRetries: 2 })).rejects.toThrow('serialization');
+    expect(mockExecute).toHaveBeenCalledTimes(2);
+  });
+
+  it('throws immediately for non-retryable errors', async () => {
+    const op = vi.fn().mockImplementation(() => {
+      throw new Error('other');
+    });
+    mockExecute.mockImplementation(op);
+
+    await expect(transactionWrapper(op)).rejects.toThrow('other');
+    expect(mockExecute).toHaveBeenCalledTimes(1);
   });
 });

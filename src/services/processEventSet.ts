@@ -34,70 +34,75 @@ export const deleteProcessEventSetService = async (systemRecord: Selectable<Pies
  * @throws {Problem} 404 if no process events are found.
  */
 export const findProcessEventSetService = (systemRecord: Selectable<PiesSystemRecord>): Promise<ProcessEventSet> => {
-  return transactionWrapper(async (trx) => {
-    const recordKind = await cacheableRead(new RecordKindRepository(trx), systemRecord.recordKindId).catch((error) => {
-      log.warn(`No record kind found for process events, ${error}`);
-      throw new Problem(404, { detail: 'No process events found.' });
-    });
-
-    const processEventsRaw = await new ProcessEventRepository(trx)
-      .findBy({ systemRecordId: systemRecord.id })
-      .execute();
-
-    if (!processEventsRaw.length) {
-      log.warn('No coding found for process events');
-      throw new Problem(404, { detail: 'No process events found.' });
-    }
-
-    const processEvents: ProcessEvent[] = await Promise.all(
-      processEventsRaw.map(async (pe) => {
-        // TODO: Should there be utility functions for ISO 8601 parsing?
-        // TODO: Look into how safe validation is for date representation
-        let event: Event;
-
-        if (pe.startTime) {
-          event = {
-            start_datetime: `${pe.startDate.toISOString().split('T')[0]}T${pe.startTime}`,
-            end_datetime:
-              pe.endDate && pe.endTime ? `${pe.endDate.toISOString().split('T')[0]}T${pe.endTime}` : undefined
-          };
-        } else {
-          event = {
-            start_date: pe.startDate.toISOString().split('T')[0],
-            end_date: pe.endDate ? pe.endDate.toISOString().split('T')[0] : undefined
-          };
-        }
-
-        const coding = await cacheableRead(new CodingRepository(trx), pe.codingId).catch((error) => {
-          log.warn(`No coding found for process events, ${error}`);
+  return transactionWrapper(
+    async (trx) => {
+      const recordKind = await cacheableRead(new RecordKindRepository(trx), systemRecord.recordKindId).catch(
+        (error) => {
+          log.warn(`No record kind found for process events, ${error}`);
           throw new Problem(404, { detail: 'No process events found.' });
-        });
+        }
+      );
 
-        const process: Process = {
-          code: coding.code,
-          code_display: CodingDictionary[coding.codeSystem][coding.code].display,
-          code_set: CodingDictionary[coding.codeSystem][coding.code].codeSet,
-          code_system: coding.codeSystem,
-          status: pe.status ?? undefined,
-          status_code: pe.statusCode ?? undefined,
-          status_description: pe.statusDescription ?? undefined
-        };
-        return { event, process };
-      })
-    );
+      const processEventsRaw = await new ProcessEventRepository(trx)
+        .findBy({ systemRecordId: systemRecord.id })
+        .execute();
 
-    const processEventSet: ProcessEventSet = {
-      transaction_id: uuidv7(),
-      version: recordKind.versionId,
-      kind: 'ProcessEventSet',
-      system_id: systemRecord.systemId,
-      record_id: systemRecord.recordId,
-      record_kind: recordKind.kind as Header['record_kind'],
-      process_event: processEvents as [ProcessEvent, ...ProcessEvent[]]
-    };
+      if (!processEventsRaw.length) {
+        log.warn('No coding found for process events');
+        throw new Problem(404, { detail: 'No process events found.' });
+      }
 
-    return processEventSet;
-  });
+      const processEvents: ProcessEvent[] = await Promise.all(
+        processEventsRaw.map(async (pe) => {
+          // TODO: Should there be utility functions for ISO 8601 parsing?
+          // TODO: Look into how safe validation is for date representation
+          let event: Event;
+
+          if (pe.startTime) {
+            event = {
+              start_datetime: `${pe.startDate.toISOString().split('T')[0]}T${pe.startTime}`,
+              end_datetime:
+                pe.endDate && pe.endTime ? `${pe.endDate.toISOString().split('T')[0]}T${pe.endTime}` : undefined
+            };
+          } else {
+            event = {
+              start_date: pe.startDate.toISOString().split('T')[0],
+              end_date: pe.endDate ? pe.endDate.toISOString().split('T')[0] : undefined
+            };
+          }
+
+          const coding = await cacheableRead(new CodingRepository(trx), pe.codingId).catch((error) => {
+            log.warn(`No coding found for process events, ${error}`);
+            throw new Problem(404, { detail: 'No process events found.' });
+          });
+
+          const process: Process = {
+            code: coding.code,
+            code_display: CodingDictionary[coding.codeSystem][coding.code].display,
+            code_set: CodingDictionary[coding.codeSystem][coding.code].codeSet,
+            code_system: coding.codeSystem,
+            status: pe.status ?? undefined,
+            status_code: pe.statusCode ?? undefined,
+            status_description: pe.statusDescription ?? undefined
+          };
+          return { event, process };
+        })
+      );
+
+      const processEventSet: ProcessEventSet = {
+        transaction_id: uuidv7(),
+        version: recordKind.versionId,
+        kind: 'ProcessEventSet',
+        system_id: systemRecord.systemId,
+        record_id: systemRecord.recordId,
+        record_kind: recordKind.kind as Header['record_kind'],
+        process_event: processEvents as [ProcessEvent, ...ProcessEvent[]]
+      };
+
+      return processEventSet;
+    },
+    { accessMode: 'read only' }
+  );
 };
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
