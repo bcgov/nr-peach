@@ -3,14 +3,15 @@ import request from 'supertest';
 
 import { app, errorHandler } from '../src/app.ts';
 import { state } from '../src/state.ts';
-import { checkDatabaseHealth } from '../src/db/index.ts';
-import { Problem } from '../src/utils/index.ts';
+import { checkDatabaseHealth } from '../src/db/database.ts';
+import Problem from '../src/utils/problem.ts';
 
 import type { Request, Response } from 'express';
 import type { Mock } from 'vitest';
 
 vi.mock('../src/db/database.ts', () => ({
-  checkDatabaseHealth: vi.fn()
+  checkDatabaseHealth: vi.fn(),
+  db: {}
 }));
 
 describe('App', () => {

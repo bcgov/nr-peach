@@ -1,11 +1,12 @@
 import { config } from 'dotenv';
-import { CamelCasePlugin, Kysely, PostgresDialect, sql } from 'kysely';
+import { readdirSync } from 'node:fs';
+import { CamelCasePlugin, Kysely, Migrator, PostgresDialect, sql } from 'kysely';
 import { Pool, types } from 'pg';
 
 import { state } from '../state.ts';
 import { getLogger } from '../utils/index.ts';
 
-import type { LogEvent } from 'kysely';
+import type { LogEvent, Migration } from 'kysely';
 import type { DB } from '../types/index.d.ts';
 
 // Load environment variables, prioritizing .env over .env.default
@@ -46,6 +47,12 @@ export const db = new Kysely<DB>({
   plugins: [new CamelCasePlugin()]
 });
 
+/** The Kysely migrator instance for managing database migrations. */
+export const migrator = new Migrator({
+  db: db,
+  provider: { getMigrations }
+});
+
 /**
  * Checks the health status of the database by executing a simple query.
  * This function caches the result for 1 second to avoid excessive health checks.
@@ -83,41 +90,34 @@ export async function checkDatabaseHealth(now?: number): Promise<boolean> {
 }
 
 /**
- * Checks if the database schema matches the expected structure.
- * @returns A promise that resolves to `true` if the  database schema matches
- * the expected structure, or `false` otherwise.
- * @throws Will log an error and return `false` if the database introspection fails.
+ * Checks whether all database migrations have been executed.
+ * @returns A promise that resolves to `true` if all migrations have been executed, otherwise `false`.
  */
-export async function checkDatabaseSchema(): Promise<boolean> {
-  const expected = Object.freeze({
-    schemas: ['audit', 'pies'],
-    tables: [
-      'logged_actions',
-      'coding',
-      'process_event',
-      'record_kind',
-      'system',
-      'system_record',
-      'transaction',
-      'version'
-    ]
-  });
-
-  try {
-    const result = await db.introspection.getTables();
-    const schemas = new Set(result.map((r) => r.schema));
-    const tables = new Set(result.map((r) => r.name));
-    const matches = {
-      schemas: expected.schemas.every((s) => schemas.has(s)),
-      tables: expected.tables.every((t) => tables.has(t))
-    };
-
-    log.debug('Database schema introspection', { matches });
-    return matches.schemas && matches.tables;
-  } catch (error) {
-    log.error('Database introspection failed', error);
-    return false;
+export async function checkDatabaseMigrations(): Promise<boolean> {
+  const migrations = await migrator.getMigrations();
+  const isMigrated = migrations.every((m) => !!m.executedAt);
+  if (!isMigrated) {
+    log.warn('Database is missing migrations', { missing: migrations.filter((m) => !m.executedAt).map((m) => m.name) });
   }
+  return isMigrated;
+}
+
+/**
+ * Loads all migration modules from the 'src/db/migrations' directory.
+ * This function reads all TypeScript migration files (excluding .d.ts files),
+ * dynamically imports each migration, and returns them as a record keyed by filename.
+ * @returns A promise that resolves to a record of migration modules.
+ */
+export async function getMigrations(): Promise<Record<string, Migration>> {
+  const migrations: Record<string, Migration> = {};
+  const files = readdirSync('src/db/migrations');
+  for (const fileName of files) {
+    if (fileName.endsWith('.ts') && !fileName.endsWith('.d.ts')) {
+      const migrationKey = fileName.substring(0, fileName.lastIndexOf('.'));
+      migrations[migrationKey] = (await import(`./migrations/${fileName}`)) as Migration;
+    }
+  }
+  return migrations;
 }
 
 /**
@@ -161,8 +161,9 @@ export function onPoolError(err: Error): void {
  * @param cb - Optional callback function to be executed after the database is destroyed.
  * @returns A promise that resolves when the database has been destroyed.
  */
-export function shutdownDatabase(cb?: () => void): Promise<void> {
-  return db.destroy().then(() => cb?.());
+export async function shutdownDatabase(cb?: () => void): Promise<void> {
+  await db.destroy();
+  return cb?.();
 }
 
 export * from './utils.ts';

@@ -2,9 +2,6 @@ import type { Kysely } from 'kysely';
 
 vi.mock('kysely', async () => {
   class MockKysely {
-    introspection = {
-      getTables: vi.fn()
-    };
     schema = {
       columns: vi.fn().mockReturnThis(),
       createIndex: vi.fn().mockReturnThis(),
