@@ -13,7 +13,7 @@ config({ path: ['.env', '.env.default'], quiet: true });
 
 const log = getLogger(import.meta.filename);
 
-// Handle bigint parsing {@see https://kysely.dev/docs/recipes/data-types#runtime-javascript-types}
+/** Handle bigint parsing {@see https://kysely.dev/docs/recipes/data-types#runtime-javascript-types} */
 const int8TypeId = 20; // PostgreSQL's bigint type is represented as int8 in Kysely
 types.setTypeParser(int8TypeId, (value: string): number => parseInt(value, 10));
 
@@ -36,20 +36,49 @@ pool.on('acquire', () => log.silly('Database has acquired a client', { clientCou
 pool.on('release', () => log.silly('Database has released a client', { clientCount: pool.totalCount }));
 pool.on('remove', () => log.silly('Database has removed a client', { clientCount: pool.totalCount }));
 
+let lastHealthCheckTime = 0;
+let lastHealthCheckResult: boolean | null = null;
+
+/** The main Kysely database instance configured for the application. */
+export const db = new Kysely<DB>({
+  dialect: new PostgresDialect({ pool }),
+  log: onLogEvent,
+  plugins: [new CamelCasePlugin()]
+});
+
 /**
- * Checks the health of the database by executing a simple query.
- * @returns A promise that resolves to `true` if the database is healthy, or
- * `false` if the health check fails.
- * @throws Will log an error and return `false` if the database is not healthy.
+ * Checks the health status of the database by executing a simple query.
+ * This function caches the result for 1 second to avoid excessive health checks.
+ * @param now - The current timestamp in milliseconds. Defaults to `Date.now()`.
+ * @returns A promise that resolves to `true` if the database is healthy, or `false` if unhealthy.
  */
-export async function checkDatabaseHealth(): Promise<boolean> {
+export async function checkDatabaseHealth(now?: number): Promise<boolean> {
+  const cacheDuration = 1000; // Cache duration in milliseconds (1 second)
+  now ??= Date.now();
+
+  // Use cached health check result if it exists and is still valid (within cacheDuration).
+  if (lastHealthCheckResult !== null && now - lastHealthCheckTime < cacheDuration) {
+    log.debug(`Database is ${lastHealthCheckResult ? 'healthy' : 'unhealthy'} (cached)`);
+    return lastHealthCheckResult;
+  }
+
   try {
     const result = await sql<{ result: number }>`SELECT 1 AS result`.execute(db);
-    log.debug('Database is healthy');
-    return result.rows?.[0]?.result === 1;
+    const healthy = result.rows?.[0]?.result === 1;
+    lastHealthCheckTime = now;
+    lastHealthCheckResult = healthy;
+    log.debug(`Database is ${lastHealthCheckResult ? 'healthy' : 'unhealthy'}`);
+    return lastHealthCheckResult;
   } catch (error) {
-    log.error('Database is unhealthy', { code: (error as { code?: string }).code });
-    return false;
+    lastHealthCheckTime = now;
+    lastHealthCheckResult = false;
+    log.error('Database is unhealthy', {
+      code: (error as { code?: string }).code,
+      message: (error as Error).message,
+      stack: (error as Error).stack,
+      error
+    });
+    return lastHealthCheckResult;
   }
 }
 
@@ -133,15 +162,7 @@ export function onPoolError(err: Error): void {
  * @returns A promise that resolves when the database has been destroyed.
  */
 export function shutdownDatabase(cb?: () => void): Promise<void> {
-  return db.destroy().then(cb);
+  return db.destroy().then(() => cb?.());
 }
-
-// Database interface is passed to Kysely's constructor, and from now on, Kysely knows your database structure.
-// Dialect is passed to Kysely's constructor, and from now on, Kysely knows how to communicate with your database.
-export const db = new Kysely<DB>({
-  dialect: new PostgresDialect({ pool }),
-  log: onLogEvent,
-  plugins: [new CamelCasePlugin()]
-});
 
 export * from './utils.ts';

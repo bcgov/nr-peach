@@ -17,8 +17,26 @@ import type { LogEvent, QueryId, RootOperationNode } from 'kysely';
 import type { Mock } from 'vitest';
 import type { DB } from '../../src/types/index.d.ts';
 
+describe('db', () => {
+  it('should yield a database', () => {
+    expect(db).toBeDefined();
+    expect(db).toBeInstanceOf(Kysely<DB>);
+  });
+});
+
 describe('checkDatabaseHealth', () => {
+  const testSystemTime = 1735718400000; // Jan 1, 2025 00:00:00 GMT
+
+  beforeAll(() => {
+    vi.useFakeTimers();
+  });
+
+  afterAll(() => {
+    vi.useRealTimers();
+  });
+
   it('should return true when the database is healthy', async () => {
+    vi.setSystemTime(testSystemTime);
     (sql as unknown as Mock).mockImplementation(mockSqlExecuteReturn({ rows: [{ result: 1 }] }));
     const result = await checkDatabaseHealth();
 
@@ -27,11 +45,46 @@ describe('checkDatabaseHealth', () => {
   });
 
   it('should return false and log an error when the database is unhealthy', async () => {
+    vi.setSystemTime(testSystemTime + 100000);
     (sql as unknown as Mock).mockImplementation(mockSqlExecuteReturn(Promise.reject(new Error('Database error'))));
     const result = await checkDatabaseHealth();
 
     expect(sql).toHaveBeenCalledWith(['SELECT 1 AS result']);
     expect(result).toBe(false);
+  });
+
+  it('should return cached health check result if called within 1 second', async () => {
+    vi.setSystemTime(testSystemTime + 200000);
+    // First call: healthy
+    (sql as unknown as Mock).mockImplementationOnce(mockSqlExecuteReturn({ rows: [{ result: 1 }] }));
+    const firstResult = await checkDatabaseHealth();
+    expect(firstResult).toBe(true);
+
+    // Advance time by less than 1 second
+    vi.setSystemTime(testSystemTime + 200000 + 1);
+
+    // Second call: should return cached result, not call sql again
+    const secondResult = await checkDatabaseHealth();
+    expect(secondResult).toBe(true);
+
+    expect(sql as unknown as Mock).toHaveBeenCalledTimes(1);
+  });
+
+  it('should update cache after 1 second', async () => {
+    vi.setSystemTime(testSystemTime + 300000);
+    // First call: healthy
+    (sql as unknown as Mock).mockImplementationOnce(mockSqlExecuteReturn({ rows: [{ result: 1 }] }));
+    await checkDatabaseHealth();
+
+    // Advance time by more than 1 second
+    vi.setSystemTime(testSystemTime + 300000 + 1001);
+
+    // Second call: unhealthy
+    (sql as unknown as Mock).mockImplementationOnce(mockSqlExecuteReturn(Promise.reject(new Error('Database error'))));
+    const result = await checkDatabaseHealth();
+    expect(result).toBe(false);
+
+    expect(sql as unknown as Mock).toHaveBeenCalledTimes(2);
   });
 });
 
@@ -155,12 +208,5 @@ describe('shutdownDatabase', () => {
     expect(cb).toHaveBeenCalledTimes(1);
 
     destroySpy.mockRestore();
-  });
-});
-
-describe('db', () => {
-  it('should yield a database', () => {
-    expect(db).toBeDefined();
-    expect(db).toBeInstanceOf(Kysely<DB>);
   });
 });
