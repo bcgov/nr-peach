@@ -2,6 +2,7 @@ import { config } from 'dotenv';
 import { existsSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { cwd } from 'node:process';
+import { validate, version } from 'uuid';
 
 import { getLogger } from './log.ts';
 
@@ -63,6 +64,18 @@ export function getGitRevision(): string | undefined {
     if (error instanceof Error) log.warn(error.message, { function: 'getGitRevision' });
     return undefined;
   }
+}
+
+/**
+ * Returns the epoch timestamp in milliseconds from a valid UUIDv7 string.
+ * @param uuid - UUIDv7 string
+ * @returns Timestamp as a number, or undefined if the UUID is invalid or not version 7.
+ */
+export function getUUIDv7Timestamp(uuid: string): number | undefined {
+  if (!validate(uuid) || version(uuid) !== 7) return undefined;
+
+  const hexTimestamp = uuid.replaceAll('-', '').slice(0, 12);
+  return parseInt(hexTimestamp, 16);
 }
 
 /**

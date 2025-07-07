@@ -85,14 +85,15 @@ describe('validateRequestIntegrity', () => {
   });
 
   it('should return 422 and handle multiple integrity validation errors', async () => {
-    validateIntegritySpy.mockReturnValueOnce({
-      valid: false,
-      errors: [{ message: 'Invalid body', instancePath: 'instancePath', key: 'key', value: 'value' }]
-    });
-    validateIntegritySpy.mockReturnValueOnce({
-      valid: false,
-      errors: [{ message: 'Missing query', instancePath: 'instancePath', key: 'key', value: 'value' }]
-    });
+    validateIntegritySpy
+      .mockReturnValueOnce({
+        valid: false,
+        errors: [{ message: 'Invalid body', instancePath: 'instancePath', key: 'key', value: 'value' }]
+      })
+      .mockReturnValueOnce({
+        valid: false,
+        errors: [{ message: 'Missing query', instancePath: 'instancePath', key: 'key', value: 'value' }]
+      });
 
     app.post(
       '/test',
@@ -239,30 +240,31 @@ describe('validateRequestSchema', () => {
   });
 
   it('should return 422 and handle multiple validation errors', async () => {
-    validateSchemaSpy.mockResolvedValueOnce({
-      valid: false,
-      errors: [
-        {
-          message: 'Invalid body',
-          keyword: '',
-          instancePath: '',
-          schemaPath: '',
-          params: {}
-        }
-      ]
-    });
-    validateSchemaSpy.mockResolvedValueOnce({
-      valid: false,
-      errors: [
-        {
-          message: 'Missing query',
-          keyword: '',
-          instancePath: '',
-          schemaPath: '',
-          params: {}
-        }
-      ]
-    });
+    validateSchemaSpy
+      .mockResolvedValueOnce({
+        valid: false,
+        errors: [
+          {
+            message: 'Invalid body',
+            keyword: '',
+            instancePath: '',
+            schemaPath: '',
+            params: {}
+          }
+        ]
+      })
+      .mockResolvedValueOnce({
+        valid: false,
+        errors: [
+          {
+            message: 'Missing query',
+            keyword: '',
+            instancePath: '',
+            schemaPath: '',
+            params: {}
+          }
+        ]
+      });
 
     app.post(
       '/test',

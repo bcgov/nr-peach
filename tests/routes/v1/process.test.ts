@@ -35,10 +35,6 @@ vi.mock('../../../src/middlewares/validator.ts', () => ({
   validateRequestSchema: () => vi.fn((_req, _res, next: NextFunction): void => next())
 }));
 
-beforeEach(() => {
-  vi.resetAllMocks();
-});
-
 describe('Process Routes', () => {
   describe('DELETE /process-events', () => {
     it('should call the schema validator and controller', async () => {

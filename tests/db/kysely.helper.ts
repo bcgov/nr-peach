@@ -2,9 +2,6 @@ import type { Kysely } from 'kysely';
 
 vi.mock('kysely', async () => {
   class MockKysely {
-    introspection = {
-      getTables: vi.fn()
-    };
     schema = {
       columns: vi.fn().mockReturnThis(),
       createIndex: vi.fn().mockReturnThis(),
@@ -15,9 +12,6 @@ vi.mock('kysely', async () => {
       withSchema: vi.fn().mockReturnThis()
     };
     destroy = vi.fn();
-    execute = vi.fn((cb: () => Kysely<unknown>) => cb());
-    transaction = vi.fn(() => new MockKysely());
-    setIsolationLevel = vi.fn().mockReturnThis();
   }
 
   const mockSql = vi.fn();

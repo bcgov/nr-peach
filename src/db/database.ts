@@ -1,11 +1,12 @@
 import { config } from 'dotenv';
-import { CamelCasePlugin, Kysely, PostgresDialect, sql } from 'kysely';
+import { readdirSync } from 'node:fs';
+import { CamelCasePlugin, Kysely, Migrator, PostgresDialect, sql } from 'kysely';
 import { Pool, types } from 'pg';
 
 import { state } from '../state.ts';
 import { getLogger } from '../utils/index.ts';
 
-import type { IsolationLevel, LogEvent, Transaction } from 'kysely';
+import type { LogEvent, Migration } from 'kysely';
 import type { DB } from '../types/index.d.ts';
 
 // Load environment variables, prioritizing .env over .env.default
@@ -13,7 +14,7 @@ config({ path: ['.env', '.env.default'], quiet: true });
 
 const log = getLogger(import.meta.filename);
 
-// Handle bigint parsing {@see https://kysely.dev/docs/recipes/data-types#runtime-javascript-types}
+/** Handle bigint parsing {@see https://kysely.dev/docs/recipes/data-types#runtime-javascript-types} */
 const int8TypeId = 20; // PostgreSQL's bigint type is represented as int8 in Kysely
 types.setTypeParser(int8TypeId, (value: string): number => parseInt(value, 10));
 
@@ -36,60 +37,87 @@ pool.on('acquire', () => log.silly('Database has acquired a client', { clientCou
 pool.on('release', () => log.silly('Database has released a client', { clientCount: pool.totalCount }));
 pool.on('remove', () => log.silly('Database has removed a client', { clientCount: pool.totalCount }));
 
+let lastHealthCheckTime = 0;
+let lastHealthCheckResult: boolean | null = null;
+
+/** The main Kysely database instance configured for the application. */
+export const db = new Kysely<DB>({
+  dialect: new PostgresDialect({ pool }),
+  log: onLogEvent,
+  plugins: [new CamelCasePlugin()]
+});
+
+/** The Kysely migrator instance for managing database migrations. */
+export const migrator = new Migrator({
+  db: db,
+  provider: { getMigrations }
+});
+
 /**
- * Checks the health of the database by executing a simple query.
- * @returns A promise that resolves to `true` if the database is healthy, or
- * `false` if the health check fails.
- * @throws Will log an error and return `false` if the database is not healthy.
+ * Checks the health status of the database by executing a simple query.
+ * This function caches the result for 1 second to avoid excessive health checks.
+ * @param now - The current timestamp in milliseconds. Defaults to `Date.now()`.
+ * @returns A promise that resolves to `true` if the database is healthy, or `false` if unhealthy.
  */
-export async function checkDatabaseHealth(): Promise<boolean> {
+export async function checkDatabaseHealth(now?: number): Promise<boolean> {
+  const cacheDuration = 1000; // Cache duration in milliseconds (1 second)
+  now ??= Date.now();
+
+  // Use cached health check result if it exists and is still valid (within cacheDuration).
+  if (lastHealthCheckResult !== null && now - lastHealthCheckTime < cacheDuration) {
+    log.debug(`Database is ${lastHealthCheckResult ? 'healthy' : 'unhealthy'} (cached)`);
+    return lastHealthCheckResult;
+  }
+
   try {
     const result = await sql<{ result: number }>`SELECT 1 AS result`.execute(db);
-    log.debug('Database is healthy');
-    return result.rows?.[0]?.result === 1;
+    const healthy = result.rows?.[0]?.result === 1;
+    lastHealthCheckTime = now;
+    lastHealthCheckResult = healthy;
+    log.debug(`Database is ${lastHealthCheckResult ? 'healthy' : 'unhealthy'}`);
+    return lastHealthCheckResult;
   } catch (error) {
-    log.error('Database is unhealthy', { code: (error as { code?: string }).code });
-    return false;
+    lastHealthCheckTime = now;
+    lastHealthCheckResult = false;
+    log.error('Database is unhealthy', {
+      code: (error as { code?: string }).code,
+      message: (error as Error).message,
+      stack: (error as Error).stack,
+      error
+    });
+    return lastHealthCheckResult;
   }
 }
 
 /**
- * Checks if the database schema matches the expected structure.
- * @returns A promise that resolves to `true` if the  database schema matches
- * the expected structure, or `false` otherwise.
- * @throws Will log an error and return `false` if the database introspection fails.
+ * Checks whether all database migrations have been executed.
+ * @returns A promise that resolves to `true` if all migrations have been executed, otherwise `false`.
  */
-export async function checkDatabaseSchema(): Promise<boolean> {
-  // TODO: Should this be in a different location?
-  const expected = Object.freeze({
-    schemas: ['audit', 'pies'],
-    tables: [
-      'logged_actions',
-      'coding',
-      'process_event',
-      'record_kind',
-      'system',
-      'system_record',
-      'transaction',
-      'version'
-    ]
-  });
-
-  try {
-    const result = await db.introspection.getTables();
-    const schemas = new Set(result.map((r) => r.schema));
-    const tables = new Set(result.map((r) => r.name));
-    const matches = {
-      schemas: expected.schemas.every((s) => schemas.has(s)),
-      tables: expected.tables.every((t) => tables.has(t))
-    };
-
-    log.debug('Database schema introspection', { matches });
-    return matches.schemas && matches.tables;
-  } catch (error) {
-    log.error('Database introspection failed', error);
-    return false;
+export async function checkDatabaseMigrations(): Promise<boolean> {
+  const migrations = await migrator.getMigrations();
+  const isMigrated = migrations.every((m) => !!m.executedAt);
+  if (!isMigrated) {
+    log.warn('Database is missing migrations', { missing: migrations.filter((m) => !m.executedAt).map((m) => m.name) });
   }
+  return isMigrated;
+}
+
+/**
+ * Loads all migration modules from the 'src/db/migrations' directory.
+ * This function reads all TypeScript migration files (excluding .d.ts files),
+ * dynamically imports each migration, and returns them as a record keyed by filename.
+ * @returns A promise that resolves to a record of migration modules.
+ */
+export async function getMigrations(): Promise<Record<string, Migration>> {
+  const migrations: Record<string, Migration> = {};
+  const files = readdirSync('src/db/migrations');
+  for (const fileName of files) {
+    if (fileName.endsWith('.ts') && !fileName.endsWith('.d.ts')) {
+      const migrationKey = fileName.substring(0, fileName.lastIndexOf('.'));
+      migrations[migrationKey] = (await import(`./migrations/${fileName}`)) as Migration;
+    }
+  }
+  return migrations;
 }
 
 /**
@@ -133,29 +161,9 @@ export function onPoolError(err: Error): void {
  * @param cb - Optional callback function to be executed after the database is destroyed.
  * @returns A promise that resolves when the database has been destroyed.
  */
-export function shutdownDatabase(cb?: () => void): Promise<void> {
-  return db.destroy().then(cb);
+export async function shutdownDatabase(cb?: () => void): Promise<void> {
+  await db.destroy();
+  return cb?.();
 }
-
-/**
- * Executes a database transaction with the specified isolation level.
- * @param callback - A function that performs operations within the transaction.
- * @param isolationLevel - The isolation level for the transaction (default is 'serializable').
- * @returns A promise that resolves to the result of the callback function.
- */
-export function transactionWrapper<T>(
-  callback: (trx: Transaction<DB>) => Promise<T>,
-  isolationLevel: IsolationLevel = 'serializable'
-): Promise<T> {
-  return db.transaction().setIsolationLevel(isolationLevel).execute(callback);
-}
-
-// Database interface is passed to Kysely's constructor, and from now on, Kysely knows your database structure.
-// Dialect is passed to Kysely's constructor, and from now on, Kysely knows how to communicate with your database.
-export const db = new Kysely<DB>({
-  dialect: new PostgresDialect({ pool }),
-  log: onLogEvent,
-  plugins: [new CamelCasePlugin()]
-});
 
 export * from './utils.ts';

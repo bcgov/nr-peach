@@ -8,7 +8,7 @@ import type {
   IntegrityError,
   RequestIntegrityOptions,
   RequestSchemaOptions
-} from '../types/index.js';
+} from '../types/index.d.ts';
 
 /**
  * Validates the data integrity of the incoming request by checking its body, headers, params, and query.

@@ -69,11 +69,10 @@ app.use((req: Request, res: Response): void => {
  */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export async function errorHandler(err: Error, req: Request, res: Response, _next: NextFunction): Promise<void> {
-  if (err.stack) log.error(err);
-
   if (err instanceof Problem) {
     return err.send(req, res);
   } else {
+    if (err.stack) log.error(err);
     const dbHealthy = await checkDatabaseHealth();
     if (!dbHealthy) {
       state.ready = false;

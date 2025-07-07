@@ -1,133 +1,129 @@
-import { isValidCodeSystem, isValidCoding } from '../../src/services/coding.ts';
+import * as services from '../../src/services/index.ts';
+import * as utils from '../../src/utils/index.ts';
 import { validateIntegrity } from '../../src/validators/integrity.ts';
 
-import type { Mock } from 'vitest';
-import type { ProcessEventSet, RecordLinkage } from '../../src/types/index.js';
-
-vi.mock('../../src/services/coding.ts', () => ({
-  isValidCodeSystem: vi.fn(),
-  isValidCoding: vi.fn()
-}));
+import type { Event, ProcessEventSet, RecordLinkage } from '../../src/types/index.d.ts';
 
 describe('validateIntegrity', () => {
-  describe('processEventSet validation', () => {
-    it('should return valid when all process_event elements are valid', () => {
-      const mockData: ProcessEventSet = {
-        transaction_id: '12345',
-        version: '1.0',
-        kind: 'ProcessEventSet',
-        record_id: '67890',
-        record_kind: 'Permit',
-        system_id: 'testSystem',
-        process_event: [
-          {
-            event: {
-              start_date: 'startDate'
-            },
-            process: { code_system: 'validCodeSystem', code: 'validCode', code_set: ['validCodeSet'] }
+  const getUUIDv7TimestampSpy = vi.spyOn(utils, 'getUUIDv7Timestamp');
+
+  const validTransactionId = '018e0e6c-8e4d-7b7b-bb7b-7b7b7b7b7b7b7b';
+  const now = Date.now();
+
+  describe('processEventSet', () => {
+    const isValidCodeSystemSpy = vi.spyOn(services, 'isValidCodeSystem');
+    const isValidCodingSpy = vi.spyOn(services, 'isValidCoding');
+
+    const baseProcessEventSet: ProcessEventSet = {
+      transaction_id: validTransactionId,
+      version: '0.1.0',
+      kind: 'ProcessEventSet',
+      system_id: 'test-system',
+      record_id: 'test-record-id',
+      record_kind: 'Permit',
+      process_event: [
+        {
+          event: {} as Event,
+          process: {
+            code_system: 'systemA',
+            code: 'codeA',
+            code_set: ['setA']
           }
-        ]
-      };
+        }
+      ]
+    };
 
-      (isValidCodeSystem as unknown as Mock).mockReturnValue(true);
-      (isValidCoding as unknown as Mock).mockReturnValue(true);
+    it('returns valid: true when all checks pass', () => {
+      getUUIDv7TimestampSpy.mockReturnValue(now - 1000);
+      isValidCodeSystemSpy.mockReturnValue(true);
+      isValidCodingSpy.mockReturnValue(true);
 
-      const result = validateIntegrity('processEventSet', mockData);
+      const result = validateIntegrity('processEventSet', baseProcessEventSet);
 
       expect(result.valid).toBe(true);
       expect(result.errors).toBeUndefined();
     });
 
-    it('should return invalid when code_system is invalid', () => {
-      const mockData: ProcessEventSet = {
-        transaction_id: '12345',
-        version: '1.0',
-        kind: 'ProcessEventSet',
-        record_id: '67890',
-        record_kind: 'Permit',
-        system_id: 'testSystem',
-        process_event: [
-          {
-            event: {
-              start_date: 'startDate'
-            },
-            process: { code_system: 'invalidCodeSystem', code: 'validCode', code_set: ['validCodeSet'] }
-          }
-        ]
-      };
+    it('returns error if transaction_id is invalid (undefined timestamp)', () => {
+      getUUIDv7TimestampSpy.mockReturnValue(undefined);
+      isValidCodeSystemSpy.mockReturnValue(true);
+      isValidCodingSpy.mockReturnValue(true);
 
-      (isValidCodeSystem as unknown as Mock).mockReturnValue(false);
-      (isValidCoding as unknown as Mock).mockReturnValue(true);
-
-      const result = validateIntegrity('processEventSet', mockData);
+      const result = validateIntegrity('processEventSet', baseProcessEventSet);
 
       expect(result.valid).toBe(false);
-      expect(result.errors).toEqual(
-        expect.arrayContaining([
-          {
-            instancePath: '/process_event/0/process',
-            message: 'Invalid Process in ProcessEvent element at index 0',
-            key: 'code_system',
-            value: 'invalidCodeSystem'
-          }
-        ])
-      );
+      expect(result.errors).toHaveLength(1);
+      expect(result.errors?.[0].key).toBe('transaction_id');
     });
 
-    it('should return invalid when code is invalid', () => {
-      const mockData: ProcessEventSet = {
-        transaction_id: '12345',
-        version: '1.0',
-        kind: 'ProcessEventSet',
-        record_id: '67890',
-        record_kind: 'Permit',
-        system_id: 'testSystem',
-        process_event: [
-          {
-            event: {
-              start_date: 'startDate'
-            },
-            process: { code_system: 'validCodeSystem', code: 'invalidCode', code_set: ['validCodeSet'] }
-          }
-        ]
-      };
+    it('returns error if transaction_id timestamp is in the future', () => {
+      getUUIDv7TimestampSpy.mockReturnValue(now + 100000);
+      isValidCodeSystemSpy.mockReturnValue(true);
+      isValidCodingSpy.mockReturnValue(true);
 
-      (isValidCodeSystem as unknown as Mock).mockReturnValue(true);
-      (isValidCoding as unknown as Mock).mockReturnValue(false);
-
-      const result = validateIntegrity('processEventSet', mockData);
+      const result = validateIntegrity('processEventSet', baseProcessEventSet);
 
       expect(result.valid).toBe(false);
-      expect(result.errors).toEqual(
-        expect.arrayContaining([
-          {
-            instancePath: '/process_event/0/process',
-            message: 'Invalid Process in ProcessEvent element at index 0',
-            key: 'code',
-            value: 'invalidCode'
-          }
-        ])
-      );
+      expect(result.errors?.[0].key).toBe('transaction_id');
+    });
+
+    it('returns error if code_system is invalid', () => {
+      getUUIDv7TimestampSpy.mockReturnValue(now - 1000);
+      isValidCodeSystemSpy.mockReturnValue(false);
+      isValidCodingSpy.mockReturnValue(true);
+
+      const result = validateIntegrity('processEventSet', baseProcessEventSet);
+
+      expect(result.valid).toBe(false);
+      expect(result.errors?.[0].key).toBe('code_system');
+    });
+
+    it('returns error if code is invalid', () => {
+      getUUIDv7TimestampSpy.mockReturnValue(now - 1000);
+      isValidCodeSystemSpy.mockReturnValue(true);
+      isValidCodingSpy.mockReturnValue(false);
+
+      const result = validateIntegrity('processEventSet', baseProcessEventSet);
+
+      expect(result.valid).toBe(false);
+      expect(result.errors?.[0].key).toBe('code');
+    });
+
+    it('returns multiple errors if both code_system and code are invalid', () => {
+      getUUIDv7TimestampSpy.mockReturnValue(now - 1000);
+      isValidCodeSystemSpy.mockReturnValue(false);
+      isValidCodingSpy.mockReturnValue(false);
+
+      const result = validateIntegrity('processEventSet', baseProcessEventSet);
+
+      expect(result.valid).toBe(false);
+      expect(result.errors).toHaveLength(2);
+      expect(result.errors?.map((e) => e.key)).toEqual(expect.arrayContaining(['code_system', 'code']));
     });
   });
 
-  describe('recordLinkage validation', () => {
-    it('should return valid when RecordLinkage object is provided', () => {
-      const mockData: RecordLinkage = {} as RecordLinkage;
+  describe('recordLinkage', () => {
+    const baseRecordLinkage: RecordLinkage = {
+      transaction_id: validTransactionId
+      // other fields as needed
+    } as RecordLinkage;
 
-      const result = validateIntegrity('recordLinkage', mockData);
+    it('returns valid: true when header is valid', () => {
+      getUUIDv7TimestampSpy.mockReturnValue(now - 1000);
+
+      const result = validateIntegrity('recordLinkage', baseRecordLinkage);
 
       expect(result.valid).toBe(true);
       expect(result.errors).toBeUndefined();
     });
 
-    it('should return invalid when RecordLinkage object is null or undefined', () => {
-      const mockData: RecordLinkage = null as unknown as RecordLinkage;
+    it('returns error if header is invalid', () => {
+      getUUIDv7TimestampSpy.mockReturnValue(undefined);
 
-      const result = validateIntegrity('recordLinkage', mockData);
+      const result = validateIntegrity('recordLinkage', baseRecordLinkage);
 
       expect(result.valid).toBe(false);
-      expect(result.errors).toBeUndefined();
+      expect(result.errors?.[0].key).toBe('transaction_id');
     });
   });
 });

@@ -1,13 +1,16 @@
-import { isValidCodeSystem, isValidCoding } from '../services/coding.ts';
+import { isValidCodeSystem, isValidCoding } from '../services/index.ts';
+import { getUUIDv7Timestamp } from '../utils/index.ts';
 
 import type {
+  Header,
   IntegrityDictionary,
   IntegrityError,
   IntegrityResult,
   IntegrityValidator,
+  ProcessEvent,
   ProcessEventSet,
   RecordLinkage
-} from '../types/index.js';
+} from '../types/index.d.ts';
 
 /** Defines immutable, idempotent integrity definitions mapping keys to values in `IntegrityDictionary`. */
 export const IntegrityDefinitions: Record<keyof IntegrityDictionary, keyof IntegrityDictionary> = Object.freeze({
@@ -24,28 +27,12 @@ export const integrityValidators: IntegrityValidator<IntegrityDictionary> = {
    */
   processEventSet: (data: ProcessEventSet) => {
     const errors: IntegrityError[] = [];
-    data.process_event.forEach((pe, index) => {
-      const { process } = pe;
-      if (!isValidCodeSystem(process.code_system)) {
-        errors.push({
-          instancePath: `/process_event/${index}/process`,
-          message: `Invalid Process in ProcessEvent element at index ${index}`,
-          key: 'code_system',
-          value: process.code_system
-        });
-      }
-      if (!isValidCoding(process.code_system, process.code)) {
-        errors.push({
-          instancePath: `/process_event/${index}/process`,
-          message: `Invalid Process in ProcessEvent element at index ${index}`,
-          key: 'code',
-          value: process.code
-        });
-      }
-    });
+
+    checkHeader(data, errors);
+    checkProcessEvent(data.process_event, errors);
+
     return { valid: !errors.length, errors: errors.length ? errors : undefined };
   },
-  // Nothing specific to validate above JSON schema validation for now
 
   /**
    * Validates a `RecordLinkage` object.
@@ -53,9 +40,57 @@ export const integrityValidators: IntegrityValidator<IntegrityDictionary> = {
    * @returns An `IntegrityResult` indicating whether the validation was successful and any errors encountered.
    */
   recordLinkage: (data: RecordLinkage) => {
-    return { valid: !!data, errors: undefined };
+    const errors: IntegrityError[] = [];
+
+    checkHeader(data, errors);
+
+    return { valid: !errors.length, errors: errors.length ? errors : undefined };
   }
 };
+
+/**
+ * Checks the integrity of the `Header` element.
+ * @param data - The `Header` object to validate.
+ * @param errors - An array to which any detected `IntegrityError` will be appended.
+ */
+function checkHeader(data: Header, errors: IntegrityError[]) {
+  const trxTimestamp = getUUIDv7Timestamp(data.transaction_id);
+  if (trxTimestamp === undefined || trxTimestamp > Date.now()) {
+    errors.push({
+      instancePath: '/transaction_id',
+      message: 'Invalid Header element',
+      key: 'transaction_id',
+      value: data.transaction_id
+    });
+  }
+}
+
+/**
+ * Checks the integrity of the `ProcessEvent` element.
+ * @param data - The `ProcessEvent` object to validate.
+ * @param errors - An array to which any detected `IntegrityError` will be appended.
+ */
+function checkProcessEvent(data: readonly ProcessEvent[], errors: IntegrityError[]) {
+  data.forEach((pe, index) => {
+    const { process } = pe;
+    if (!isValidCodeSystem(process.code_system)) {
+      errors.push({
+        instancePath: `/process_event/${index}/process`,
+        message: `Invalid Process in ProcessEvent element at index ${index}`,
+        key: 'code_system',
+        value: process.code_system
+      });
+    }
+    if (!isValidCoding(process.code_system, process.code)) {
+      errors.push({
+        instancePath: `/process_event/${index}/process`,
+        message: `Invalid Process in ProcessEvent element at index ${index}`,
+        key: 'code',
+        value: process.code
+      });
+    }
+  });
+}
 
 /**
  * Validates the integrity of the provided data based on the specified type.

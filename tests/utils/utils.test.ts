@@ -1,6 +1,6 @@
 import { existsSync, readFileSync, statSync } from 'node:fs';
 
-import { getGitRevision, sortObject } from '../../src/utils/utils.ts';
+import { getUUIDv7Timestamp, getGitRevision, sortObject } from '../../src/utils/utils.ts';
 
 import type { Mock } from 'vitest';
 
@@ -38,12 +38,17 @@ describe('getGitRevision', () => {
   it('returns the commit hash from ref file if HEAD points to a ref', () => {
     (existsSync as Mock).mockImplementation((path: string) => {
       // .git, HEAD, and ref exist
-      return path.endsWith('.git') || path.endsWith('HEAD') || path.endsWith('refs/heads/main');
+      return (
+        path.endsWith('.git') ||
+        path.endsWith('HEAD') ||
+        path.endsWith('refs/heads/main') ||
+        path.endsWith('refs\\heads\\main')
+      );
     });
     (statSync as Mock).mockReturnValue(mockStat(false)); // .git is a directory
     (readFileSync as Mock).mockImplementation((path: string) => {
       if (path.endsWith('HEAD')) return 'ref: refs/heads/main\n';
-      if (path.endsWith('refs/heads/main')) return '1234567890abcdef\n';
+      if (path.endsWith('refs/heads/main') || path.endsWith('refs\\heads\\main')) return '1234567890abcdef\n';
       return '';
     });
 
@@ -96,7 +101,12 @@ describe('getGitRevision', () => {
   it('resolves .git as a file (worktree/submodule) and reads gitdir', () => {
     (existsSync as Mock).mockImplementation((path: string) => {
       // .git file, HEAD, and ref exist
-      return path.endsWith('.git') || path.endsWith('HEAD') || path.endsWith('refs/heads/feature');
+      return (
+        path.endsWith('.git') ||
+        path.endsWith('HEAD') ||
+        path.endsWith('refs/heads/feature') ||
+        path.endsWith('refs\\heads\\feature')
+      );
     });
     (statSync as Mock).mockImplementation((path: string) => {
       // .git is a file
@@ -105,11 +115,30 @@ describe('getGitRevision', () => {
     (readFileSync as Mock).mockImplementation((path: string) => {
       if (path.endsWith('.git')) return 'gitdir: .git/worktrees/feature\n';
       if (path.endsWith('HEAD')) return 'ref: refs/heads/feature\n';
-      if (path.endsWith('refs/heads/feature')) return 'cafebabe12345678\n';
+      if (path.endsWith('refs/heads/feature') || path.endsWith('refs\\heads\\feature')) return 'cafebabe12345678\n';
       return '';
     });
 
     expect(getGitRevision()).toBe('cafebabe12345678');
+  });
+});
+
+describe('getUUIDv7Timestamp', () => {
+  it('should return the correct timestamp for a valid UUIDv7', () => {
+    // Timestamp of 0x018e3c0d6cbb is 1710404496571 ms
+    expect(getUUIDv7Timestamp('018e3c0d-6cbb-7000-8000-000000000000')).toBe(1710404496571);
+  });
+
+  it('should return undefined for an invalid UUID', () => {
+    expect(getUUIDv7Timestamp('not-a-uuid')).toBeUndefined();
+  });
+
+  it('should return undefined for a valid UUID but not version 7', () => {
+    expect(getUUIDv7Timestamp('007ea2a7-3994-4acf-8bcf-2a8ede9a2ccf')).toBeUndefined();
+  });
+
+  it('should return undefined for a malformed UUIDv7', () => {
+    expect(getUUIDv7Timestamp('018e3c0d-6cbb-7cc0')).toBeUndefined();
   });
 });
 

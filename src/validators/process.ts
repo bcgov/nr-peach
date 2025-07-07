@@ -1,7 +1,7 @@
 import { record_id, system_id } from './common.ts';
+import { IntegrityDefinitions } from './integrity.ts';
 import { getPiesSchemaUri, pies } from './pies.ts';
 import { validateRequestIntegrity, validateRequestSchema } from '../middlewares/index.ts';
-import { IntegrityDefinitions } from '../validators/index.ts';
 
 import type { RequestHandler } from 'express';
 

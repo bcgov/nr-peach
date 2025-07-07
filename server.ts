@@ -6,7 +6,7 @@ import { isMainThread } from 'node:worker_threads';
 
 import { app } from './src/app.ts';
 import { state } from './src/state.ts';
-import { checkDatabaseHealth, checkDatabaseSchema, shutdownDatabase } from './src/db/index.ts';
+import { checkDatabaseHealth, checkDatabaseMigrations, shutdownDatabase } from './src/db/index.ts';
 import { getLogger } from './src/utils/index.ts';
 
 // Load environment variables, prioritizing .env over .env.default
@@ -107,15 +107,15 @@ function shutdown(signal: NodeJS.Signals): void {
 }
 
 /**
- * Initializes the server by performing database health and schema checks.
+ * Initializes the server by performing database health and migration checks.
  */
 async function startup(): Promise<void> {
   try {
     if (!(await checkDatabaseHealth())) throw new Error('Health check failed');
-    if (!(await checkDatabaseSchema())) throw new Error('Schema check failed');
+    if (!(await checkDatabaseMigrations())) throw new Error('Migration check failed');
     state.ready = true;
   } catch (error) {
-    log.error('Error during database checks:', error);
-    shutdown('SIGTERM');
+    log.error('Error during startup:', error);
+    shutdown('SIGABRT');
   }
 }
