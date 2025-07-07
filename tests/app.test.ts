@@ -3,16 +3,12 @@ import request from 'supertest';
 
 import { app, errorHandler } from '../src/app.ts';
 import { state } from '../src/state.ts';
-import { checkDatabaseHealth } from '../src/db/database.ts';
-import Problem from '../src/utils/problem.ts';
+import * as db from '../src/db/index.ts';
+import { Problem } from '../src/utils/index.ts';
 
 import type { Request, Response } from 'express';
-import type { Mock } from 'vitest';
 
-vi.mock('../src/db/database.ts', () => ({
-  checkDatabaseHealth: vi.fn(),
-  db: {}
-}));
+const checkDatabaseHealthSpy = vi.spyOn(db, 'checkDatabaseHealth');
 
 describe('App', () => {
   beforeEach(() => {
@@ -29,7 +25,7 @@ describe('App', () => {
 
   it('should return 200 if the server is not ready and db health is good', async () => {
     state.ready = false;
-    (checkDatabaseHealth as Mock).mockResolvedValueOnce(true);
+    checkDatabaseHealthSpy.mockResolvedValueOnce(true);
 
     const response = await request(app).get('/');
     expect(response.status).toBe(200);
@@ -37,7 +33,7 @@ describe('App', () => {
 
   it('should return 503 if the server is not ready and db health is bad', async () => {
     state.ready = false;
-    (checkDatabaseHealth as Mock).mockResolvedValueOnce(false);
+    checkDatabaseHealthSpy.mockResolvedValueOnce(false);
 
     const response = await request(app).get('/');
     expect(response.status).toBe(503);
@@ -93,7 +89,7 @@ describe('App', () => {
         throw new Error('Test Error');
       });
       testApp.use(errorHandler);
-      (checkDatabaseHealth as Mock).mockResolvedValueOnce(true);
+      checkDatabaseHealthSpy.mockResolvedValueOnce(true);
 
       const response = await request(testApp).get('/error');
       expect(response.status).toBe(500);
@@ -102,7 +98,7 @@ describe('App', () => {
     });
 
     it('should send 503 if db is unhealthy for non-Problem errors', async () => {
-      (checkDatabaseHealth as Mock).mockResolvedValueOnce(false);
+      checkDatabaseHealthSpy.mockResolvedValueOnce(false);
       const err = new Error('Some error');
 
       await errorHandler(err, req, res, vi.fn());
@@ -110,7 +106,7 @@ describe('App', () => {
     });
 
     it('should send 500 if db is healthy for non-Problem errors', async () => {
-      (checkDatabaseHealth as Mock).mockResolvedValueOnce(true);
+      checkDatabaseHealthSpy.mockResolvedValueOnce(true);
       const err = new Error('Another error');
 
       await errorHandler(err, req, res, vi.fn());

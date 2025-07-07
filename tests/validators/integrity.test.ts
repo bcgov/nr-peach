@@ -1,25 +1,19 @@
-import { isValidCodeSystem, isValidCoding } from '../../src/services/coding.ts';
-import { getUUIDv7Timestamp } from '../../src/utils/utils.ts';
+import * as services from '../../src/services/index.ts';
+import * as utils from '../../src/utils/index.ts';
 import { validateIntegrity } from '../../src/validators/integrity.ts';
 
-import type { Mock } from 'vitest';
 import type { Event, ProcessEventSet, RecordLinkage } from '../../src/types/index.d.ts';
 
-vi.mock('../../src/services/coding.ts', () => ({
-  isValidCodeSystem: vi.fn(),
-  isValidCoding: vi.fn()
-}));
-
-vi.mock('../../src/utils/utils.ts', async () => ({
-  ...(await vi.importActual('../../src/utils/utils.ts')),
-  getUUIDv7Timestamp: vi.fn()
-}));
-
 describe('validateIntegrity', () => {
-  const validTransactionId = '018e0e6c-8e4d-7b7b-bb7b-7b7b7b7b7b7b';
+  const getUUIDv7TimestampSpy = vi.spyOn(utils, 'getUUIDv7Timestamp');
+
+  const validTransactionId = '018e0e6c-8e4d-7b7b-bb7b-7b7b7b7b7b7b7b';
   const now = Date.now();
 
   describe('processEventSet', () => {
+    const isValidCodeSystemSpy = vi.spyOn(services, 'isValidCodeSystem');
+    const isValidCodingSpy = vi.spyOn(services, 'isValidCoding');
+
     const baseProcessEventSet: ProcessEventSet = {
       transaction_id: validTransactionId,
       version: '0.1.0',
@@ -40,9 +34,9 @@ describe('validateIntegrity', () => {
     };
 
     it('returns valid: true when all checks pass', () => {
-      (getUUIDv7Timestamp as Mock).mockReturnValue(now - 1000);
-      (isValidCodeSystem as Mock).mockReturnValue(true);
-      (isValidCoding as Mock).mockReturnValue(true);
+      getUUIDv7TimestampSpy.mockReturnValue(now - 1000);
+      isValidCodeSystemSpy.mockReturnValue(true);
+      isValidCodingSpy.mockReturnValue(true);
 
       const result = validateIntegrity('processEventSet', baseProcessEventSet);
 
@@ -51,9 +45,9 @@ describe('validateIntegrity', () => {
     });
 
     it('returns error if transaction_id is invalid (undefined timestamp)', () => {
-      (getUUIDv7Timestamp as Mock).mockReturnValue(undefined);
-      (isValidCodeSystem as Mock).mockReturnValue(true);
-      (isValidCoding as Mock).mockReturnValue(true);
+      getUUIDv7TimestampSpy.mockReturnValue(undefined);
+      isValidCodeSystemSpy.mockReturnValue(true);
+      isValidCodingSpy.mockReturnValue(true);
 
       const result = validateIntegrity('processEventSet', baseProcessEventSet);
 
@@ -63,9 +57,9 @@ describe('validateIntegrity', () => {
     });
 
     it('returns error if transaction_id timestamp is in the future', () => {
-      (getUUIDv7Timestamp as Mock).mockReturnValue(now + 100000);
-      (isValidCodeSystem as Mock).mockReturnValue(true);
-      (isValidCoding as Mock).mockReturnValue(true);
+      getUUIDv7TimestampSpy.mockReturnValue(now + 100000);
+      isValidCodeSystemSpy.mockReturnValue(true);
+      isValidCodingSpy.mockReturnValue(true);
 
       const result = validateIntegrity('processEventSet', baseProcessEventSet);
 
@@ -74,9 +68,9 @@ describe('validateIntegrity', () => {
     });
 
     it('returns error if code_system is invalid', () => {
-      (getUUIDv7Timestamp as Mock).mockReturnValue(now - 1000);
-      (isValidCodeSystem as Mock).mockReturnValue(false);
-      (isValidCoding as Mock).mockReturnValue(true);
+      getUUIDv7TimestampSpy.mockReturnValue(now - 1000);
+      isValidCodeSystemSpy.mockReturnValue(false);
+      isValidCodingSpy.mockReturnValue(true);
 
       const result = validateIntegrity('processEventSet', baseProcessEventSet);
 
@@ -85,9 +79,9 @@ describe('validateIntegrity', () => {
     });
 
     it('returns error if code is invalid', () => {
-      (getUUIDv7Timestamp as Mock).mockReturnValue(now - 1000);
-      (isValidCodeSystem as Mock).mockReturnValue(true);
-      (isValidCoding as Mock).mockReturnValue(false);
+      getUUIDv7TimestampSpy.mockReturnValue(now - 1000);
+      isValidCodeSystemSpy.mockReturnValue(true);
+      isValidCodingSpy.mockReturnValue(false);
 
       const result = validateIntegrity('processEventSet', baseProcessEventSet);
 
@@ -96,9 +90,9 @@ describe('validateIntegrity', () => {
     });
 
     it('returns multiple errors if both code_system and code are invalid', () => {
-      (getUUIDv7Timestamp as Mock).mockReturnValue(now - 1000);
-      (isValidCodeSystem as Mock).mockReturnValue(false);
-      (isValidCoding as Mock).mockReturnValue(false);
+      getUUIDv7TimestampSpy.mockReturnValue(now - 1000);
+      isValidCodeSystemSpy.mockReturnValue(false);
+      isValidCodingSpy.mockReturnValue(false);
 
       const result = validateIntegrity('processEventSet', baseProcessEventSet);
 
@@ -115,7 +109,7 @@ describe('validateIntegrity', () => {
     } as RecordLinkage;
 
     it('returns valid: true when header is valid', () => {
-      (getUUIDv7Timestamp as Mock).mockReturnValue(now - 1000);
+      getUUIDv7TimestampSpy.mockReturnValue(now - 1000);
 
       const result = validateIntegrity('recordLinkage', baseRecordLinkage);
 
@@ -124,7 +118,7 @@ describe('validateIntegrity', () => {
     });
 
     it('returns error if header is invalid', () => {
-      (getUUIDv7Timestamp as Mock).mockReturnValue(undefined);
+      getUUIDv7TimestampSpy.mockReturnValue(undefined);
 
       const result = validateIntegrity('recordLinkage', baseRecordLinkage);
 

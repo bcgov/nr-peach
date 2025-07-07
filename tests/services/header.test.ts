@@ -1,6 +1,6 @@
+import { TransactionRepository } from '../../src/repositories/transaction.ts';
 import { checkDuplicateTransactionHeaderService } from '../../src/services/header.ts';
 import { transactionWrapper } from '../../src/services/utils.ts';
-import { TransactionRepository } from '../../src/repositories/transaction.ts';
 import Problem from '../../src/utils/problem.ts';
 
 import type { Mock } from 'vitest';
@@ -25,11 +25,11 @@ describe('checkDuplicateTransactionHeaderService', () => {
     (TransactionRepository as Mock).mockImplementation(() => ({
       read: readMock
     }));
+    (transactionWrapper as Mock).mockImplementation((fn: () => Promise<void>) => fn());
   });
 
   it('resolves if no duplicate transaction is found', async () => {
     executeMock.mockResolvedValue([]);
-    (transactionWrapper as Mock).mockImplementation((fn: () => Promise<void>) => fn());
 
     await expect(checkDuplicateTransactionHeaderService(transactionId)).resolves.toBeUndefined();
 
@@ -40,7 +40,6 @@ describe('checkDuplicateTransactionHeaderService', () => {
 
   it('throws a conflict error if duplicate transaction is found', async () => {
     executeMock.mockResolvedValue([{}]);
-    (transactionWrapper as Mock).mockImplementation((fn: () => Promise<void>) => fn());
 
     await expect(checkDuplicateTransactionHeaderService(transactionId)).rejects.toEqual(
       new Problem(409, { detail: 'Transaction already exists' }, { transaction_id: transactionId })
@@ -49,11 +48,9 @@ describe('checkDuplicateTransactionHeaderService', () => {
 
   it('calls transactionWrapper with accessMode "read only"', async () => {
     executeMock.mockResolvedValue([]);
-    const wrapperSpy = vi.fn();
-    (transactionWrapper as Mock).mockImplementation(wrapperSpy);
 
     await checkDuplicateTransactionHeaderService(transactionId);
 
-    expect(wrapperSpy).toHaveBeenCalledWith(expect.any(Function), { accessMode: 'read only' });
+    expect(transactionWrapper).toHaveBeenCalledWith(expect.any(Function), { accessMode: 'read only' });
   });
 });
