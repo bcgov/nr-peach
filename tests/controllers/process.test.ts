@@ -8,6 +8,7 @@ import {
   putProcessEventsController
 } from '../../src/controllers/process.ts';
 import * as services from '../../src/services/index.ts';
+import { Problem } from '../../src/utils/index.ts';
 
 import type { Selectable } from 'kysely';
 import type { PiesSystemRecord, ProcessEventSet } from '../../src/types/index.d.ts';
@@ -66,12 +67,26 @@ describe('Process Controllers', () => {
       await request(app).post('/process-events').send({ transaction_id: 'tx1', data: 'abc' }).expect(202);
 
       expect(checkDuplicateTransactionHeaderServiceSpy).toHaveBeenCalledWith('tx1');
+      // TODO: Swap to mergeProcessEventSetService when implemented
       expect(replaceProcessEventSetServiceSpy).toHaveBeenCalledWith({ transaction_id: 'tx1', data: 'abc' });
+    });
+
+    it('should check for duplicate and halt, respond with 409', async () => {
+      checkDuplicateTransactionHeaderServiceSpy.mockImplementation(() => {
+        throw new Problem(409, { detail: 'Transaction already exists' }, { transaction_id: 'tx1' });
+      });
+      replaceProcessEventSetServiceSpy.mockResolvedValue(undefined);
+
+      await request(app).post('/process-events').send({ transaction_id: 'tx1', data: 'abc' }).expect(409);
+
+      expect(checkDuplicateTransactionHeaderServiceSpy).toHaveBeenCalledWith('tx1');
+      // TODO: Swap to mergeProcessEventSetService when implemented
+      expect(replaceProcessEventSetServiceSpy).not.toHaveBeenCalled();
     });
   });
 
   describe('PUT /process-events', () => {
-    it('should check for duplicate and replace, respond with 201', async () => {
+    it('should check for duplicate and merge, respond with 201', async () => {
       checkDuplicateTransactionHeaderServiceSpy.mockResolvedValue(undefined);
       replaceProcessEventSetServiceSpy.mockResolvedValue(undefined);
 
@@ -79,6 +94,18 @@ describe('Process Controllers', () => {
 
       expect(checkDuplicateTransactionHeaderServiceSpy).toHaveBeenCalledWith('tx2');
       expect(replaceProcessEventSetServiceSpy).toHaveBeenCalledWith({ transaction_id: 'tx2', data: 'xyz' });
+    });
+
+    it('should check for duplicate and halt, respond with 409', async () => {
+      checkDuplicateTransactionHeaderServiceSpy.mockImplementation(() => {
+        throw new Problem(409, { detail: 'Transaction already exists' }, { transaction_id: 'tx1' });
+      });
+      replaceProcessEventSetServiceSpy.mockResolvedValue(undefined);
+
+      await request(app).post('/process-events').send({ transaction_id: 'tx1', data: 'abc' }).expect(409);
+
+      expect(checkDuplicateTransactionHeaderServiceSpy).toHaveBeenCalledWith('tx1');
+      expect(replaceProcessEventSetServiceSpy).not.toHaveBeenCalled();
     });
   });
 });

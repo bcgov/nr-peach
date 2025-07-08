@@ -33,8 +33,8 @@ export async function findByThenUpsert<TB extends keyof DB>(
  * @param opts - Optional settings for transaction and retry logic.
  * @param opts.accessMode - The transaction access mode (default: 'read write').
  * @param opts.initialDelay - Initial delay in ms before retrying after a failure (default: 100).
- * @param opts.isolationLevel - The transaction isolation level (default: 'serializable').
- * @param opts.maxRetries - Maximum number of retry attempts (default: 5).
+ * @param opts.isolationLevel - The transaction isolation level (default: 'repeatable read').
+ * @param opts.maxRetries - Maximum number of retry attempts (default: 3).
  * @returns A promise that resolves with the operation result.
  * @throws If the operation fails for other reasons or all retries are exhausted.
  */
