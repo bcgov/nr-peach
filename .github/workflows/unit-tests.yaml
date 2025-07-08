@@ -32,6 +32,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          sleep 10
           prs=$(gh pr list --head "${{ github.ref_name }}" --state open --repo "${{ github.repository }}" --json number --jq '.[].number')
           if [ -n "$prs" ]; then
             echo "PR_EXISTS=true" >> $GITHUB_OUTPUT
