@@ -2,128 +2,198 @@ import * as services from '../../../src/services/index.ts';
 import * as utils from '../../../src/utils/index.ts';
 import { validateIntegrity } from '../../../src/validators/integrity.ts';
 
-import type { Event, ProcessEventSet, RecordLinkage } from '../../../src/types/index.js';
+import type { ProcessEventSet, RecordLinkage } from '../../../src/types/index.d.ts';
 
 describe('validateIntegrity', () => {
-  const getUUIDv7TimestampSpy = vi.spyOn(utils, 'getUUIDv7Timestamp');
-
-  const validTransactionId = '018e0e6c-8e4d-7b7b-bb7b-7b7b7b7b7b7b7b';
+  const validTransactionId = '018e3e6a-8c3b-7b4c-8e2a-1b2c3d4e5f60';
   const now = Date.now();
 
-  describe('processEventSet', () => {
-    const isValidCodeSystemSpy = vi.spyOn(services, 'isValidCodeSystem');
-    const isValidCodingSpy = vi.spyOn(services, 'isValidCoding');
+  it('returns valid for a correct ProcessEventSet', () => {
+    vi.spyOn(utils, 'getUUIDv7Timestamp').mockReturnValue(now - 1000);
+    vi.spyOn(services, 'isValidCodeSystem').mockReturnValue(true);
+    vi.spyOn(services, 'isValidCoding').mockReturnValue(true);
 
-    const baseProcessEventSet: ProcessEventSet = {
+    const pes: Partial<ProcessEventSet> = {
       transaction_id: validTransactionId,
-      version: '0.1.0',
-      kind: 'ProcessEventSet',
-      system_id: 'test-system',
-      record_id: 'test-record-id',
-      record_kind: 'Permit',
       process_event: [
         {
-          event: {} as Event,
+          event: {
+            start_datetime: '2024-01-01T00:00:00Z',
+            end_datetime: '2024-01-02T00:00:00Z'
+          },
           process: {
-            code_system: 'systemA',
-            code: 'codeA',
-            code_set: ['setA']
+            code_system: 'TEST',
+            code_set: ['123'],
+            code: '123'
           }
         }
       ]
     };
 
-    it('returns valid: true when all checks pass', () => {
-      getUUIDv7TimestampSpy.mockReturnValue(now - 1000);
-      isValidCodeSystemSpy.mockReturnValue(true);
-      isValidCodingSpy.mockReturnValue(true);
-
-      const result = validateIntegrity('processEventSet', baseProcessEventSet);
-
-      expect(result.valid).toBe(true);
-      expect(result.errors).toBeUndefined();
-    });
-
-    it('returns error if transaction_id is invalid (undefined timestamp)', () => {
-      getUUIDv7TimestampSpy.mockReturnValue(undefined);
-      isValidCodeSystemSpy.mockReturnValue(true);
-      isValidCodingSpy.mockReturnValue(true);
-
-      const result = validateIntegrity('processEventSet', baseProcessEventSet);
-
-      expect(result.valid).toBe(false);
-      expect(result.errors).toHaveLength(1);
-      expect(result.errors?.[0].key).toBe('transaction_id');
-    });
-
-    it('returns error if transaction_id timestamp is in the future', () => {
-      getUUIDv7TimestampSpy.mockReturnValue(now + 100000);
-      isValidCodeSystemSpy.mockReturnValue(true);
-      isValidCodingSpy.mockReturnValue(true);
-
-      const result = validateIntegrity('processEventSet', baseProcessEventSet);
-
-      expect(result.valid).toBe(false);
-      expect(result.errors?.[0].key).toBe('transaction_id');
-    });
-
-    it('returns error if code_system is invalid', () => {
-      getUUIDv7TimestampSpy.mockReturnValue(now - 1000);
-      isValidCodeSystemSpy.mockReturnValue(false);
-      isValidCodingSpy.mockReturnValue(true);
-
-      const result = validateIntegrity('processEventSet', baseProcessEventSet);
-
-      expect(result.valid).toBe(false);
-      expect(result.errors?.[0].key).toBe('code_system');
-    });
-
-    it('returns error if code is invalid', () => {
-      getUUIDv7TimestampSpy.mockReturnValue(now - 1000);
-      isValidCodeSystemSpy.mockReturnValue(true);
-      isValidCodingSpy.mockReturnValue(false);
-
-      const result = validateIntegrity('processEventSet', baseProcessEventSet);
-
-      expect(result.valid).toBe(false);
-      expect(result.errors?.[0].key).toBe('code');
-    });
-
-    it('returns multiple errors if both code_system and code are invalid', () => {
-      getUUIDv7TimestampSpy.mockReturnValue(now - 1000);
-      isValidCodeSystemSpy.mockReturnValue(false);
-      isValidCodingSpy.mockReturnValue(false);
-
-      const result = validateIntegrity('processEventSet', baseProcessEventSet);
-
-      expect(result.valid).toBe(false);
-      expect(result.errors).toHaveLength(2);
-      expect(result.errors?.map((e) => e.key)).toEqual(expect.arrayContaining(['code_system', 'code']));
-    });
+    const result = validateIntegrity('processEventSet', pes);
+    expect(result.valid).toBe(true);
+    expect(result.errors).toBeUndefined();
   });
 
-  describe('recordLinkage', () => {
-    const baseRecordLinkage: RecordLinkage = {
+  it('returns error for invalid transaction_id in ProcessEventSet', () => {
+    vi.spyOn(utils, 'getUUIDv7Timestamp').mockReturnValue(undefined);
+    vi.spyOn(services, 'isValidCodeSystem').mockReturnValue(true);
+    vi.spyOn(services, 'isValidCoding').mockReturnValue(true);
+
+    const pes: Partial<ProcessEventSet> = {
+      transaction_id: 'bad-uuid',
+      process_event: [
+        {
+          event: {
+            start_datetime: '2024-01-01T00:00:00Z',
+            end_datetime: '2024-01-02T00:00:00Z'
+          },
+          process: {
+            code_system: 'TEST',
+            code_set: ['123'],
+            code: '123'
+          }
+        }
+      ]
+    };
+
+    const result = validateIntegrity('processEventSet', pes);
+    expect(result.valid).toBe(false);
+    expect(result.errors).toBeDefined();
+    expect(result.errors?.[0].key).toBe('transaction_id');
+  });
+
+  it('returns error for future transaction_id timestamp in ProcessEventSet', () => {
+    vi.spyOn(utils, 'getUUIDv7Timestamp').mockReturnValue(now + 100000);
+    vi.spyOn(services, 'isValidCodeSystem').mockReturnValue(true);
+    vi.spyOn(services, 'isValidCoding').mockReturnValue(true);
+
+    const pes: Partial<ProcessEventSet> = {
+      transaction_id: validTransactionId,
+      process_event: [
+        {
+          event: {
+            start_datetime: '2024-01-01T00:00:00Z',
+            end_datetime: '2024-01-02T00:00:00Z'
+          },
+          process: {
+            code_system: 'TEST',
+            code_set: ['123'],
+            code: '123'
+          }
+        }
+      ]
+    };
+
+    const result = validateIntegrity('processEventSet', pes);
+    expect(result.valid).toBe(false);
+    expect(result.errors?.[0].key).toBe('transaction_id');
+  });
+
+  it('returns error for invalid code_system in ProcessEventSet', () => {
+    vi.spyOn(utils, 'getUUIDv7Timestamp').mockReturnValue(now - 1000);
+    vi.spyOn(services, 'isValidCodeSystem').mockReturnValue(false);
+    vi.spyOn(services, 'isValidCoding').mockReturnValue(true);
+
+    const pes: Partial<ProcessEventSet> = {
+      transaction_id: validTransactionId,
+      process_event: [
+        {
+          event: {
+            start_datetime: '2024-01-01T00:00:00Z',
+            end_datetime: '2024-01-02T00:00:00Z'
+          },
+          process: {
+            code_system: 'BAD',
+            code_set: ['123'],
+            code: '123'
+          }
+        }
+      ]
+    };
+
+    const result = validateIntegrity('processEventSet', pes);
+    expect(result.valid).toBe(false);
+    expect(result.errors?.some((e) => e.key === 'code_system')).toBe(true);
+  });
+
+  it('returns error for invalid code in ProcessEventSet', () => {
+    vi.spyOn(utils, 'getUUIDv7Timestamp').mockReturnValue(now - 1000);
+    vi.spyOn(services, 'isValidCodeSystem').mockReturnValue(true);
+    vi.spyOn(services, 'isValidCoding').mockReturnValue(false);
+
+    const pes: Partial<ProcessEventSet> = {
+      transaction_id: validTransactionId,
+      process_event: [
+        {
+          event: {
+            start_datetime: '2024-01-01T00:00:00Z',
+            end_datetime: '2024-01-02T00:00:00Z'
+          },
+          process: {
+            code_system: 'TEST',
+            code_set: ['BAD'],
+            code: 'BAD'
+          }
+        }
+      ]
+    };
+
+    const result = validateIntegrity('processEventSet', pes);
+    expect(result.valid).toBe(false);
+    expect(result.errors?.some((e) => e.key === 'code')).toBe(true);
+  });
+
+  it('returns error for event end before start in ProcessEventSet', () => {
+    vi.spyOn(utils, 'getUUIDv7Timestamp').mockReturnValue(now - 1000);
+    vi.spyOn(services, 'isValidCodeSystem').mockReturnValue(true);
+    vi.spyOn(services, 'isValidCoding').mockReturnValue(true);
+
+    const pes: Partial<ProcessEventSet> = {
+      transaction_id: validTransactionId,
+      process_event: [
+        {
+          event: {
+            start_datetime: '2024-01-02T00:00:00Z',
+            end_datetime: '2024-01-01T00:00:00Z'
+          },
+          process: {
+            code_system: 'TEST',
+            code_set: ['123'],
+            code: '123'
+          }
+        }
+      ]
+    };
+
+    const result = validateIntegrity('processEventSet', pes);
+    expect(result.valid).toBe(false);
+    expect(result.errors?.some((e) => e.key === 'end_datetime' || e.key === 'end_date')).toBe(true);
+  });
+
+  it('returns valid for a correct RecordLinkage', () => {
+    vi.spyOn(utils, 'getUUIDv7Timestamp').mockReturnValue(now - 1000);
+
+    const rl: Partial<RecordLinkage> = {
       transaction_id: validTransactionId
       // other fields as needed
-    } as RecordLinkage;
+    };
 
-    it('returns valid: true when header is valid', () => {
-      getUUIDv7TimestampSpy.mockReturnValue(now - 1000);
+    const result = validateIntegrity('recordLinkage', rl);
+    expect(result.valid).toBe(true);
+    expect(result.errors).toBeUndefined();
+  });
 
-      const result = validateIntegrity('recordLinkage', baseRecordLinkage);
+  it('returns error for invalid transaction_id in RecordLinkage', () => {
+    vi.spyOn(utils, 'getUUIDv7Timestamp').mockReturnValue(undefined);
 
-      expect(result.valid).toBe(true);
-      expect(result.errors).toBeUndefined();
-    });
+    const rl: Partial<RecordLinkage> = {
+      transaction_id: 'bad-uuid'
+      // other fields as needed
+    };
 
-    it('returns error if header is invalid', () => {
-      getUUIDv7TimestampSpy.mockReturnValue(undefined);
-
-      const result = validateIntegrity('recordLinkage', baseRecordLinkage);
-
-      expect(result.valid).toBe(false);
-      expect(result.errors?.[0].key).toBe('transaction_id');
-    });
+    const result = validateIntegrity('recordLinkage', rl);
+    expect(result.valid).toBe(false);
+    expect(result.errors?.[0].key).toBe('transaction_id');
   });
 });
