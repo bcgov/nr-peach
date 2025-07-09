@@ -1,16 +1,15 @@
 import { TransactionRepository } from '../../../src/repositories/transaction.ts';
 import { checkDuplicateTransactionHeaderService } from '../../../src/services/header.ts';
 import { transactionWrapper } from '../../../src/services/utils.ts';
-import Problem from '../../../src/utils/problem.ts';
 
 import type { Mock } from 'vitest';
 
-vi.mock('../../../src/services/utils.ts', () => ({
-  transactionWrapper: vi.fn()
-}));
-
 vi.mock('../../../src/repositories/transaction.ts', () => ({
   TransactionRepository: vi.fn()
+}));
+
+vi.mock('../../../src/services/utils.ts', () => ({
+  transactionWrapper: vi.fn()
 }));
 
 describe('checkDuplicateTransactionHeaderService', () => {
@@ -19,7 +18,6 @@ describe('checkDuplicateTransactionHeaderService', () => {
   let executeMock: Mock;
 
   beforeEach(() => {
-    vi.clearAllMocks();
     executeMock = vi.fn();
     readMock = vi.fn(() => ({ execute: executeMock }));
     (TransactionRepository as Mock).mockImplementation(() => ({
@@ -41,9 +39,11 @@ describe('checkDuplicateTransactionHeaderService', () => {
   it('throws a conflict error if duplicate transaction is found', async () => {
     executeMock.mockResolvedValue([{}]);
 
-    await expect(checkDuplicateTransactionHeaderService(transactionId)).rejects.toEqual(
-      new Problem(409, { detail: 'Transaction already exists' }, { transaction_id: transactionId })
-    );
+    await expect(checkDuplicateTransactionHeaderService(transactionId)).rejects.toMatchObject({
+      status: 409,
+      detail: 'Transaction already exists',
+      transaction_id: transactionId
+    });
   });
 
   it('calls transactionWrapper with accessMode "read only"', async () => {

@@ -5,7 +5,7 @@ import type { Kysely, Transaction } from 'kysely';
 import type { DB } from '../../../src/types/index.js';
 
 // Locally extend DB interface to test against an abstract 'schema.test_table' table
-declare module '../../src/types/index.d.ts' {
+declare module '../../../src/types/index.d.ts' {
   interface DB {
     'schema.test_table': { id: number; foo: string; bar: string };
   }
