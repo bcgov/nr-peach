@@ -1,6 +1,7 @@
 import { v7 as uuidv7 } from 'uuid';
 
 import { CodingDictionary } from './coding.ts';
+import { dateTimePartsToEvent, eventToDateTimeParts } from './event.ts';
 import { cacheableRead, cacheableUpsert } from './lruCache.ts';
 import { transactionWrapper } from './utils.ts';
 import {
@@ -15,7 +16,7 @@ import {
 import { getLogger, Problem } from '../utils/index.ts';
 
 import type { Selectable } from 'kysely';
-import type { Event, Header, PiesSystemRecord, Process, ProcessEvent, ProcessEventSet } from '../types/index.d.ts';
+import type { Header, PiesSystemRecord, Process, ProcessEvent, ProcessEventSet } from '../types/index.d.ts';
 
 const log = getLogger(import.meta.filename);
 
@@ -57,22 +58,12 @@ export const findProcessEventSetService = (systemRecord: Selectable<PiesSystemRe
 
       const processEvents: ProcessEvent[] = await Promise.all(
         processEventsRaw.map(async (pe) => {
-          // TODO: Should there be utility functions for ISO 8601 parsing?
-          // TODO: Look into how safe validation is for date representation
-          let event: Event;
-
-          if (pe.startTime) {
-            event = {
-              start_datetime: `${pe.startDate.toISOString().split('T')[0]}T${pe.startTime}`,
-              end_datetime:
-                pe.endDate && pe.endTime ? `${pe.endDate.toISOString().split('T')[0]}T${pe.endTime}` : undefined
-            };
-          } else {
-            event = {
-              start_date: pe.startDate.toISOString().split('T')[0],
-              end_date: pe.endDate ? pe.endDate.toISOString().split('T')[0] : undefined
-            };
-          }
+          const event = dateTimePartsToEvent({
+            startDate: pe.startDate,
+            startTime: pe.startTime ?? undefined,
+            endDate: pe.endDate ?? undefined,
+            endTime: pe.endTime ?? undefined
+          });
 
           const coding = await cacheableRead(new CodingRepository(trx), pe.codingId).catch((error) => {
             log.warn(`No coding found for process events, ${error}`);
@@ -147,28 +138,23 @@ export const replaceProcessEventSetService = (data: ProcessEventSet): Promise<vo
     // Insert new process events
     await Promise.all(
       data.process_event.map(async (pe) => {
+        const { event, process } = pe;
+
         const coding = await cacheableUpsert(new CodingRepository(trx), {
-          code: pe.process.code,
-          codeSystem: pe.process.code_system,
+          code: process.code,
+          codeSystem: process.code_system,
           versionId: data.version
         });
 
-        // TODO: Should there be utility functions for ISO 8601 parsing?
-        // TODO: Look into how safe validation is for date representation
-        const eventStart = pe.event.start_datetime ?? pe.event.start_date!;
-        const eventEnd = pe.event.end_datetime ?? pe.event.end_date;
         await new ProcessEventRepository(trx)
           .create({
             codingId: coding.id,
-            endDate: eventEnd?.split('T')[0],
-            endTime: pe.event.end_datetime ? eventEnd?.split('T')[1] : undefined,
-            startDate: eventStart.split('T')[0],
-            startTime: pe.event.start_datetime ? eventStart.split('T')[1] : undefined,
-            status: pe.process.status,
-            statusCode: pe.process.status_code,
-            statusDescription: pe.process.status_description,
+            status: process.status,
+            statusCode: process.status_code,
+            statusDescription: process.status_description,
             systemRecordId: systemRecord.id,
-            transactionId: data.transaction_id
+            transactionId: data.transaction_id,
+            ...eventToDateTimeParts(event)
           })
           .execute();
       })
