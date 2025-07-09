@@ -4,6 +4,7 @@ import { mockSqlExecuteReturn } from './kysely.helper.ts';
 import { Kysely, Migrator, sql } from 'kysely';
 import { readdirSync } from 'node:fs';
 
+import { testSystemTime } from '../vitest.setup.ts';
 import { state } from '../../../src/state.ts';
 import {
   checkDatabaseHealth,
@@ -39,8 +40,6 @@ describe('migrator', () => {
 });
 
 describe('checkDatabaseHealth', { shuffle: false }, () => {
-  const testSystemTime = 1735718400000; // Jan 1, 2025 00:00:00 GMT
-
   beforeAll(() => {
     vi.useFakeTimers();
   });

@@ -37,6 +37,7 @@ pool.on('acquire', () => log.silly('Database has acquired a client', { clientCou
 pool.on('release', () => log.silly('Database has released a client', { clientCount: pool.totalCount }));
 pool.on('remove', () => log.silly('Database has removed a client', { clientCount: pool.totalCount }));
 
+let healthCheckPromise: Promise<boolean> | null = null;
 let lastHealthCheckTime = 0;
 let lastHealthCheckResult: boolean | null = null;
 
@@ -69,24 +70,32 @@ export async function checkDatabaseHealth(now?: number): Promise<boolean> {
     return lastHealthCheckResult;
   }
 
-  try {
-    const result = await sql<{ result: number }>`SELECT 1 AS result`.execute(db);
-    const healthy = result.rows?.[0]?.result === 1;
-    lastHealthCheckTime = now;
-    lastHealthCheckResult = healthy;
-    log.debug(`Database is ${lastHealthCheckResult ? 'healthy' : 'unhealthy'}`);
-    return lastHealthCheckResult;
-  } catch (error) {
-    lastHealthCheckTime = now;
-    lastHealthCheckResult = false;
-    log.error('Database is unhealthy', {
-      code: (error as { code?: string }).code,
-      message: (error as Error).message,
-      stack: (error as Error).stack,
-      error
-    });
-    return lastHealthCheckResult;
-  }
+  // Promise lock to prevent multiple concurrent health checks.
+  if (healthCheckPromise) return healthCheckPromise;
+  healthCheckPromise = (async () => {
+    try {
+      const result = await sql<{ result: number }>`SELECT 1 AS result`.execute(db);
+      const healthy = result.rows?.[0]?.result === 1;
+      lastHealthCheckTime = now!;
+      lastHealthCheckResult = healthy;
+      log.debug(`Database is ${lastHealthCheckResult ? 'healthy' : 'unhealthy'}`);
+      return lastHealthCheckResult;
+    } catch (error) {
+      lastHealthCheckTime = now!;
+      lastHealthCheckResult = false;
+      log.error('Database is unhealthy', {
+        code: (error as { code?: string }).code,
+        message: (error as Error).message,
+        stack: (error as Error).stack,
+        error
+      });
+      return lastHealthCheckResult;
+    } finally {
+      healthCheckPromise = null; // Reset the promise lock
+    }
+  })();
+
+  return healthCheckPromise;
 }
 
 /**
@@ -114,7 +123,7 @@ export async function getMigrations(): Promise<Record<string, Migration>> {
   for (const fileName of files) {
     if (fileName.endsWith('.ts') && !fileName.endsWith('.d.ts')) {
       const migrationKey = fileName.substring(0, fileName.lastIndexOf('.'));
-      migrations[migrationKey] = (await import(`./migrations/${fileName}`)) as Migration;
+      migrations[migrationKey] = (await import(`./migrations/${migrationKey}.ts`)) as Migration;
     }
   }
   return migrations;

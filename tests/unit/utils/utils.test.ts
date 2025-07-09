@@ -1,5 +1,6 @@
 import { existsSync, readFileSync, statSync } from 'node:fs';
 
+import { testSystemTime } from '../vitest.setup.ts';
 import { getUUIDv7Timestamp, getGitRevision, sortObject } from '../../../src/utils/utils.ts';
 
 import type { Mock } from 'vitest';
@@ -126,7 +127,7 @@ describe('getGitRevision', () => {
 describe('getUUIDv7Timestamp', () => {
   it('should return the correct timestamp for a valid UUIDv7', () => {
     // Timestamp of 0x019420e0f000 is 1735718400000 ms or Jan 1, 2025 00:00:00 GMT
-    expect(getUUIDv7Timestamp('019420e0-f000-7000-8000-000000000000')).toBe(1735718400000);
+    expect(getUUIDv7Timestamp('019420e0-f000-7000-8000-000000000000')).toBe(testSystemTime);
   });
 
   it('should return undefined for an invalid UUID', () => {
