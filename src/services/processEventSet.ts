@@ -131,11 +131,15 @@ export const replaceProcessEventSetService = (data: ProcessEventSet): Promise<vo
       kind: data.kind,
       versionId: data.version
     });
-    const systemRecord = await cacheableUpsert(new SystemRecordRepository(trx), {
-      recordId: data.record_id,
-      recordKindId: recordKind.id,
-      systemId: data.system_id
-    });
+    const systemRecord = await cacheableUpsert(
+      new SystemRecordRepository(trx),
+      {
+        recordId: data.record_id,
+        recordKindId: recordKind.id,
+        systemId: data.system_id
+      },
+      false // LRU caching is not very beneficial for this operation
+    );
 
     // Prune existing process events for the system record
     await new ProcessEventRepository(trx).prune(systemRecord.id).execute();
