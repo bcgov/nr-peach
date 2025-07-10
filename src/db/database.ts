@@ -76,12 +76,12 @@ export async function checkDatabaseHealth(now?: number): Promise<boolean> {
     try {
       const result = await sql<{ result: number }>`SELECT 1 AS result`.execute(db);
       const healthy = result.rows?.[0]?.result === 1;
-      lastHealthCheckTime = now!;
+      lastHealthCheckTime = now;
       lastHealthCheckResult = healthy;
       log.debug(`Database is ${lastHealthCheckResult ? 'healthy' : 'unhealthy'}`);
       return lastHealthCheckResult;
     } catch (error) {
-      lastHealthCheckTime = now!;
+      lastHealthCheckTime = now;
       lastHealthCheckResult = false;
       log.error('Database is unhealthy', {
         code: (error as { code?: string }).code,

@@ -65,14 +65,30 @@ export function eventToDateTimeParts(event: Event): {
  * @throws {Error} If the time string is not in a valid format.
  */
 export function mergeDateAndTimeToISOString(date: Date, time: string): string {
-  const [year, month, day] = date.toISOString().split('T')[0].split('-').map(Number);
-
-  // Extract and audit time parts (HH:mm[:ss[.sss]])
-  const timeMatch = /^(\d{2}):(\d{2})(?::(\d{2})(?:\.(\d+))?)?/.exec(time);
-  if (!timeMatch) throw new Error(`Invalid time format: ${time}`);
-  const [, hour, minute, second = '0', ms = '0'] = timeMatch;
-
-  return new Date(
-    Date.UTC(year, month - 1, day, Number(hour), Number(minute), Number(second), Number(ms))
-  ).toISOString();
+  const year = date.getUTCFullYear();
+  const month = date.getUTCMonth();
+  const day = date.getUTCDate();
+  // Split the time string into components, dropping the timezone offset if present
+  const timeParts = time.split(/[+-]/)[0].split(':');
+  if (timeParts.length < 2 || timeParts.length > 3) {
+    throw new Error(`Invalid time format: ${time}`);
+  }
+  const hour = Number(timeParts[0]);
+  const minute = Number(timeParts[1]);
+  const [second, ms = 0] = timeParts[2]?.split('.') || ['0', '0'];
+  if (
+    isNaN(hour) ||
+    isNaN(minute) ||
+    isNaN(Number(second)) ||
+    (ms && isNaN(Number(ms))) ||
+    hour < 0 ||
+    hour > 23 ||
+    minute < 0 ||
+    minute > 59 ||
+    Number(second) < 0 ||
+    Number(second) > 59
+  ) {
+    throw new Error(`Invalid time format: ${time}`);
+  }
+  return new Date(Date.UTC(year, month, day, hour, minute, Number(second), Number(ms))).toISOString();
 }
