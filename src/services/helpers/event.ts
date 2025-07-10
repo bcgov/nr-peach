@@ -1,4 +1,4 @@
-import type { Event } from '../types/index.d.ts';
+import type { Event } from '../../types/index.d.ts';
 
 /**
  * Converts date and time parts into an Event object with appropriate RFC 3339 date or datetime fields.

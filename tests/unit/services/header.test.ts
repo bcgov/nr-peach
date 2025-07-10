@@ -1,29 +1,30 @@
 import { TransactionRepository } from '../../../src/repositories/transaction.ts';
 import { checkDuplicateTransactionHeaderService } from '../../../src/services/header.ts';
-import { transactionWrapper } from '../../../src/services/utils.ts';
+import * as repository from '../../../src/services/helpers/repository.ts';
 
+import type { Transaction } from 'kysely';
 import type { Mock } from 'vitest';
+import type { DB } from '../../../src/types/index.d.ts';
 
 vi.mock('../../../src/repositories/transaction.ts', () => ({
   TransactionRepository: vi.fn()
 }));
 
-vi.mock('../../../src/services/utils.ts', () => ({
-  transactionWrapper: vi.fn()
-}));
-
 describe('checkDuplicateTransactionHeaderService', () => {
   const transactionId = 'test-id';
-  let readMock: Mock;
-  let executeMock: Mock;
+
+  const transactionWrapperSpy = vi.spyOn(repository, 'transactionWrapper');
+  const readMock = vi.fn();
+  const executeMock = vi.fn();
 
   beforeEach(() => {
-    executeMock = vi.fn();
-    readMock = vi.fn(() => ({ execute: executeMock }));
+    readMock.mockImplementation(() => ({ execute: executeMock }));
     (TransactionRepository as Mock).mockImplementation(() => ({
       read: readMock
     }));
-    (transactionWrapper as Mock).mockImplementation((fn: () => Promise<void>) => fn());
+    transactionWrapperSpy.mockImplementation((fn: (trx: Transaction<DB>) => Promise<unknown>) =>
+      fn({} as Transaction<DB>)
+    );
   });
 
   it('resolves if no duplicate transaction is found', async () => {
@@ -51,6 +52,6 @@ describe('checkDuplicateTransactionHeaderService', () => {
 
     await checkDuplicateTransactionHeaderService(transactionId);
 
-    expect(transactionWrapper).toHaveBeenCalledWith(expect.any(Function), { accessMode: 'read only' });
+    expect(transactionWrapperSpy).toHaveBeenCalledWith(expect.any(Function), { accessMode: 'read only' });
   });
 });

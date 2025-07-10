@@ -1,15 +1,13 @@
 import { SystemRecordRepository } from '../../../src/repositories/index.ts';
 import { findSingleSystemRecordService } from '../../../src/services/systemRecord.ts';
-import { transactionWrapper } from '../../../src/services/utils.ts';
+import * as repository from '../../../src/services/helpers/repository.ts';
 
+import type { Transaction } from 'kysely';
 import type { Mock } from 'vitest';
+import type { DB } from '../../../src/types/index.d.ts';
 
 vi.mock('../../../src/repositories/index.ts', () => ({
   SystemRecordRepository: vi.fn()
-}));
-
-vi.mock('../../../src/services/utils.ts', () => ({
-  transactionWrapper: vi.fn()
 }));
 
 describe('findSingleSystemRecordService', () => {
@@ -17,16 +15,18 @@ describe('findSingleSystemRecordService', () => {
   const systemId = 'sys-456';
   const mockRecord = { recordId, systemId, foo: 'bar' };
 
-  let findByMock: Mock;
-  let executeMock: Mock;
+  const transactionWrapperSpy = vi.spyOn(repository, 'transactionWrapper');
+  const findByMock = vi.fn();
+  const executeMock = vi.fn();
 
   beforeEach(() => {
-    executeMock = vi.fn();
-    findByMock = vi.fn(() => ({ execute: executeMock }));
+    findByMock.mockImplementation(() => ({ execute: executeMock }));
     (SystemRecordRepository as Mock).mockImplementation(() => ({
       findBy: findByMock
     }));
-    (transactionWrapper as Mock).mockImplementation((fn: () => Promise<void>) => fn());
+    transactionWrapperSpy.mockImplementation((fn: (trx: Transaction<DB>) => Promise<unknown>) =>
+      fn({} as Transaction<DB>)
+    );
   });
 
   it('returns a single system record without systemId specified', async () => {

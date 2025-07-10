@@ -4,6 +4,7 @@ import request from 'supertest';
 import { validateRequestIntegrity, validateRequestSchema } from '../../../src/middlewares/validator.ts';
 import Problem from '../../../src/utils/problem.ts';
 import * as validators from '../../../src/validators/index.ts';
+import { IntegrityDefinitions } from '../../../src/validators/integrity/integrity.ts';
 
 import type { Application, Request, RequestHandler, Response } from 'express';
 
@@ -24,7 +25,7 @@ describe('validateRequestIntegrity', () => {
 
     app.post(
       '/test',
-      validateRequestIntegrity({ body: validators.IntegrityDefinitions.processEventSet }),
+      validateRequestIntegrity({ body: IntegrityDefinitions.processEventSet }),
       mockHandler as unknown as RequestHandler
     );
 
@@ -33,7 +34,7 @@ describe('validateRequestIntegrity', () => {
     expect(response.status).toBe(200);
     expect(mockHandler).toHaveBeenCalledTimes(1);
     expect(sendSpy).toHaveBeenCalledTimes(0);
-    expect(validateIntegritySpy).toHaveBeenCalledWith(validators.IntegrityDefinitions.processEventSet, {
+    expect(validateIntegritySpy).toHaveBeenCalledWith(IntegrityDefinitions.processEventSet, {
       name: 'John Doe'
     });
   });
@@ -43,7 +44,7 @@ describe('validateRequestIntegrity', () => {
 
     app.get(
       '/test',
-      validateRequestIntegrity({ headers: validators.IntegrityDefinitions.processEventSet }),
+      validateRequestIntegrity({ headers: IntegrityDefinitions.processEventSet }),
       mockHandler as unknown as RequestHandler
     );
 
@@ -53,7 +54,7 @@ describe('validateRequestIntegrity', () => {
     expect(mockHandler).toHaveBeenCalledTimes(1);
     expect(sendSpy).toHaveBeenCalledTimes(0);
     expect(validateIntegritySpy).toHaveBeenCalledWith(
-      validators.IntegrityDefinitions.processEventSet,
+      IntegrityDefinitions.processEventSet,
       expect.objectContaining({
         authorization: 'Bearer token'
       })
@@ -68,7 +69,7 @@ describe('validateRequestIntegrity', () => {
 
     app.post(
       '/test',
-      validateRequestIntegrity({ body: validators.IntegrityDefinitions.processEventSet }),
+      validateRequestIntegrity({ body: IntegrityDefinitions.processEventSet }),
       mockHandler as unknown as RequestHandler
     );
 
@@ -81,7 +82,7 @@ describe('validateRequestIntegrity', () => {
     expect(response.body.errors.body).toBeTruthy();
     expect(mockHandler).toHaveBeenCalledTimes(0);
     // expect(sendSpy).toHaveBeenCalledTimes(1); // TODO: Figure out why this is not called
-    expect(validateIntegritySpy).toHaveBeenCalledWith(validators.IntegrityDefinitions.processEventSet, {});
+    expect(validateIntegritySpy).toHaveBeenCalledWith(IntegrityDefinitions.processEventSet, {});
   });
 
   it('should return 422 and handle multiple integrity validation errors', async () => {
@@ -98,8 +99,8 @@ describe('validateRequestIntegrity', () => {
     app.post(
       '/test',
       validateRequestIntegrity({
-        body: validators.IntegrityDefinitions.processEventSet,
-        query: validators.IntegrityDefinitions.recordLinkage
+        body: IntegrityDefinitions.processEventSet,
+        query: IntegrityDefinitions.recordLinkage
       }),
       mockHandler as unknown as RequestHandler
     );
@@ -117,8 +118,8 @@ describe('validateRequestIntegrity', () => {
     expect(response.body.errors.query).toBeTruthy();
     expect(mockHandler).toHaveBeenCalledTimes(0);
     // expect(sendSpy).toHaveBeenCalledTimes(1); // TODO: Figure out why this is not called
-    expect(validateIntegritySpy).toHaveBeenNthCalledWith(1, validators.IntegrityDefinitions.processEventSet, {});
-    expect(validateIntegritySpy).toHaveBeenNthCalledWith(2, validators.IntegrityDefinitions.recordLinkage, {});
+    expect(validateIntegritySpy).toHaveBeenNthCalledWith(1, IntegrityDefinitions.processEventSet, {});
+    expect(validateIntegritySpy).toHaveBeenNthCalledWith(2, IntegrityDefinitions.recordLinkage, {});
   });
 });
 

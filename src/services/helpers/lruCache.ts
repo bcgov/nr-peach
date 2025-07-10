@@ -1,12 +1,12 @@
 import { LRUCache } from 'lru-cache';
 import { createHash } from 'node:crypto';
 
-import { findByThenUpsert } from './utils.ts';
-import { BaseRepository } from '../repositories/index.ts';
-import { getLogger, sortObject } from '../utils/index.ts';
+import { findByThenUpsert } from './repository.ts';
+import { BaseRepository } from '../../repositories/index.ts';
+import { getLogger, sortObject } from '../../utils/index.ts';
 
 import type { FilterObject, InsertObject, OperandValueExpression, Selectable, Simplify } from 'kysely';
-import type { DB } from '../types/index.d.ts';
+import type { DB } from '../../types/index.d.ts';
 
 const log = getLogger(import.meta.filename);
 

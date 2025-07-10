@@ -2,9 +2,9 @@ import {
   dateTimePartsToEvent,
   eventToDateTimeParts,
   mergeDateAndTimeToISOString
-} from '../../../src/services/event.ts';
+} from '../../../../src/services/helpers/event.ts';
 
-import type { Event } from '../../../src/types/index.d.ts';
+import type { Event } from '../../../../src/types/index.d.ts';
 
 describe('mergeDateAndTimeToISOString', () => {
   it('merges date and time (HH:mm) to ISO string in UTC', () => {

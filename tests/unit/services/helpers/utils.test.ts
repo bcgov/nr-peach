@@ -1,12 +1,12 @@
 import { DatabaseError } from 'pg';
 
-import { db } from '../../../src/db/database.ts';
-import { BaseRepository } from '../../../src/repositories/base.ts';
-import { findByThenUpsert, transactionWrapper } from '../../../src/services/utils.ts';
+import { db } from '../../../../src/db/database.ts';
+import { BaseRepository } from '../../../../src/repositories/base.ts';
+import { findByThenUpsert, transactionWrapper } from '../../../../src/services/helpers/repository.ts';
 
 import type { Kysely, Transaction } from 'kysely';
 import type { Mock } from 'vitest';
-import type { DB } from '../../../src/types/index.js';
+import type { DB } from '../../../../src/types/index.js';
 
 class MockRepository extends BaseRepository<'pies.version'> {
   constructor(db?: Kysely<DB> | Transaction<DB>) {
