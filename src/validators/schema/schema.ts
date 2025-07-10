@@ -1,13 +1,12 @@
 import { Ajv } from 'ajv';
 import formats from 'ajv-formats';
 
-import { getLogger } from '../utils/index.ts';
+import { getLogger } from '../../utils/index.ts';
 
-import type { AnySchemaObject, AnyValidateFunction, ErrorObject, Options, Plugin } from 'ajv/dist/core.js';
+import type { AnySchemaObject, Options, Plugin } from 'ajv/dist/core.js';
 import type { FormatsPluginOptions } from 'ajv-formats';
 
 const log = getLogger(import.meta.filename);
-const ajvCache: Record<string, Ajv> = {};
 const schemaCache: Record<string, AnySchemaObject> = {};
 
 /**
@@ -53,40 +52,4 @@ export async function loadSchema(schema: string): Promise<AnySchemaObject> {
   }
 
   return schemaCache[schema];
-}
-
-/**
- * Validates data against a JSON schema.
- * Caches string-identified schemas for reuse; compiles non-string schemas directly.
- * @param schema The schema to validate against (string identifier or schema object).
- * @param data The data to validate.
- * @returns A promise that resolves to an object containing:
- * - `valid`: A boolean indicating whether the data is valid according to the schema.
- * - `errors`: An optional property containing validation errors if the data is invalid.
- */
-export async function validateSchema(
-  schema: AnySchemaObject | string,
-  data: unknown
-): Promise<{ valid: boolean; errors?: ErrorObject[] }> {
-  let validate: AnyValidateFunction<unknown>;
-  if (typeof schema === 'string') {
-    const cached = schema in ajvCache;
-    log.verbose('validateSchema', { cached, schema });
-
-    if (cached) {
-      validate = ajvCache[schema].getSchema(schema)!;
-    } else {
-      const ajv = createAjvInstance();
-
-      const def = await loadSchema(schema);
-      validate = await ajv.compileAsync(def);
-      ajvCache[schema] = ajv;
-    }
-  } else {
-    const ajv = createAjvInstance();
-    validate = await ajv.compileAsync(schema);
-  }
-
-  const valid = !!validate(data);
-  return { valid: valid, errors: validate.errors ?? undefined };
 }

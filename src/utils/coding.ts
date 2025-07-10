@@ -92,30 +92,3 @@ export const CodingDictionary: Record<
     }
   }
 });
-
-/** A Set containing the keys of the `coding` object, representing all available code systems. */
-const codeSystemSetCache = new Set<keyof typeof CodingDictionary>(Object.keys(CodingDictionary));
-/** Caches sets of codes for each code system. */
-const codeSetCache: Record<string, Set<string>> = {};
-for (const codeSystem of codeSystemSetCache) {
-  codeSetCache[codeSystem] = new Set(Object.keys(CodingDictionary[codeSystem]));
-}
-
-/**
- * Checks if the provided code system exists in the cached set of code systems.
- * @param codeSystem - The code system to validate.
- * @returns `true` if the code system is present in the cache; otherwise, `false`.
- */
-export function isValidCodeSystem(codeSystem: string): boolean {
-  return codeSystemSetCache.has(codeSystem);
-}
-
-/**
- * Determines whether a given code is valid within a specified code system.
- * @param codeSystem - The code system to validate against.
- * @param code - The code to check for validity within the code system.
- * @returns `true` if the code system is valid and the code exists in the code set cache; otherwise, `false`.
- */
-export function isValidCoding(codeSystem: string, code: string): boolean {
-  return isValidCodeSystem(codeSystem) && codeSetCache[codeSystem].has(code);
-}

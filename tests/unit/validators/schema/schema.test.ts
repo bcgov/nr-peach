@@ -1,6 +1,6 @@
 import { Ajv } from 'ajv';
 
-import { createAjvInstance, loadSchema, validateSchema } from '../../../src/validators/schema.ts';
+import { createAjvInstance, loadSchema } from '../../../../src/validators/schema/schema.ts';
 
 describe('createAjvInstance', () => {
   it('should create an Ajv instance with default options', () => {
@@ -60,57 +60,5 @@ describe('loadSchema', () => {
     global.fetch = vi.fn().mockResolvedValue({ ok: false });
 
     await expect(loadSchema(schemaUri)).rejects.toThrow(`Failed to load schema ${schemaUri}`);
-  });
-});
-
-describe('validateSchema', () => {
-  it('should validate data against a schema URI and cache it', async () => {
-    const schemaUri = 'https://example.com/bam.json';
-    const schema = { type: 'object' };
-    const data = { key: 'value' };
-
-    global.fetch = vi.fn().mockResolvedValue({
-      ok: true,
-      json: vi.fn().mockResolvedValue(schema)
-    });
-
-    const result = await validateSchema(schemaUri, data);
-
-    expect(result.valid).toBe(true);
-    expect(result.errors).toBeUndefined();
-  });
-
-  it('should validate data against a cached schema', async () => {
-    const schemaUri = 'https://example.com/fam.json';
-    const schema = { type: 'object' };
-    const data = { key: 'value' };
-
-    global.fetch = vi.fn().mockResolvedValue({
-      ok: true,
-      json: vi.fn().mockResolvedValue(schema)
-    });
-
-    // Invoke once to cache it
-    await validateSchema(schemaUri, data);
-    // Invoke again to test cache usage
-    try {
-      await validateSchema(schemaUri, data);
-    } catch (error) {
-      expect(error).toBeDefined();
-      // This is not a great test, but it ensures that the cache logic line is used
-    }
-  });
-
-  it('should return validation errors for invalid data', async () => {
-    const schema = { type: 'object', required: ['key'] };
-    const data = {};
-
-    const ajv = createAjvInstance();
-    ajv.compileAsync = vi.fn().mockResolvedValue(() => false);
-
-    const result = await validateSchema(schema, data);
-
-    expect(result.valid).toBe(false);
-    expect(result.errors).toBeDefined();
   });
 });
