@@ -1,50 +1,41 @@
+// Always import repository.helper.ts and transactionWrapper first to ensure mocks are set up
+import { baseRepositoryMock, executeMock } from './repository.helper.ts';
+import { transactionWrapper } from '../../../src/services/helpers/repo.ts';
+
 import { SystemRecordRepository } from '../../../src/repositories/index.ts';
 import { findSingleSystemRecordService } from '../../../src/services/systemRecord.ts';
-import * as repository from '../../../src/services/helpers/repository.ts';
-
-import type { Transaction } from 'kysely';
-import type { Mock } from 'vitest';
-import type { DB } from '../../../src/types/index.d.ts';
-
-vi.mock('../../../src/repositories/index.ts', () => ({
-  SystemRecordRepository: vi.fn()
-}));
 
 describe('findSingleSystemRecordService', () => {
   const recordId = 'rec-123';
   const systemId = 'sys-456';
   const mockRecord = { recordId, systemId, foo: 'bar' };
 
-  const transactionWrapperSpy = vi.spyOn(repository, 'transactionWrapper');
-  const findByMock = vi.fn();
-  const executeMock = vi.fn();
-
-  beforeEach(() => {
-    findByMock.mockImplementation(() => ({ execute: executeMock }));
-    (SystemRecordRepository as Mock).mockImplementation(() => ({
-      findBy: findByMock
-    }));
-    transactionWrapperSpy.mockImplementation((fn: (trx: Transaction<DB>) => Promise<unknown>) =>
-      fn({} as Transaction<DB>)
-    );
-  });
-
   it('returns a single system record without systemId specified', async () => {
-    executeMock.mockResolvedValue([mockRecord]);
+    executeMock.execute.mockResolvedValue([mockRecord]);
+
     const result = await findSingleSystemRecordService(recordId);
+
     expect(result).toEqual(mockRecord);
-    expect(findByMock).toHaveBeenCalledWith({ recordId });
+    expect(SystemRecordRepository).toHaveBeenCalledTimes(1);
+    expect(transactionWrapper).toHaveBeenCalledTimes(1);
+    expect(baseRepositoryMock.findBy).toHaveBeenCalledWith({ recordId });
+    expect(executeMock.execute).toHaveBeenCalledTimes(1);
   });
 
   it('returns a single system record with systemId specified', async () => {
-    executeMock.mockResolvedValue([mockRecord]);
+    executeMock.execute.mockResolvedValue([mockRecord]);
+
     const result = await findSingleSystemRecordService(recordId, systemId);
+
     expect(result).toEqual(mockRecord);
-    expect(findByMock).toHaveBeenCalledWith({ recordId, systemId });
+    expect(SystemRecordRepository).toHaveBeenCalledTimes(1);
+    expect(transactionWrapper).toHaveBeenCalledTimes(1);
+    expect(baseRepositoryMock.findBy).toHaveBeenCalledWith({ recordId, systemId });
+    expect(executeMock.execute).toHaveBeenCalledTimes(1);
   });
 
   it('throws not found error if no system record found without systemId specified', async () => {
-    executeMock.mockResolvedValue([]);
+    executeMock.execute.mockResolvedValue([]);
 
     await expect(findSingleSystemRecordService(recordId)).rejects.toMatchObject({
       status: 404,
@@ -54,7 +45,7 @@ describe('findSingleSystemRecordService', () => {
   });
 
   it('throws not found error if no system record found with systemId specified', async () => {
-    executeMock.mockResolvedValue([]);
+    executeMock.execute.mockResolvedValue([]);
 
     await expect(findSingleSystemRecordService(recordId, systemId)).rejects.toMatchObject({
       status: 404,
@@ -65,7 +56,7 @@ describe('findSingleSystemRecordService', () => {
   });
 
   it('throws conflict error if multiple records found without systemId specified', async () => {
-    executeMock.mockResolvedValue([mockRecord, mockRecord]);
+    executeMock.execute.mockResolvedValue([mockRecord, mockRecord]);
 
     await expect(findSingleSystemRecordService(recordId)).rejects.toMatchObject({
       status: 409,

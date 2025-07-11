@@ -2,7 +2,7 @@ import { DatabaseError } from 'pg';
 
 import { db } from '../../../../src/db/database.ts';
 import { BaseRepository } from '../../../../src/repositories/base.ts';
-import { findByThenUpsert, transactionWrapper } from '../../../../src/services/helpers/repository.ts';
+import { findByThenUpsert, transactionWrapper } from '../../../../src/services/helpers/repo.ts';
 
 import type { Kysely, Transaction } from 'kysely';
 import type { Mock } from 'vitest';

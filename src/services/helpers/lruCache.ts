@@ -1,7 +1,7 @@
 import { LRUCache } from 'lru-cache';
 import { createHash } from 'node:crypto';
 
-import { findByThenUpsert } from './repository.ts';
+import { findByThenUpsert } from './repo.ts';
 import { BaseRepository } from '../../repositories/index.ts';
 import { getLogger, sortObject } from '../../utils/index.ts';
 

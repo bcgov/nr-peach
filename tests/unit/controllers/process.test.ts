@@ -61,7 +61,7 @@ describe('Process Controllers', () => {
 
   describe('POST /process-events', () => {
     it('should check for duplicate and replace, respond with 202', async () => {
-      checkDuplicateTransactionHeaderServiceSpy.mockResolvedValue(undefined);
+      checkDuplicateTransactionHeaderServiceSpy.mockResolvedValue([]);
       replaceProcessEventSetServiceSpy.mockResolvedValue(undefined);
 
       await request(app).post('/process-events').send({ transaction_id: 'tx1', data: 'abc' }).expect(202);
@@ -87,7 +87,7 @@ describe('Process Controllers', () => {
 
   describe('PUT /process-events', () => {
     it('should check for duplicate and merge, respond with 201', async () => {
-      checkDuplicateTransactionHeaderServiceSpy.mockResolvedValue(undefined);
+      checkDuplicateTransactionHeaderServiceSpy.mockResolvedValue([]);
       replaceProcessEventSetServiceSpy.mockResolvedValue(undefined);
 
       await request(app).put('/process-events').send({ transaction_id: 'tx2', data: 'xyz' }).expect(201);

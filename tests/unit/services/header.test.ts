@@ -1,44 +1,27 @@
-import { TransactionRepository } from '../../../src/repositories/transaction.ts';
+// Always import repository.helper.ts and transactionWrapper first to ensure mocks are set up
+import { baseRepositoryMock, executeMock } from './repository.helper.ts';
+import { transactionWrapper } from '../../../src/services/helpers/repo.ts';
+
+import { TransactionRepository } from '../../../src/repositories/index.ts';
 import { checkDuplicateTransactionHeaderService } from '../../../src/services/header.ts';
-import * as repository from '../../../src/services/helpers/repository.ts';
-
-import type { Transaction } from 'kysely';
-import type { Mock } from 'vitest';
-import type { DB } from '../../../src/types/index.d.ts';
-
-vi.mock('../../../src/repositories/transaction.ts', () => ({
-  TransactionRepository: vi.fn()
-}));
 
 describe('checkDuplicateTransactionHeaderService', () => {
   const transactionId = 'test-id';
 
-  const transactionWrapperSpy = vi.spyOn(repository, 'transactionWrapper');
-  const readMock = vi.fn();
-  const executeMock = vi.fn();
-
-  beforeEach(() => {
-    readMock.mockImplementation(() => ({ execute: executeMock }));
-    (TransactionRepository as Mock).mockImplementation(() => ({
-      read: readMock
-    }));
-    transactionWrapperSpy.mockImplementation((fn: (trx: Transaction<DB>) => Promise<unknown>) =>
-      fn({} as Transaction<DB>)
-    );
-  });
-
   it('resolves if no duplicate transaction is found', async () => {
-    executeMock.mockResolvedValue([]);
+    executeMock.execute.mockResolvedValue([]);
 
-    await expect(checkDuplicateTransactionHeaderService(transactionId)).resolves.toBeUndefined();
+    const result = await checkDuplicateTransactionHeaderService(transactionId);
 
+    expect(result).toEqual([]);
+    expect(transactionWrapper).toHaveBeenCalledTimes(1);
     expect(TransactionRepository).toHaveBeenCalledTimes(1);
-    expect(readMock).toHaveBeenCalledWith(transactionId);
-    expect(executeMock).toHaveBeenCalled();
+    expect(baseRepositoryMock.read).toHaveBeenCalledWith(transactionId);
+    expect(executeMock.execute).toHaveBeenCalledTimes(1);
   });
 
   it('throws a conflict error if duplicate transaction is found', async () => {
-    executeMock.mockResolvedValue([{}]);
+    executeMock.execute.mockResolvedValue([{}]);
 
     await expect(checkDuplicateTransactionHeaderService(transactionId)).rejects.toMatchObject({
       status: 409,
@@ -48,10 +31,10 @@ describe('checkDuplicateTransactionHeaderService', () => {
   });
 
   it('calls transactionWrapper with accessMode "read only"', async () => {
-    executeMock.mockResolvedValue([]);
+    executeMock.execute.mockResolvedValue([]);
 
     await checkDuplicateTransactionHeaderService(transactionId);
 
-    expect(transactionWrapperSpy).toHaveBeenCalledWith(expect.any(Function), { accessMode: 'read only' });
+    expect(transactionWrapper).toHaveBeenCalledWith(expect.any(Function), { accessMode: 'read only' });
   });
 });
