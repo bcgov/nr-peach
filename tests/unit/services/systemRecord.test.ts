@@ -1,6 +1,6 @@
-// Always import repository.helper.ts and transactionWrapper first to ensure mocks are set up
+// Always import repository.helper.ts and helpers/index.ts first to ensure mocks are set up
 import { baseRepositoryMock, executeMock } from './repository.helper.ts';
-import { transactionWrapper } from '../../../src/services/helpers/repo.ts';
+import { transactionWrapper } from '../../../src/services/helpers/index.ts';
 
 import { SystemRecordRepository } from '../../../src/repositories/index.ts';
 import { findSingleSystemRecordService } from '../../../src/services/systemRecord.ts';

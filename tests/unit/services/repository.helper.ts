@@ -1,16 +1,29 @@
 /** Dynamically generate mocks for all repositories except BaseRepository */
 vi.mock('../../../src/repositories/index.ts', async () => {
-  return Object.fromEntries(
-    Object.keys(await vi.importActual('../../../src/repositories/index.ts'))
-      .filter((key) => key !== 'BaseRepository')
-      .map((key) => [key, vi.fn(() => baseRepositoryMock)])
+  const actual = await vi.importActual('../../../src/repositories/index.ts');
+  return Object.assign(
+    { ...actual },
+    Object.fromEntries(
+      Object.keys(actual)
+        .filter((key) => key !== 'BaseRepository')
+        .map((key) => [key, vi.fn(() => baseRepositoryMock)])
+    )
   );
 });
 
-/** Spy on the transactionWrapper method to directly test its callback behaviour */
-vi.mock('../../../src/services/helpers/repo.ts', () => ({
-  transactionWrapper: vi.fn((operation: <T>() => Promise<T>) => operation())
-}));
+/** Mock the service helpers so that they are observable */
+vi.mock('../../../src/services/helpers/index.ts', async () => {
+  const actual = await vi.importActual('../../../src/services/helpers/index.ts');
+  return {
+    ...actual,
+    cacheableRead: vi.fn(),
+    cacheableUpsert: vi.fn(),
+    dateTimePartsToEvent: vi.fn(),
+    eventToDateTimeParts: vi.fn(),
+    /** Spy on the transactionWrapper method to directly test its callback behaviour */
+    transactionWrapper: vi.fn((operation: <T>() => Promise<T>) => operation())
+  };
+});
 
 /** Mock implementation of the abstract base repository for unit testing */
 export const baseRepositoryMock = {

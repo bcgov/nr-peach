@@ -18,7 +18,7 @@ import {
 } from '../repositories/index.ts';
 import { CodingDictionary, getLogger, Problem } from '../utils/index.ts';
 
-import type { Selectable } from 'kysely';
+import type { DeleteResult, Selectable } from 'kysely';
 import type { Header, PiesSystemRecord, Process, ProcessEvent, ProcessEventSet } from '../types/index.d.ts';
 
 const log = getLogger(import.meta.filename);
@@ -28,9 +28,11 @@ const log = getLogger(import.meta.filename);
  * @param systemRecord - The system record for which to delete the process event set.
  * @returns A Promise that resolves when the operation is complete.
  */
-export const deleteProcessEventSetService = async (systemRecord: Selectable<PiesSystemRecord>): Promise<void> => {
+export const deleteProcessEventSetService = async (
+  systemRecord: Selectable<PiesSystemRecord>
+): Promise<DeleteResult[]> => {
   return transactionWrapper(async (trx) => {
-    await new ProcessEventRepository(trx).prune(systemRecord.id).execute();
+    return await new ProcessEventRepository(trx).prune(systemRecord.id).execute();
   });
 };
 
