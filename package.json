@@ -31,6 +31,7 @@
     "seed:run": "kysely seed run",
     "start": "cross-env NODE_ENV=production node --experimental-transform-types server.ts",
     "test": "vitest",
+    "test:shuffle": "vitest --sequence.shuffle",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

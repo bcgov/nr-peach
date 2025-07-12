@@ -11,7 +11,9 @@ export default defineConfig({
       reportOnFailure: true
     },
     globals: true, // Globally imports (describe, test, expect)
+    include: ['tests/unit/**/*.test.ts'],
     mockReset: true, // Reset mocks before each test
-    setupFiles: ['tests/vitest.setup.ts']
+    setupFiles: ['tests/unit/vitest.setup.ts'],
+    printConsoleTrace: true // Print console trace origin in test output
   }
 });
