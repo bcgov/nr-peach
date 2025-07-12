@@ -37,7 +37,7 @@ describe('Process Controllers', () => {
   describe('DELETE /process-events', () => {
     it('should call services and respond with 204', async () => {
       findSingleSystemRecordServiceSpy.mockResolvedValue(fakeSystemRecord);
-      deleteProcessEventSetServiceSpy.mockResolvedValue(undefined);
+      deleteProcessEventSetServiceSpy.mockResolvedValue([]);
 
       await request(app).delete('/process-events').query({ record_id: 'rec1', system_id: 'sys1' }).expect(204);
 
@@ -62,7 +62,7 @@ describe('Process Controllers', () => {
   describe('POST /process-events', () => {
     it('should check for duplicate and replace, respond with 202', async () => {
       checkDuplicateTransactionHeaderServiceSpy.mockResolvedValue([]);
-      replaceProcessEventSetServiceSpy.mockResolvedValue(undefined);
+      replaceProcessEventSetServiceSpy.mockResolvedValue([]);
 
       await request(app).post('/process-events').send({ transaction_id: 'tx1', data: 'abc' }).expect(202);
 
@@ -75,7 +75,7 @@ describe('Process Controllers', () => {
       checkDuplicateTransactionHeaderServiceSpy.mockImplementation(() => {
         throw new Problem(409, { detail: 'Transaction already exists' }, { transaction_id: 'tx1' });
       });
-      replaceProcessEventSetServiceSpy.mockResolvedValue(undefined);
+      replaceProcessEventSetServiceSpy.mockResolvedValue([]);
 
       await request(app).post('/process-events').send({ transaction_id: 'tx1', data: 'abc' }).expect(409);
 
@@ -88,7 +88,7 @@ describe('Process Controllers', () => {
   describe('PUT /process-events', () => {
     it('should check for duplicate and merge, respond with 201', async () => {
       checkDuplicateTransactionHeaderServiceSpy.mockResolvedValue([]);
-      replaceProcessEventSetServiceSpy.mockResolvedValue(undefined);
+      replaceProcessEventSetServiceSpy.mockResolvedValue([]);
 
       await request(app).put('/process-events').send({ transaction_id: 'tx2', data: 'xyz' }).expect(201);
 
@@ -100,7 +100,7 @@ describe('Process Controllers', () => {
       checkDuplicateTransactionHeaderServiceSpy.mockImplementation(() => {
         throw new Problem(409, { detail: 'Transaction already exists' }, { transaction_id: 'tx1' });
       });
-      replaceProcessEventSetServiceSpy.mockResolvedValue(undefined);
+      replaceProcessEventSetServiceSpy.mockResolvedValue([]);
 
       await request(app).post('/process-events').send({ transaction_id: 'tx1', data: 'abc' }).expect(409);
 

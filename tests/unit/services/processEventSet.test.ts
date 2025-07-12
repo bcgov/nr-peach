@@ -1,6 +1,12 @@
 // Always import repository.helper.ts and helpers/index.ts first to ensure mocks are set up
 import { baseRepositoryMock, executeMock } from './repository.helper.ts';
-import { cacheableUpsert, eventToDateTimeParts, transactionWrapper } from '../../../src/services/helpers/index.ts';
+import {
+  cacheableRead,
+  cacheableUpsert,
+  dateTimePartsToEvent,
+  eventToDateTimeParts,
+  transactionWrapper
+} from '../../../src/services/helpers/index.ts';
 
 import {
   CodingRepository,
@@ -11,7 +17,11 @@ import {
   TransactionRepository,
   VersionRepository
 } from '../../../src/repositories/index.ts';
-import { deleteProcessEventSetService, replaceProcessEventSetService } from '../../../src/services/processEventSet.ts';
+import {
+  findProcessEventSetService,
+  deleteProcessEventSetService,
+  replaceProcessEventSetService
+} from '../../../src/services/processEventSet.ts';
 
 import type { Selectable } from 'kysely';
 import type { Mock } from 'vitest';
@@ -23,7 +33,118 @@ describe('processEventSetService', () => {
     recordKindId: 2,
     systemId: 'sys-1',
     recordId: 'rec-1'
-  };
+  } as Selectable<PiesSystemRecord>;
+
+  describe('findProcessEventSetService', () => {
+    const processEventsRaw = [
+      {
+        startDate: '2024-01-01',
+        startTime: '00:00:00',
+        endDate: '2024-01-01',
+        endTime: '01:00:00',
+        codingId: 10,
+        status: 'active',
+        statusCode: 'A',
+        statusDescription: 'Active'
+      }
+    ];
+
+    beforeEach(() => {
+      // Use a mock that returns the call count as the returned id
+      let readCallCount = 0;
+      (cacheableRead as Mock).mockImplementation(() => {
+        readCallCount += 1;
+        return Promise.resolve({
+          id: readCallCount,
+          code: 'APPLICATION',
+          codeSystem: 'https://bcgov.github.io/nr-pies/docs/spec/code_system/application_process',
+          kind: 'Permit',
+          versionId: 'v1'
+        });
+      });
+
+      (dateTimePartsToEvent as Mock).mockReturnValue({
+        start_datetime: '2024-01-01T00:00:00Z',
+        end_datetime: '2024-01-01T01:00:00Z'
+      });
+
+      executeMock.execute.mockResolvedValue([]);
+    });
+
+    it('should return a ProcessEventSet when events are found', async () => {
+      executeMock.execute.mockResolvedValue(processEventsRaw);
+
+      const result = await findProcessEventSetService(systemRecord);
+
+      expect(transactionWrapper).toHaveBeenCalledTimes(1);
+      expect(cacheableRead).toHaveBeenNthCalledWith(1, new RecordKindRepository(), systemRecord.recordKindId);
+      expect(cacheableRead).toHaveBeenNthCalledWith(2, new CodingRepository(), processEventsRaw[0].codingId);
+      expect(ProcessEventRepository).toHaveBeenCalledTimes(1);
+      expect(ProcessEventRepository).toHaveBeenCalledWith(expect.anything());
+      expect(result).toMatchObject({
+        kind: 'ProcessEventSet',
+        system_id: systemRecord.systemId,
+        record_id: systemRecord.recordId,
+        record_kind: 'Permit',
+        version: 'v1',
+        process_event: [
+          {
+            event: {
+              start_datetime: '2024-01-01T00:00:00Z',
+              end_datetime: '2024-01-01T01:00:00Z'
+            },
+            process: {
+              code: 'APPLICATION',
+              code_display: 'Application',
+              code_set: ['APPLICATION'],
+              code_system: 'https://bcgov.github.io/nr-pies/docs/spec/code_system/application_process',
+              status: 'active',
+              status_code: 'A',
+              status_description: 'Active'
+            }
+          }
+        ]
+      });
+    });
+
+    it('should throw Problem 404 if no record kind found', async () => {
+      (cacheableRead as Mock).mockRejectedValueOnce(new Error('not found'));
+      await expect(findProcessEventSetService(systemRecord)).rejects.toMatchObject({
+        status: 404,
+        detail: 'No process events found.'
+      });
+    });
+
+    it('should throw Problem 404 if no process events found', async () => {
+      await expect(findProcessEventSetService(systemRecord)).rejects.toMatchObject({
+        status: 404,
+        detail: 'No process events found.'
+      });
+    });
+
+    it('should throw Problem 404 if no coding found for process event', async () => {
+      executeMock.execute.mockResolvedValue([
+        {
+          startDate: '2024-01-01',
+          startTime: '00:00:00',
+          endDate: '2024-01-01',
+          endTime: '01:00:00'
+        }
+      ]);
+      (cacheableRead as Mock)
+        .mockImplementationOnce(() => {
+          return Promise.resolve({ id: 1 });
+        })
+        .mockImplementationOnce(() => {
+          return Promise.reject(new Error('not found'));
+        });
+
+      await expect(() => findProcessEventSetService(systemRecord)).rejects.toMatchObject({
+        status: 404,
+        detail: 'No process events found.'
+      });
+    });
+  });
 
   describe('deleteProcessEventSetService', () => {
     it('should call prune on ProcessEventRepository', async () => {
@@ -31,7 +152,7 @@ describe('processEventSetService', () => {
       const pruneMock = vi.fn().mockImplementation(() => executeMock);
       (ProcessEventRepository as Mock).mockImplementationOnce(() => ({ prune: pruneMock }));
 
-      const result = await deleteProcessEventSetService(systemRecord as Selectable<PiesSystemRecord>);
+      const result = await deleteProcessEventSetService(systemRecord);
 
       expect(result).toEqual([]);
       expect(transactionWrapper).toHaveBeenCalledTimes(1);
@@ -84,14 +205,15 @@ describe('processEventSetService', () => {
       });
 
       pruneMock.mockImplementation(() => executeMock);
-      executeMock.execute.mockResolvedValue(undefined);
+      executeMock.execute.mockResolvedValue([]);
     });
 
     it('should replace process event set and call all repositories', async () => {
       (ProcessEventRepository as Mock).mockImplementationOnce(() => ({ prune: pruneMock }));
 
-      await replaceProcessEventSetService(processEventSet);
+      const result = await replaceProcessEventSetService(processEventSet);
 
+      expect(result).toEqual([]);
       expect(transactionWrapper).toHaveBeenCalledTimes(1);
       expect(TransactionRepository).toHaveBeenCalledTimes(1);
       expect(baseRepositoryMock.create).toHaveBeenCalledWith({ id: processEventSet.transaction_id });
@@ -159,8 +281,9 @@ describe('processEventSetService', () => {
 
       (ProcessEventRepository as Mock).mockImplementationOnce(() => ({ prune: pruneMock }));
 
-      await replaceProcessEventSetService(multiEventSet);
+      const result = await replaceProcessEventSetService(multiEventSet);
 
+      expect(result).toEqual([]);
       expect(baseRepositoryMock.create).toHaveBeenNthCalledWith(2, {
         codingId: 5,
         status: 'active',

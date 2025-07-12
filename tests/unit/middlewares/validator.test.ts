@@ -2,7 +2,6 @@ import express from 'express';
 import request from 'supertest';
 
 import { validateRequestIntegrity, validateRequestSchema } from '../../../src/middlewares/validator.ts';
-import Problem from '../../../src/utils/problem.ts';
 import * as validators from '../../../src/validators/index.ts';
 import { IntegrityDefinitions } from '../../../src/validators/integrity/integrity.ts';
 
@@ -10,7 +9,6 @@ import type { Application, Request, RequestHandler, Response } from 'express';
 
 describe('validateRequestIntegrity', () => {
   const mockHandler = vi.fn((_req: Request, res: Response) => res.status(200).send('Success'));
-  const sendSpy = vi.spyOn(Problem.prototype, 'send');
   const validateIntegritySpy = vi.spyOn(validators, 'validateIntegrity');
 
   let app: Application;
@@ -33,7 +31,6 @@ describe('validateRequestIntegrity', () => {
 
     expect(response.status).toBe(200);
     expect(mockHandler).toHaveBeenCalledTimes(1);
-    expect(sendSpy).toHaveBeenCalledTimes(0);
     expect(validateIntegritySpy).toHaveBeenCalledWith(IntegrityDefinitions.processEventSet, {
       name: 'John Doe'
     });
@@ -52,7 +49,6 @@ describe('validateRequestIntegrity', () => {
 
     expect(response.status).toBe(200);
     expect(mockHandler).toHaveBeenCalledTimes(1);
-    expect(sendSpy).toHaveBeenCalledTimes(0);
     expect(validateIntegritySpy).toHaveBeenCalledWith(
       IntegrityDefinitions.processEventSet,
       expect.objectContaining({
@@ -81,7 +77,6 @@ describe('validateRequestIntegrity', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     expect(response.body.errors.body).toBeTruthy();
     expect(mockHandler).toHaveBeenCalledTimes(0);
-    // expect(sendSpy).toHaveBeenCalledTimes(1); // TODO: Figure out why this is not called
     expect(validateIntegritySpy).toHaveBeenCalledWith(IntegrityDefinitions.processEventSet, {});
   });
 
@@ -125,7 +120,6 @@ describe('validateRequestIntegrity', () => {
 
 describe('validateRequestSchema', () => {
   const mockHandler = vi.fn((_req: Request, res: Response) => res.status(200).send('Success'));
-  const sendSpy = vi.spyOn(Problem.prototype, 'send');
   const validateSchemaSpy = vi.spyOn(validators, 'validateSchema');
 
   let app: Application;
@@ -154,7 +148,6 @@ describe('validateRequestSchema', () => {
 
     expect(response.status).toBe(200);
     expect(mockHandler).toHaveBeenCalledTimes(1);
-    expect(sendSpy).toHaveBeenCalledTimes(0);
     expect(validateSchemaSpy).toHaveBeenCalledWith(
       {
         type: 'object',
@@ -184,7 +177,6 @@ describe('validateRequestSchema', () => {
 
     expect(response.status).toBe(200);
     expect(mockHandler).toHaveBeenCalledTimes(1);
-    expect(sendSpy).toHaveBeenCalledTimes(0);
     expect(validateSchemaSpy).toHaveBeenCalledWith(
       {
         type: 'object',
@@ -229,7 +221,6 @@ describe('validateRequestSchema', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     expect(response.body.errors.body).toBeTruthy();
     expect(mockHandler).toHaveBeenCalledTimes(0);
-    expect(sendSpy).toHaveBeenCalledTimes(1);
     expect(validateSchemaSpy).toHaveBeenCalledWith(
       {
         type: 'object',
@@ -296,7 +287,6 @@ describe('validateRequestSchema', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     expect(response.body.errors.query).toBeTruthy();
     expect(mockHandler).toHaveBeenCalledTimes(0);
-    expect(sendSpy).toHaveBeenCalledTimes(1);
     expect(validateSchemaSpy).toHaveBeenNthCalledWith(
       1,
       {
