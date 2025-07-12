@@ -16,8 +16,9 @@ describe('findSingleSystemRecordService', () => {
     const result = await findSingleSystemRecordService(recordId);
 
     expect(result).toEqual(mockRecord);
-    expect(SystemRecordRepository).toHaveBeenCalledTimes(1);
     expect(transactionWrapper).toHaveBeenCalledTimes(1);
+    expect(SystemRecordRepository).toHaveBeenCalledTimes(1);
+    expect(SystemRecordRepository).toHaveBeenCalledWith(expect.anything());
     expect(baseRepositoryMock.findBy).toHaveBeenCalledWith({ recordId });
     expect(executeMock.execute).toHaveBeenCalledTimes(1);
   });
@@ -28,8 +29,9 @@ describe('findSingleSystemRecordService', () => {
     const result = await findSingleSystemRecordService(recordId, systemId);
 
     expect(result).toEqual(mockRecord);
-    expect(SystemRecordRepository).toHaveBeenCalledTimes(1);
     expect(transactionWrapper).toHaveBeenCalledTimes(1);
+    expect(SystemRecordRepository).toHaveBeenCalledTimes(1);
+    expect(SystemRecordRepository).toHaveBeenCalledWith(expect.anything());
     expect(baseRepositoryMock.findBy).toHaveBeenCalledWith({ recordId, systemId });
     expect(executeMock.execute).toHaveBeenCalledTimes(1);
   });

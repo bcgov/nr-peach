@@ -19,7 +19,14 @@ import {
 import { CodingDictionary, getLogger, Problem } from '../utils/index.ts';
 
 import type { DeleteResult, Selectable } from 'kysely';
-import type { Header, PiesSystemRecord, Process, ProcessEvent, ProcessEventSet } from '../types/index.d.ts';
+import type {
+  Header,
+  PiesProcessEvent,
+  PiesSystemRecord,
+  Process,
+  ProcessEvent,
+  ProcessEventSet
+} from '../types/index.d.ts';
 
 const log = getLogger(import.meta.filename);
 
@@ -30,7 +37,7 @@ const log = getLogger(import.meta.filename);
  */
 export const deleteProcessEventSetService = async (
   systemRecord: Selectable<PiesSystemRecord>
-): Promise<DeleteResult[]> => {
+): Promise<readonly DeleteResult[]> => {
   return transactionWrapper(async (trx) => {
     return await new ProcessEventRepository(trx).prune(systemRecord.id).execute();
   });
@@ -84,11 +91,11 @@ export const findProcessEventSetService = (systemRecord: Selectable<PiesSystemRe
             status_code: pe.statusCode ?? undefined,
             status_description: pe.statusDescription ?? undefined
           };
-          return { event, process };
+          return { event, process } satisfies ProcessEvent;
         })
       );
 
-      const processEventSet: ProcessEventSet = {
+      return {
         transaction_id: uuidv7(),
         version: recordKind.versionId,
         kind: 'ProcessEventSet',
@@ -96,9 +103,7 @@ export const findProcessEventSetService = (systemRecord: Selectable<PiesSystemRe
         record_id: systemRecord.recordId,
         record_kind: recordKind.kind as Header['record_kind'],
         process_event: processEvents as [ProcessEvent, ...ProcessEvent[]]
-      };
-
-      return processEventSet;
+      } satisfies ProcessEventSet;
     },
     { accessMode: 'read only' }
   );
@@ -114,7 +119,9 @@ export const mergeProcessEventSetService = (data: ProcessEventSet): Promise<void
  * @param data - The process event set to replace.
  * @returns A promise that resolves when the operation is complete.
  */
-export const replaceProcessEventSetService = (data: ProcessEventSet): Promise<void> => {
+export const replaceProcessEventSetService = (
+  data: ProcessEventSet
+): Promise<readonly Selectable<PiesProcessEvent>[]> => {
   return transactionWrapper(async (trx) => {
     // Update atomic fact tables
     await Promise.all([
@@ -141,7 +148,7 @@ export const replaceProcessEventSetService = (data: ProcessEventSet): Promise<vo
     await new ProcessEventRepository(trx).prune(systemRecord.id).execute();
 
     // Insert new process events
-    await Promise.all(
+    return await Promise.all(
       data.process_event.map(async (pe) => {
         const { event, process } = pe;
 
@@ -151,7 +158,7 @@ export const replaceProcessEventSetService = (data: ProcessEventSet): Promise<vo
           versionId: data.version
         });
 
-        await new ProcessEventRepository(trx)
+        return await new ProcessEventRepository(trx)
           .create({
             codingId: coding.id,
             status: process.status,
@@ -163,6 +170,6 @@ export const replaceProcessEventSetService = (data: ProcessEventSet): Promise<vo
           })
           .execute();
       })
-    );
+    ).then((pes) => pes.flatMap((pe) => pe));
   });
 };

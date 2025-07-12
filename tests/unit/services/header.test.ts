@@ -16,6 +16,7 @@ describe('checkDuplicateTransactionHeaderService', () => {
     expect(result).toEqual([]);
     expect(transactionWrapper).toHaveBeenCalledTimes(1);
     expect(TransactionRepository).toHaveBeenCalledTimes(1);
+    expect(TransactionRepository).toHaveBeenCalledWith(expect.anything());
     expect(baseRepositoryMock.read).toHaveBeenCalledWith(transactionId);
     expect(executeMock.execute).toHaveBeenCalledTimes(1);
   });

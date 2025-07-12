@@ -1,3 +1,6 @@
+import type { Transaction } from 'kysely';
+import type { DB } from '../../../src/types/index.d.ts';
+
 /** Dynamically generate mocks for all repositories except BaseRepository */
 vi.mock('../../../src/repositories/index.ts', async () => {
   const actual = await vi.importActual('../../../src/repositories/index.ts');
@@ -21,7 +24,7 @@ vi.mock('../../../src/services/helpers/index.ts', async () => {
     dateTimePartsToEvent: vi.fn(),
     eventToDateTimeParts: vi.fn(),
     /** Spy on the transactionWrapper method to directly test its callback behaviour */
-    transactionWrapper: vi.fn((operation: <T>() => Promise<T>) => operation())
+    transactionWrapper: vi.fn((operation: <T>(trx?: Transaction<DB>) => Promise<T>) => operation({} as Transaction<DB>))
   };
 });
 
