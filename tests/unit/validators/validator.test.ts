@@ -1,6 +1,15 @@
-import { createAjvInstance } from '../../../src/validators/schema/index.ts';
+import { createAjvInstance, pies } from '../../../src/validators/schema/index.ts';
 import * as integrity from '../../../src/validators/integrity/index.ts';
-import { validateIntegrity, validateSchema } from '../../../src/validators/validator.ts';
+import { preCachePiesSchema, validateIntegrity, validateSchema } from '../../../src/validators/validator.ts';
+
+describe('preCachePiesSchema', () => {
+  it('should call validateSchema for each pies.spec.message kind and log info', async () => {
+    const result = await preCachePiesSchema();
+
+    expect(result).toBeDefined();
+    expect(result.length).toBe(Object.keys(pies.spec.message).length);
+  });
+});
 
 describe('validateIntegrity', () => {
   it('should call the correct integrity validator and return its result', () => {
