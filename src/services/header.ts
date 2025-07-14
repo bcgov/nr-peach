@@ -1,6 +1,9 @@
-import { transactionWrapper } from './utils.ts';
+import { transactionWrapper } from './helpers/index.ts';
 import { TransactionRepository } from '../repositories/index.ts';
 import { Problem } from '../utils/index.ts';
+
+import type { Selectable } from 'kysely';
+import type { PiesTransaction } from '../types/index.d.ts';
 
 /**
  * Checks if a transaction with the given transaction ID already exists.
@@ -9,13 +12,16 @@ import { Problem } from '../utils/index.ts';
  * @throws {Problem} Throws a 409 error if the transaction already exists.
  * @returns A promise that resolves if no duplicate is found, or rejects with an error if a duplicate exists.
  */
-export const checkDuplicateTransactionHeaderService = async (transactionId: string): Promise<void> => {
+export const checkDuplicateTransactionHeaderService = async (
+  transactionId: string
+): Promise<Selectable<PiesTransaction>[]> => {
   return transactionWrapper(
     async (trx) => {
       const transaction = await new TransactionRepository(trx).read(transactionId).execute();
       if (transaction.length > 0) {
         throw new Problem(409, { detail: 'Transaction already exists' }, { transaction_id: transactionId });
       }
+      return transaction;
     },
     { accessMode: 'read only' }
   );
