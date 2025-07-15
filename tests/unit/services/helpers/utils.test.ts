@@ -97,7 +97,7 @@ describe('transactionWrapper', () => {
     expect(result).toBe(expected);
     expect(mockTransaction).toHaveBeenCalled();
     expect(mockSetAccessMode).toHaveBeenCalledWith('read write');
-    expect(mockSetIsolationLevel).toHaveBeenCalledWith('repeatable read');
+    expect(mockSetIsolationLevel).toHaveBeenCalledWith('read committed');
     expect(mockExecute).toHaveBeenCalledWith(op);
     expect(mockExecute).toHaveBeenCalledTimes(1);
   });
