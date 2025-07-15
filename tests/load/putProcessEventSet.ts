@@ -1,7 +1,7 @@
 import { check } from 'k6';
 import http from 'k6/http';
 
-import { generateProcessEventSet } from './generator.ts';
+import { generateProcessEventSet } from './helpers/index.ts';
 
 import type { Options } from 'k6/options';
 
@@ -13,22 +13,21 @@ const BASE_URL = 'http://localhost:3000';
 
 export const options: Options = {
   stages: [
-    { duration: '10s', target: 10 }, // ramp up to 10 users over 10 seconds
-    { duration: '10s', target: 10 }, // stay at 10 users for 40 seconds
-    { duration: '10s', target: 0 } // ramp down to 0 users over 10 seconds
+    { duration: '5s', target: 10 }, // ramp up virtual users
+    { duration: '20s', target: 10 }, // hold virtual users
+    { duration: '5s', target: 0 } // ramp down virtual users
   ],
   thresholds: {
     http_req_duration: ['p(95)<100'], // 95% of requests should be below 100ms
     http_req_failed: [
       {
-        threshold: 'rate<0.001',
-        abortOnFail: true,
-        delayAbortEval: '1s'
+        threshold: 'rate<0.001', // http errors should be less than 0.1%
+        abortOnFail: true, // Short circuit the test if this threshold is breached
+        delayAbortEval: '1s' // Wait 1 second before aborting
       }
-    ] // http errors should be less than 0.1%
+    ]
   },
-  throw: true,
-  vus: 10
+  throw: true // Throw an error if a threshold is breached
 };
 
 /**
@@ -36,8 +35,7 @@ export const options: Options = {
  */
 export function setup() {
   // Initialize test data or state
-  // eslint-disable-next-line no-console
-  console.log('Test setup complete');
+  // console.log('Test setup complete'); // eslint-disable-line no-console
 }
 
 /**
@@ -60,6 +58,5 @@ export default function () {
  */
 export function teardown() {
   // Cleanup actions after the test
-  // eslint-disable-next-line no-console
-  console.log('Test teardown complete');
+  // console.log('Test teardown complete'); // eslint-disable-line no-console
 }
