@@ -33,10 +33,10 @@ export const options: Options = {
 /**
  * 2. Setup
  */
-export function setup() {
-  // Initialize test data or state
-  // console.log('Test setup complete'); // eslint-disable-line no-console
-}
+// export function setup() {
+//   // Initialize test data or state
+//   console.log('Test setup complete'); // eslint-disable-line no-console
+// }
 
 /**
  * 3. VU Execution
@@ -48,15 +48,19 @@ export default function () {
     }
   };
 
-  const body = generateProcessEventSet();
+  const body = generateProcessEventSet(); // Add a number argument to pin the ITSM identifier if needed
   const res = http.put(`${BASE_URL}${API_PROCESS_EVENT}`, JSON.stringify(body), options);
-  check(res, { 'status is 201': (res) => res.status === 201 });
+  if (!check(res, { 'status is 201': (res) => res.status === 201 })) {
+    console.log(body); // eslint-disable-line no-console
+    // eslint-disable-next-line no-console
+    console.error(`Request failed with status ${res.status}: ${JSON.stringify(res.body)}`);
+  }
 }
 
 /**
  * 4. Teardown
  */
-export function teardown() {
-  // Cleanup actions after the test
-  // console.log('Test teardown complete'); // eslint-disable-line no-console
-}
+// export function teardown() {
+//   // Cleanup actions after the test
+//   console.log('Test teardown complete'); // eslint-disable-line no-console
+// }

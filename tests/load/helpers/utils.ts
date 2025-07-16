@@ -30,6 +30,21 @@ export function randomString(length: number, charset = 'abcdefghijklmnopqrstuvwx
 }
 
 /**
+ * Filters an array of objects to remove duplicates based on a specific key.
+ * Keeps the first occurrence of each unique key.
+ * @param a - The array of objects to filter.
+ * @param key - A function that extracts the key from each object for comparison.
+ * @returns A new array with duplicates removed, keeping the first occurrence.
+ */
+export function uniqByKeepFirst<T>(a: T[], key: (item: T) => unknown): T[] {
+  const seen = new Set();
+  return a.filter((item) => {
+    const k = key(item);
+    return seen.has(k) ? false : seen.add(k);
+  });
+}
+
+/**
  * Generates a UUID version 7 (UUIDv7) string.
  *
  * UUIDv7 is a time-ordered UUID format that includes a 48-bit timestamp (milliseconds since Unix epoch),
