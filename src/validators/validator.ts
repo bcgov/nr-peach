@@ -1,7 +1,7 @@
 import { Ajv } from 'ajv';
 
 import { integrityValidators } from './integrity/index.ts';
-import { createAjvInstance, loadSchema } from './schema/index.ts';
+import { createAjvInstance, getPiesSchemaUri, loadSchema, pies } from './schema/index.ts';
 import { getLogger } from '../utils/index.ts';
 
 import type { AnySchemaObject, AnyValidateFunction, ErrorObject } from 'ajv/dist/core.js';
@@ -9,6 +9,27 @@ import type { IntegrityDictionary, IntegrityResult } from '../types/index.d.ts';
 
 const log = getLogger(import.meta.filename);
 const ajvCache: Record<string, Ajv> = {};
+
+// Only pre-cache schemas in production to avoid bombarding Github API in development
+if (process.env.NODE_ENV === 'production') await preCachePiesSchema();
+
+/**
+ * Pre-caches all PIES JSON schemas and their dependencies by validating each schema URI.
+ * @returns A promise that resolves when all schemas have been pre-cached.
+ */
+export async function preCachePiesSchema(): Promise<{ valid: boolean; errors?: ErrorObject[] }[]> {
+  log.verbose('Pre-caching PIES JSON schemas...');
+
+  const start = Date.now();
+  return await Promise.all(
+    Object.values(pies.spec.message)
+      .map((kind) => getPiesSchemaUri(kind)) // Pre-cache all PIES message schemas and dependencies
+      .map((uri) => validateSchema(uri, null)) // Ignore the result, just pre-cache schemas
+  ).finally(() => {
+    const end = Date.now();
+    log.info('PIES JSON schemas are pre-cached', { duration: end - start });
+  });
+}
 
 /**
  * Validates the integrity of the provided data based on the specified type.
