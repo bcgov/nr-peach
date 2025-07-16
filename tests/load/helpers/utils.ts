@@ -25,7 +25,7 @@ export function randomItem<T>(arrayOfItems: readonly T[]): T {
  */
 export function randomString(length: number, charset = 'abcdefghijklmnopqrstuvwxyz'): string {
   let res = '';
-  while (length--) res += charset[(Math.random() * charset.length) | 0];
+  while (length--) res += charset[Math.floor(Math.random() * charset.length)];
   return res;
 }
 

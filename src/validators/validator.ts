@@ -24,7 +24,7 @@ export async function preCachePiesSchema(): Promise<{ valid: boolean; errors?: E
   return await Promise.all(
     Object.values(pies.spec.message)
       .map((kind) => getPiesSchemaUri(kind)) // Pre-cache all PIES message schemas and dependencies
-      .map((uri) => validateSchema(uri, {})) // Ignore the result, just pre-cache schemas
+      .map((uri) => validateSchema(uri, null)) // Ignore the result, just pre-cache schemas
   ).finally(() => {
     const end = Date.now();
     log.info('PIES JSON schemas are pre-cached', { duration: end - start });

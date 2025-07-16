@@ -59,7 +59,7 @@ export function generateProcessEvent(): ProcessEvent {
  */
 export function generateProcessEventSet(itsm?: number): ProcessEventSet {
   const processEvents: ProcessEvent[] = [];
-  for (let i = 0; i < randomIntBetween(1, 5); i++) {
+  for (let count = 0; count < randomIntBetween(1, 5); count++) {
     processEvents.push(generateProcessEvent());
   }
 

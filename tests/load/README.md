@@ -17,7 +17,7 @@ You will need the following installed on your machine before you can proceed:
 
 ### Dependencies
 
-If this has not already been done at the root directory, install code dependiencies by running:
+If this has not already been done at the root directory, install code dependencies by running:
 
 ```sh
 npm ci
@@ -56,7 +56,15 @@ winget install k6 --source winget
 
 Our load tests are written in TypeScript and use the [k6](https://k6.io/) load testing tool. The tests are located in
 the `tests/load` directory. Each endpoint with defined tests has its own file, named after the functional action the
-endpoint will perform. The following tests are currently available:
+endpoint will perform.
+
+> [!NOTE]
+> Make sure you have the main nr-peach application running locally somewhere else before running the tests.
+
+The following tests are currently available:
+
+> [!NOTE]
+> The following commands assume your current terminal directory is at this folder (`/tests/load`).
 
 ```sh
 k6 run getProcessEventSet.ts
@@ -65,6 +73,8 @@ k6 run getProcessEventSet.ts
 ```sh
 k6 run putProcessEventSet.ts
 ```
+
+The tests will automatically connect to the local instance of the app.
 
 ### Configuration
 
