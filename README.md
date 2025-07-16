@@ -23,6 +23,7 @@ A microservice focused on permitting exchange, aggregation and collection using 
 .devcontainer              - VSCode Dev Container configurations
 .github/                   - GitHub PR and Issue templates
 .vscode/                   - VSCode environment configurations
+infrastructure/            - Terraform Infrastructure as Code
 src/                       - Node.js web application
 ├── controllers/           - Controller Layer
 ├── db/                    - Database Layer
@@ -35,7 +36,9 @@ src/                       - Node.js web application
 ├── types/                 - TypeScript Declarations
 ├── utils/                 - Utilities
 └── validators/            - Validator Layer
-tests/                     - Node.js web application tests
+tests/                     - Test Suites
+├── load/                  - K6 load tests
+└── unit/                  - Node.js web application tests
 CODE-OF-CONDUCT.md         - Code of Conduct
 COMPLIANCE.yaml            - BCGov PIA/STRA compliance status
 CONTRIBUTING.md            - Contributing Guidelines

@@ -139,3 +139,7 @@ dist
 *.DS_Store
 *Desktop.ini
 *Thumbs.db
+
+# Terraform files
+.terraform/
+.terraform.lock.hcl
