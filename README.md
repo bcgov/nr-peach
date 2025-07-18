@@ -23,7 +23,7 @@ A microservice focused on permitting exchange, aggregation and collection using 
 .devcontainer              - VSCode Dev Container configurations
 .github/                   - GitHub PR and Issue templates
 .vscode/                   - VSCode environment configurations
-infrastructure/            - Terraform Infrastructure as Code
+infra/                     - Terraform Infrastructure as Code
 src/                       - Node.js web application
 ├── controllers/           - Controller Layer
 ├── db/                    - Database Layer
