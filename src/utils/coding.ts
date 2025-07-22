@@ -70,6 +70,10 @@ export const CodingDictionary: Record<
       codeSet: ['APPLICATION', 'TECH_REVIEW_COMMENT', 'REFERRAL'],
       display: 'Referral'
     },
+    REJECTED: {
+      codeSet: ['APPLICATION', 'REJECTED'],
+      display: 'Rejected'
+    },
     SUBMISSION_REVIEW: {
       codeSet: ['APPLICATION', 'INITIAL_SUBMISSION_REVIEW', 'SUBMISSION_REVIEW'],
       display: 'Submission Review'
@@ -89,6 +93,10 @@ export const CodingDictionary: Record<
     TECHNICAL_REVIEW: {
       codeSet: ['APPLICATION', 'TECH_REVIEW_COMMENT', 'TECHNICAL_REVIEW'],
       display: 'Technical Review'
+    },
+    WITHDRAWN: {
+      codeSet: ['APPLICATION', 'WITHDRAWN'],
+      display: 'Withdrawn'
     }
   }
 });
