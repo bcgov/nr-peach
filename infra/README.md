@@ -8,6 +8,10 @@ export ARM_SUBSCRIPTION_ID=$(az account show --query id -o tsv)
 
 ```sh
 terraform init
+
+terraform fmt -recursive
+terraform validate
+
 terraform plan
 terraform apply
 ```
