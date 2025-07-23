@@ -36,12 +36,12 @@
 variable "common_tags" {
   description = "Common tags to apply to all resources"
   type        = map(string)
-  default     = {
+  default = {
     # "environment" = "${local.target_env}"
     # "appenv"      = "${local.app_env}"
     # "appname"     = "${local.stack_prefix}-${local.app_env}"
     # "reponame"    = "${get_env("repo_name")}"
-    "managedby"   = "Terraform"
+    "managedby" = "Terraform"
   }
 }
 
