@@ -1,61 +1,51 @@
-#  Terraform variables for Azure Container Apps and related resources
-#  This file defines the variables used across the infrastructure setup.
-# variable "api_image" {
-#   description = "The image for the API container"
-#   type        = string
-# }
+# -------------
+# Common Variables for Azure Infrastructure
+# -------------
 
-# variable "app_env" {
-#   description = "Application environment (dev, test, prod)"
-#   type        = string
-# }
+variable "api_image" {
+  description = "The image for the API container"
+  type        = string
+}
 
-# variable "app_name" {
-#   description = "Name of the application"
-#   type        = string
-# }
+variable "app_env" {
+  description = "Application environment (dev, test, prod)"
+  type        = string
+}
 
-# variable "apps_service_subnet_name" {
-#   description = "Name of the subnet for Container Apps"
-#   type        = string
-#   default     = "app-service-subnet"
-# }
+variable "app_name" {
+  description = "Name of the application"
+  type        = string
+}
 
-# variable "auto_grow_enabled" {
-#   description = "Enable auto-grow for storage"
-#   type        = bool
-#   default     = true
-# }
+variable "app_service_sku_name_backend" {
+  description = "SKU name for the backend App Service Plan"
+  type        = string
+  default     = "B1" # Basic tier
+}
 
-# variable "backup_retention_period" {
-#   description = "Backup retention period in days"
-#   type        = number
-#   default     = 7
-# }
+variable "app_service_sku_name_frontend" {
+  description = "SKU name for the frontend App Service Plan"
+  type        = string
+  default     = "B1" # Basic tier
+}
+
+variable "client_id" {
+  description = "Azure client ID for the service principal"
+  type        = string
+  nullable    = true
+  sensitive   = true
+}
 
 variable "common_tags" {
   description = "Common tags to apply to all resources"
   type        = map(string)
-  default = {
-    # "environment" = "${local.target_env}"
-    # "appenv"      = "${local.app_env}"
-    # "appname"     = "${local.stack_prefix}-${local.app_env}"
-    # "reponame"    = "${get_env("repo_name")}"
-    "managedby" = "Terraform"
-  }
 }
 
-# variable "create_container_registry" {
-#   description = "Flag to create an Azure Container Registry"
-#   type        = bool
-#   default     = false
-# }
-
-# variable "database_name" {
-#   description = "Name of the database to create"
-#   type        = string
-#   default     = "app"
-# }
+variable "database_name" {
+  description = "Name of the database to create"
+  type        = string
+  default     = "app"
+}
 
 # variable "db_master_password" {
 #   description = "Master password for the PostgreSQL server"
@@ -67,45 +57,17 @@ variable "common_tags" {
 #   }
 # }
 
-# variable "enable_app_service_logs" {
-#   description = "Enable detailed logging for App Service"
-#   type        = bool
-#   default     = true
-# }
+variable "enable_psql_sidecar" {
+  description = "Whether to enable the CloudBeaver database management container"
+  type        = bool
+  default     = true
+}
 
-# variable "enable_private_endpoint" {
-#   description = "Enable private endpoint for PostgreSQL Flexible Server"
-#   type        = bool
-#   default     = false
-# }
-
-# variable "enable_psql_sidecar" {
-#   description = "Whether to enable the CloudBeaver database management container"
-#   type        = bool
-#   default     = false
-# }
-
-# variable "flyway_image" {
-#   description = "The image for the Flyway container"
-#   type        = string
-# }
-
-# variable "frontend_image" {
-#   description = "The image for the Frontend container"
-#   type        = string
-# }
-
-# variable "geo_redundant_backup_enabled" {
-#   description = "Enable geo-redundant backup"
-#   type        = bool
-#   default     = false
-# }
-
-# variable "ha_enabled" {
-#   description = "Enable high availability"
-#   type        = bool
-#   default     = false
-# }
+variable "frontdoor_sku_name" {
+  description = "SKU name for the Front Door"
+  type        = string
+  default     = "Standard_AzureFrontDoor"
+}
 
 variable "location" {
   description = "Azure region for resources"
@@ -113,46 +75,88 @@ variable "location" {
   default     = "Canada Central"
 }
 
-variable "node_env" {
-  description = "Node.js environment"
-  type        = string
-  default     = "production"
+variable "log_analytics_retention_days" {
+  description = "Number of days to retain data in Log Analytics Workspace"
+  type        = number
+  default     = 30
 }
 
-# variable "postgresql_admin_password" {
-#   description = "PostgreSQL admin password"
-#   type        = string
-#   sensitive   = true
-# }
+variable "log_analytics_sku" {
+  description = "SKU for Log Analytics Workspace"
+  type        = string
+  default     = "PerGB2018"
+}
 
-# variable "postgresql_admin_username" {
-#   description = "Administrator username for PostgreSQL server"
-#   type        = string
-#   default     = "pgadmin"
-# }
+variable "postgres_auto_grow_enabled" {
+  description = "Enable auto-grow for PostgreSQL Flexible Server storage"
+  type        = bool
+  default     = true
+}
 
-# variable "postgresql_sku_name" {
-#   description = "SKU name for PostgreSQL Flexible Server"
-#   type        = string
-#   default     = "B_Standard_B1ms" # Basic SKU for development purposes
-# }
+variable "postgres_backup_retention_period" {
+  description = "Backup retention period in days for PostgreSQL Flexible Server"
+  type        = number
+  default     = 7
+}
 
-# variable "postgresql_storage_mb" {
-#   description = "Storage in MB for PostgreSQL server"
-#   type        = number
-#   default     = 32768
-# }
+variable "postgres_geo_redundant_backup_enabled" {
+  description = "Enable geo-redundant backup for PostgreSQL Flexible Server"
+  type        = bool
+  default     = false
+}
 
-# variable "private_endpoint_subnet_name" {
-#   description = "Name of the subnet for private endpoints"
-#   type        = string
-#   default     = "privateendpoints-subnet"
-# }
+variable "postgres_ha_enabled" {
+  description = "Enable high availability for PostgreSQL Flexible Server"
+  type        = bool
+  default     = false
+}
+
+variable "postgres_is_postgis_enabled" {
+  description = "Enable PostGIS extension for PostgreSQL Flexible Server"
+  type        = bool
+  default     = false
+}
+
+variable "postgres_sku_name" {
+  description = "SKU name for PostgreSQL Flexible Server"
+  type        = string
+  default     = "B_Standard_B1ms"
+}
+
+variable "postgres_standby_availability_zone" {
+  description = "Availability zone for standby replica of PostgreSQL Flexible Server"
+  type        = string
+  default     = "1"
+}
+
+variable "postgres_storage_mb" {
+  description = "Storage in MB for PostgreSQL Flexible Server"
+  type        = number
+  default     = 32768
+}
+
+variable "postgres_version" {
+  description = "Version of PostgreSQL Flexible Server"
+  type        = string
+  default     = "16"
+}
+
+variable "postgres_zone" {
+  description = "Availability zone for PostgreSQL server"
+  type        = string
+  default     = "1"
+}
+
+variable "postgresql_admin_username" {
+  description = "Administrator username for PostgreSQL server"
+  type        = string
+  default     = "pgadmin"
+}
 
 variable "repo_name" {
   description = "Name of the repository, used for resource naming"
   type        = string
-  default     = "nr-peach"
+  default     = "quickstart-azure-containers"
 }
 
 variable "resource_group_name" {
@@ -160,20 +164,16 @@ variable "resource_group_name" {
   type        = string
 }
 
-# variable "standby_availability_zone" {
-#   description = "Availability zone for standby replica"
-#   type        = string
-#   default     = "2"
-# }
-
 variable "subscription_id" {
   description = "Azure subscription ID"
   type        = string
+  sensitive   = true
 }
 
 variable "tenant_id" {
   description = "Azure tenant ID"
   type        = string
+  sensitive   = true
 }
 
 variable "vnet_address_space" {
@@ -190,9 +190,3 @@ variable "vnet_resource_group_name" {
   description = "Resource group name where the virtual network exists"
   type        = string
 }
-
-# variable "web_subnet_name" {
-#   description = "Name of the web subnet for APIM deployment"
-#   type        = string
-#   default     = "web-subnet"
-# }
