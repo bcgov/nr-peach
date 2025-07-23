@@ -47,15 +47,15 @@ variable "database_name" {
   default     = "app"
 }
 
-# variable "db_master_password" {
-#   description = "Master password for the PostgreSQL server"
-#   type        = string
-#   sensitive   = true
-#   validation {
-#     condition     = length(var.db_master_password) >= 12
-#     error_message = "The db_master_password must be at least 12 characters long."
-#   }
-# }
+variable "db_master_password" {
+  description = "Master password for the PostgreSQL server"
+  type        = string
+  sensitive   = true
+  validation {
+    condition     = length(var.db_master_password) >= 12
+    error_message = "The db_master_password must be at least 12 characters long."
+  }
+}
 
 variable "enable_psql_sidecar" {
   description = "Whether to enable the CloudBeaver database management container"

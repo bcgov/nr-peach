@@ -302,6 +302,8 @@ resource "azurerm_network_security_group" "container_instance" {
 }
 
 # Subnets
+# In Azure, subnets must be created within the same resource group as their parent virtual network.
+# You cannot create a subnet in a different resource group from the VNet.
 resource "azapi_resource" "privateendpoints_subnet" {
   type      = "Microsoft.Network/virtualNetworks/subnets@2023-04-01"
   name      = var.private_endpoint_subnet_name
