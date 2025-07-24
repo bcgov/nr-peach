@@ -23,12 +23,6 @@ variable "app_service_sku_name_backend" {
   default     = "B1" # Basic tier
 }
 
-variable "app_service_sku_name_frontend" {
-  description = "SKU name for the frontend App Service Plan"
-  type        = string
-  default     = "B1" # Basic tier
-}
-
 variable "client_id" {
   description = "Azure client ID for the service principal"
   type        = string
