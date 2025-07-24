@@ -1,7 +1,19 @@
+# Create the main resource group for all postgresql resources
+resource "azurerm_resource_group" "main" {
+  name     = "${var.resource_group_name}-${var.module_name}-rg"
+  location = var.location
+  tags     = var.common_tags
+  lifecycle {
+    ignore_changes = [
+      tags
+    ]
+  }
+}
+
 # PostgreSQL Flexible Server
 resource "azurerm_postgresql_flexible_server" "postgresql" {
   name                = "${var.app_name}-postgresql"
-  resource_group_name = var.resource_group_name
+  resource_group_name = "${var.resource_group_name}-${var.module_name}-rg"
   location            = var.location
 
   administrator_login    = var.postgresql_admin_username
@@ -37,6 +49,8 @@ resource "azurerm_postgresql_flexible_server" "postgresql" {
       tags
     ]
   }
+
+  depends_on = [azurerm_resource_group.main]
 }
 
 # Create database
@@ -45,14 +59,21 @@ resource "azurerm_postgresql_flexible_server_database" "postgres_database" {
   server_id = azurerm_postgresql_flexible_server.postgresql.id
   collation = "en_US.utf8"
   charset   = "utf8"
+
+  depends_on = [azurerm_postgresql_flexible_server.postgresql]
 }
+
+# Note: PostgreSQL Flexible Server private endpoint is created above
+# Private DNS Zone association is automatically managed by Azure Landing Zone Policy
+# The Landing Zone automation will automatically associate the private endpoint
+# with the appropriate managed DNS zone (privatelink.postgres.database.azure.com)
 
 # Private Endpoint for PostgreSQL Flexible Server
 # Note: DNS zone association will be automatically managed by Azure Policy
 resource "azurerm_private_endpoint" "postgresql" {
   name                = "${var.app_name}-postgresql-pe"
   location            = var.location
-  resource_group_name = var.resource_group_name
+  resource_group_name = "${var.resource_group_name}-${var.module_name}-rg"
   subnet_id           = var.private_endpoint_subnet_id
 
   private_service_connection {
@@ -71,21 +92,25 @@ resource "azurerm_private_endpoint" "postgresql" {
       tags
     ]
   }
+
+  depends_on = [azurerm_resource_group.main]
 }
 
-# Note: PostgreSQL Flexible Server private endpoint is created above
-# Private DNS Zone association is automatically managed by Azure Landing Zone Policy
-# The Landing Zone automation will automatically associate the private endpoint
-# with the appropriate managed DNS zone (privatelink.postgres.database.azure.com)
-
-# Time delay to ensure PostgreSQL server is fully ready before configuration changes
 resource "time_sleep" "wait_for_postgresql" {
+  create_duration = "20s"
+
   depends_on = [
-    azurerm_postgresql_flexible_server.postgresql,
     azurerm_postgresql_flexible_server_database.postgres_database,
     azurerm_private_endpoint.postgresql
   ]
-  create_duration = "60s"
+}
+
+resource "azurerm_postgresql_flexible_server_configuration" "log_statement" {
+  name      = "log_statement"
+  server_id = azurerm_postgresql_flexible_server.postgresql.id
+  value     = "all"
+
+  depends_on = [time_sleep.wait_for_postgresql]
 }
 
 # PostgreSQL Configuration for performance
@@ -95,30 +120,7 @@ resource "azurerm_postgresql_flexible_server_configuration" "shared_preload_libr
   server_id = azurerm_postgresql_flexible_server.postgresql.id
   value     = "pg_stat_statements"
 
-  depends_on = [time_sleep.wait_for_postgresql]
+  depends_on = [azurerm_postgresql_flexible_server_configuration.log_statement]
 }
 
-resource "azurerm_postgresql_flexible_server_configuration" "log_statement" {
-  name      = "log_statement"
-  server_id = azurerm_postgresql_flexible_server.postgresql.id
-  value     = "all"
-
-  depends_on = [
-    time_sleep.wait_for_postgresql,
-    azurerm_postgresql_flexible_server_configuration.shared_preload_libraries
-  ]
-}
-
-# Enable PostGIS extension
-resource "azurerm_postgresql_flexible_server_configuration" "azure_extensions" {
-  count     = var.is_postgis_enabled ? 1 : 0
-  name      = "azure.extensions"
-  server_id = azurerm_postgresql_flexible_server.postgresql.id
-  value     = "POSTGIS"
-
-  depends_on = [
-    time_sleep.wait_for_postgresql,
-    azurerm_postgresql_flexible_server_configuration.shared_preload_libraries
-  ]
-}
 

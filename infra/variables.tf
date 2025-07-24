@@ -111,12 +111,6 @@ variable "postgres_ha_enabled" {
   default     = false
 }
 
-variable "postgres_is_postgis_enabled" {
-  description = "Enable PostGIS extension for PostgreSQL Flexible Server"
-  type        = bool
-  default     = false
-}
-
 variable "postgres_sku_name" {
   description = "SKU name for PostgreSQL Flexible Server"
   type        = string
@@ -162,6 +156,7 @@ variable "repo_name" {
 variable "resource_group_name" {
   description = "Name of the resource group"
   type        = string
+  default     = "nr-permitting"
 }
 
 variable "subscription_id" {

@@ -47,16 +47,16 @@ variable "ha_enabled" {
   nullable    = false
 }
 
-variable "is_postgis_enabled" {
-  description = "Enable PostGIS extension for PostgreSQL Flexible Server"
-  type        = bool
-  nullable    = false
-}
-
 variable "location" {
   description = "Azure region for resources"
   type        = string
   nullable    = false
+}
+
+variable "module_name" {
+  description = "Name of the module"
+  type        = string
+  default     = "postgresql"
 }
 
 variable "postgres_version" {
