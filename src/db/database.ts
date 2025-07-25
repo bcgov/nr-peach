@@ -26,7 +26,7 @@ const pool = new Pool({
   password: process.env.PGPASSWORD,
   port: +(process.env.PGPORT ?? 5432),
   ssl: process.env.PGSSLMODE === 'require' ? { rejectUnauthorized: false } : false,
-  connectionTimeoutMillis: +(process.env.PGPOOL_TIMEOUT ?? 3000),
+  connectionTimeoutMillis: +(process.env.PGPOOL_TIMEOUT ?? 5000),
   idleTimeoutMillis: +(process.env.PGPOOL_IDLE_TIMEOUT ?? 10000),
   max: +(process.env.PGPOOL_MAX ?? 10),
   min: +(process.env.PGPOOL_MIN ?? 0),

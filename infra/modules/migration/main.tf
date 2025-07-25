@@ -27,10 +27,10 @@ resource "azurerm_container_group" "migration" {
     }
   }
   container {
-    name   = "migration"
-    image  = "${var.container_registry_url}/${var.container_image}"
-    cpu    = "0.1"
-    memory = "0.2"
+    name     = "migration"
+    image    = "${var.container_registry_url}/${var.container_image}"
+    cpu      = "0.1"
+    memory   = "0.2"
     commands = ["/bin/sh", "-c", "kysely migrate latest && kysely seed run"]
     environment_variables = {
       FORCE_REDEPLOY = null_resource.trigger_migration.id
@@ -60,4 +60,13 @@ resource "null_resource" "trigger_migration" {
   }
 
   depends_on = [azurerm_resource_group.main]
+}
+
+# Verify migration completion and handle exit codes
+resource "null_resource" "verify_migration" {
+  provisioner "local-exec" {
+    command = "sh ${path.module}/verify_migration.sh '${azurerm_container_group.migration.resource_group_name}' '${azurerm_container_group.migration.name}' migration"
+  }
+
+  depends_on = [azurerm_container_group.migration]
 }
