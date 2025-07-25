@@ -95,44 +95,44 @@ module "migration" {
   depends_on = [module.postgresql]
 }
 
-# module "backend" {
-#   source = "./modules/backend"
+module "frontdoor" {
+  source = "./modules/frontdoor"
 
-#   api_image                               = var.api_image
-#   app_env                                 = var.app_env
-#   app_name                                = var.app_name
-#   app_service_sku_name_backend            = var.app_service_sku_name_backend
-#   app_service_subnet_id                   = module.network.app_service_subnet_id
-#   appinsights_connection_string           = module.monitoring.appinsights_connection_string
-#   appinsights_instrumentation_key         = module.monitoring.appinsights_instrumentation_key
-#   backend_subnet_id                       = module.network.app_service_subnet_id
-#   common_tags                             = var.common_tags
-#   database_name                           = var.database_name
-#   db_master_password                      = var.db_master_password
-#   enable_psql_sidecar                     = var.enable_psql_sidecar
-#   frontend_frontdoor_resource_guid        = module.frontdoor.frontdoor_resource_guid
-#   frontend_possible_outbound_ip_addresses = module.frontend.possible_outbound_ip_addresses
-#   location                                = var.location
-#   log_analytics_workspace_id              = module.monitoring.log_analytics_workspace_id
-#   postgres_host                           = module.postgresql.postgres_host
-#   postgresql_admin_username               = var.postgresql_admin_username
-#   private_endpoint_subnet_id              = module.network.private_endpoint_subnet_id
-#   repo_name                               = var.repo_name
-#   resource_group_name                     = var.resource_group_name
-#   user_assigned_identity_client_id        = azurerm_user_assigned_identity.app_service_identity.client_id
-#   user_assigned_identity_id               = azurerm_user_assigned_identity.app_service_identity.id
+  app_name            = var.app_name
+  common_tags         = var.common_tags
+  frontdoor_sku_name  = var.frontdoor_sku_name
+  location            = var.location
+  resource_group_name = var.resource_group_name
 
-#   depends_on = [module.postgresql]
-# }
+  depends_on = [azurerm_resource_group.main]
+}
 
-# module "frontdoor" {
-#   source = "./modules/frontdoor"
+module "api" {
+  source = "./modules/api"
 
-#   app_name            = var.app_name
-#   common_tags         = var.common_tags
-#   frontdoor_sku_name  = var.frontdoor_sku_name
-#   resource_group_name = azurerm_resource_group.main.name
+  # api_frontdoor_resource_guid = module.frontdoor.frontdoor_resource_guid
+  api_image                   = var.api_image
+  app_env                     = var.app_env
+  app_name                    = var.app_name
+  app_service_sku_name_api    = var.app_service_sku_name_api
+  # app_service_subnet_id                   = module.network.app_service_subnet_id
+  appinsights_connection_string   = module.monitoring.appinsights_connection_string
+  appinsights_instrumentation_key = module.monitoring.appinsights_instrumentation_key
+  api_subnet_id                   = module.network.app_service_subnet_id
+  common_tags                     = var.common_tags
+  database_name                   = var.database_name
+  db_master_password              = var.db_master_password
+  enable_psql_sidecar             = var.enable_psql_sidecar
+  # frontend_possible_outbound_ip_addresses = module.frontend.possible_outbound_ip_addresses
+  location                         = var.location
+  log_analytics_workspace_id       = module.monitoring.log_analytics_workspace_id
+  postgres_host                    = module.postgresql.postgres_host
+  postgresql_admin_username        = var.postgresql_admin_username
+  private_endpoint_subnet_id       = module.network.private_endpoint_subnet_id
+  repo_name                        = var.repo_name
+  resource_group_name              = var.resource_group_name
+  user_assigned_identity_client_id = azurerm_user_assigned_identity.app_service_identity.client_id
+  user_assigned_identity_id        = azurerm_user_assigned_identity.app_service_identity.id
 
-#   depends_on = [module.network, module.backend]
-# }
-
+  depends_on = [module.postgresql]
+}

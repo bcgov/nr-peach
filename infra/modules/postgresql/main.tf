@@ -122,5 +122,3 @@ resource "azurerm_postgresql_flexible_server_configuration" "shared_preload_libr
 
   depends_on = [azurerm_postgresql_flexible_server_configuration.log_statement]
 }
-
-

@@ -17,8 +17,8 @@ variable "app_name" {
   type        = string
 }
 
-variable "app_service_sku_name_backend" {
-  description = "SKU name for the backend App Service Plan"
+variable "app_service_sku_name_api" {
+  description = "SKU name for the api App Service Plan"
   type        = string
   default     = "B1" # Basic tier
 }
@@ -144,7 +144,7 @@ variable "postgresql_admin_username" {
 variable "repo_name" {
   description = "Name of the repository, used for resource naming"
   type        = string
-  default     = "quickstart-azure-containers"
+  default     = "nr-peach"
 }
 
 variable "resource_group_name" {
