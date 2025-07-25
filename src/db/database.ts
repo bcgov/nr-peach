@@ -1,4 +1,5 @@
 import { config } from 'dotenv';
+import { promises as dns } from 'node:dns';
 import { readdirSync } from 'node:fs';
 import { CamelCasePlugin, Kysely, Migrator, PostgresDialect, sql } from 'kysely';
 import { Pool, types } from 'pg';
@@ -19,11 +20,12 @@ const int8TypeId = 20; // PostgreSQL's bigint type is represented as int8 in Kys
 types.setTypeParser(int8TypeId, (value: string): number => parseInt(value, 10));
 
 const pool = new Pool({
-  host: process.env.PGHOST,
+  host: (await dns.lookup(process.env.PGHOST ?? '', { family: 4 })).address,
   database: process.env.PGDATABASE,
   user: process.env.PGUSER,
   password: process.env.PGPASSWORD,
   port: +(process.env.PGPORT ?? 5432),
+  ssl: process.env.PGSSLMODE === 'require' ? { rejectUnauthorized: false } : false,
   connectionTimeoutMillis: +(process.env.PGPOOL_TIMEOUT ?? 3000),
   idleTimeoutMillis: +(process.env.PGPOOL_IDLE_TIMEOUT ?? 10000),
   max: +(process.env.PGPOOL_MAX ?? 10),

@@ -76,24 +76,24 @@ module "postgresql" {
   depends_on = [module.network]
 }
 
-# module "migration" {
-#   source   = "./modules/migration"
-#   app_name = var.app_name
+module "migration" {
+  source   = "./modules/migration"
+  app_name = var.app_name
 
-#   container_image              = var.api_image
-#   container_instance_subnet_id = module.network.container_instance_subnet_id
-#   database_name                = module.postgresql.database_name
-#   db_master_password           = var.db_master_password
-#   dns_servers                  = module.network.dns_servers
-#   location                     = var.location
-#   log_analytics_workspace_id   = module.monitoring.log_analytics_workspace_workspaceId
-#   log_analytics_workspace_key  = module.monitoring.log_analytics_workspace_key
-#   postgres_host                = module.postgresql.postgres_host
-#   postgresql_admin_username    = var.postgresql_admin_username
-#   resource_group_name          = azurerm_resource_group.main.name
+  container_image              = var.api_image
+  container_instance_subnet_id = module.network.container_instance_subnet_id
+  database_name                = module.postgresql.database_name
+  db_master_password           = var.db_master_password
+  dns_servers                  = module.network.dns_servers
+  location                     = var.location
+  log_analytics_workspace_id   = module.monitoring.log_analytics_workspace_workspaceId
+  log_analytics_workspace_key  = module.monitoring.log_analytics_workspace_key
+  postgres_host                = module.postgresql.postgres_host
+  postgresql_admin_username    = var.postgresql_admin_username
+  resource_group_name          = var.resource_group_name
 
-#   depends_on = [module.postgresql]
-# }
+  depends_on = [module.postgresql]
+}
 
 # module "backend" {
 #   source = "./modules/backend"
