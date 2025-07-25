@@ -142,4 +142,8 @@ dist
 
 # Terraform files
 .terraform/
-.terraform.lock.hcl
+*.lock.hcl
+*.tfstate
+*.tfstate.backup
+*.tfstate.lock.info
+*.tfvars
