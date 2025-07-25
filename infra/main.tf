@@ -110,11 +110,13 @@ module "frontdoor" {
 module "api" {
   source = "./modules/api"
 
-  # api_frontdoor_resource_guid = module.frontdoor.frontdoor_resource_guid
-  api_image                   = var.api_image
-  app_env                     = var.app_env
-  app_name                    = var.app_name
-  app_service_sku_name_api    = var.app_service_sku_name_api
+  api_frontdoor_id                 = module.frontdoor.frontdoor_id
+  api_frontdoor_resource_guid      = module.frontdoor.frontdoor_resource_guid
+  api_frontdoor_firewall_policy_id = module.frontdoor.firewall_policy_id
+  api_image                        = var.api_image
+  app_env                          = var.app_env
+  app_name                         = var.app_name
+  app_service_sku_name_api         = var.app_service_sku_name_api
   # app_service_subnet_id                   = module.network.app_service_subnet_id
   appinsights_connection_string   = module.monitoring.appinsights_connection_string
   appinsights_instrumentation_key = module.monitoring.appinsights_instrumentation_key

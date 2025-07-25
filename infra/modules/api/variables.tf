@@ -1,3 +1,21 @@
+variable "api_frontdoor_firewall_policy_id" {
+  description = "The resource ID of the Front Door firewall policy for the API."
+  type        = string
+  nullable    = false
+}
+
+variable "api_frontdoor_id" {
+  description = "The resource ID of the Front Door profile for the API."
+  type        = string
+  nullable    = false
+}
+
+variable "api_frontdoor_resource_guid" {
+  description = "The resource GUID for the Front Door service associated with the API App Service."
+  type        = string
+  nullable    = false
+}
+
 variable "api_image" {
   description = "The Docker image for the api."
   type        = string
@@ -89,12 +107,6 @@ variable "enable_psql_sidecar" {
   type        = bool
   default     = false
 }
-
-# variable "api_frontdoor_resource_guid" {
-#   description = "The resource GUID for the Front Door service associated with the api App Service."
-#   type        = string
-#   nullable    = false
-# }
 
 variable "location" {
   description = "The Azure region where resources will be created."

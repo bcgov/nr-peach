@@ -64,27 +64,27 @@ resource "azurerm_linux_web_app" "api" {
     #     priority                  = 100
     #   }
     # }
-    # ip_restriction {
-    #   service_tag               = "AzureFrontDoor.Backend"
-    #   ip_address                = null
-    #   virtual_network_subnet_id = null
-    #   action                    = "Allow"
-    #   priority                  = 100
-    #   headers {
-    #     x_azure_fdid      = [var.api_frontdoor_resource_guid]
-    #     x_fd_health_probe = []
-    #     x_forwarded_for   = []
-    #     x_forwarded_host  = []
-    #   }
-    #   name = "Allow traffic from Front Door"
-    # }
-    # ip_restriction {
-    #   name        = "DenyAll"
-    #   action      = "Deny"
-    #   priority    = 500
-    #   ip_address  = "0.0.0.0/0"
-    #   description = "Deny all other traffic"
-    # }
+    ip_restriction {
+      service_tag               = "AzureFrontDoor.Backend"
+      ip_address                = null
+      virtual_network_subnet_id = null
+      action                    = "Allow"
+      priority                  = 100
+      headers {
+        x_azure_fdid      = [var.api_frontdoor_resource_guid]
+        x_fd_health_probe = []
+        x_forwarded_for   = []
+        x_forwarded_host  = []
+      }
+      name = "Allow traffic from Front Door"
+    }
+    ip_restriction {
+      name        = "DenyAll"
+      action      = "Deny"
+      priority    = 500
+      ip_address  = "0.0.0.0/0"
+      description = "Deny all other traffic"
+    }
   }
   app_settings = {
     APPINSIGHTS_INSTRUMENTATIONKEY        = var.appinsights_instrumentation_key
@@ -173,6 +173,86 @@ resource "azurerm_monitor_autoscale_setting" "api_autoscale" {
   }
 
   depends_on = [azurerm_resource_group.main]
+}
+
+# API Diagnostics
+resource "azurerm_monitor_diagnostic_setting" "api_diagnostics" {
+  name                       = "${var.app_name}-api-diagnostics"
+  target_resource_id         = azurerm_linux_web_app.api.id
+  log_analytics_workspace_id = var.log_analytics_workspace_id
+  enabled_log {
+    category = "AppServiceHTTPLogs"
+  }
+  enabled_log {
+    category = "AppServiceConsoleLogs"
+  }
+  enabled_log {
+    category = "AppServiceAppLogs"
+  }
+  enabled_log {
+    category = "AppServicePlatformLogs"
+  }
+}
+
+resource "azurerm_cdn_frontdoor_endpoint" "api_fd_endpoint" {
+  name                     = "${var.repo_name}-${var.app_env}-api-fd"
+  cdn_frontdoor_profile_id = var.api_frontdoor_id
+}
+
+resource "azurerm_cdn_frontdoor_origin_group" "api_origin_group" {
+  name                     = "${var.repo_name}-${var.app_env}-api-origin-group"
+  cdn_frontdoor_profile_id = var.api_frontdoor_id
+  session_affinity_enabled = true
+
+  load_balancing {
+    sample_size                 = 4
+    successful_samples_required = 3
+  }
+
+}
+
+resource "azurerm_cdn_frontdoor_origin" "api_app_service_origin" {
+  name                          = "${var.repo_name}-${var.app_env}-api-origin"
+  cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.api_origin_group.id
+
+  enabled                        = true
+  host_name                      = azurerm_linux_web_app.api.default_hostname
+  http_port                      = 80
+  https_port                     = 443
+  origin_host_header             = azurerm_linux_web_app.api.default_hostname
+  priority                       = 1
+  weight                         = 1000
+  certificate_name_check_enabled = true
+}
+
+resource "azurerm_cdn_frontdoor_route" "api_route" {
+  name                          = "${var.repo_name}-${var.app_env}-api-fd"
+  cdn_frontdoor_endpoint_id     = azurerm_cdn_frontdoor_endpoint.api_fd_endpoint.id
+  cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.api_origin_group.id
+  cdn_frontdoor_origin_ids      = [azurerm_cdn_frontdoor_origin.api_app_service_origin.id]
+
+  supported_protocols    = ["Http", "Https"]
+  patterns_to_match      = ["/*"]
+  forwarding_protocol    = "HttpsOnly"
+  link_to_default_domain = true
+  https_redirect_enabled = true
+}
+resource "azurerm_cdn_frontdoor_security_policy" "frontend_fd_security_policy" {
+  name                     = "${var.app_name}-api-fd-waf-security-policy"
+  cdn_frontdoor_profile_id = var.api_frontdoor_id
+
+  security_policies {
+    firewall {
+      cdn_frontdoor_firewall_policy_id = var.api_frontdoor_firewall_policy_id
+
+      association {
+        domain {
+          cdn_frontdoor_domain_id = azurerm_cdn_frontdoor_endpoint.api_fd_endpoint.id
+        }
+        patterns_to_match = ["/*"]
+      }
+    }
+  }
 }
 
 # CloudBeaver Storage Account (optional)
@@ -291,24 +371,5 @@ resource "azurerm_linux_web_app" "psql_sidecar" {
   tags = var.common_tags
   lifecycle {
     ignore_changes = [tags]
-  }
-}
-
-# API Diagnostics
-resource "azurerm_monitor_diagnostic_setting" "api_diagnostics" {
-  name                       = "${var.app_name}-api-diagnostics"
-  target_resource_id         = azurerm_linux_web_app.api.id
-  log_analytics_workspace_id = var.log_analytics_workspace_id
-  enabled_log {
-    category = "AppServiceHTTPLogs"
-  }
-  enabled_log {
-    category = "AppServiceConsoleLogs"
-  }
-  enabled_log {
-    category = "AppServiceAppLogs"
-  }
-  enabled_log {
-    category = "AppServicePlatformLogs"
   }
 }
