@@ -24,9 +24,7 @@ EXIT_CODE=$(az container show --resource-group "$RG_NAME" --name "$CG_NAME" --qu
 if [ "$EXIT_CODE" != "0" ]; then
   echo "Migration failed with exit code $EXIT_CODE"
   echo "----- Container Logs -----"
-  az container logs --resource-group ${azurerm_container_group.migration.resource_group_name} \
-    --name ${azurerm_container_group.migration.name} \
-    --container-name migration || true
+  az container logs --resource-group "$RG_NAME"  --name "$CG_NAME"  --container-name "$CONTAINER_NAME" || true
   echo "--------------------------"
   exit 1
 fi
