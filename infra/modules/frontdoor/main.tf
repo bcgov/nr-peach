@@ -65,21 +65,22 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "api_firewall_policy" {
       action  = managed_rule.value.action
     }
   }
-  custom_rule {
-    name                           = "RateLimitByIP"
-    enabled                        = true
-    priority                       = 1
-    type                           = "RateLimitRule"
-    rate_limit_duration_in_minutes = 1
-    rate_limit_threshold           = 10
-    action                         = "Block"
-    match_condition {
-      match_variable     = "RemoteAddr"
-      operator           = "IPMatch"
-      negation_condition = false
-      match_values       = ["0.0.0.0/0"] # Apply to all IPs
-    }
-  }
+  # Commented IP rate limiting as expected network traffic will spike from same IP during batch jobs
+  # custom_rule {
+  #   name                           = "RateLimitByIP"
+  #   enabled                        = true
+  #   priority                       = 1
+  #   type                           = "RateLimitRule"
+  #   rate_limit_duration_in_minutes = 1
+  #   rate_limit_threshold           = 10
+  #   action                         = "Block"
+  #   match_condition {
+  #     match_variable     = "RemoteAddr"
+  #     operator           = "IPMatch"
+  #     negation_condition = false
+  #     match_values       = ["0.0.0.0/0"] # Apply to all IPs
+  #   }
+  # }
   tags = var.common_tags
   lifecycle {
     ignore_changes = [
