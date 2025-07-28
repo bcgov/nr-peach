@@ -12,6 +12,7 @@
         "editorconfig.editorconfig",
         "esbenp.prettier-vscode",
         "gruntfuggly.todo-tree",
+        "hashicorp.terraform",
         "ms-azuretools.vscode-containers",
         "ryanluker.vscode-coverage-gutters",
         "unifiedjs.vscode-mdx",
@@ -21,7 +22,7 @@
     }
   },
   "forwardPorts": [3000, 5432],
-  "postCreateCommand": "(npm ci && npm run migrate:latest)",
+  "postCreateCommand": "(npm ci && npm run migrate:latest && npm run seed:run)",
   "waitFor": "postCreateCommand",
   "remoteUser": "node"
 }
