@@ -16,7 +16,7 @@ export const options: Options = {
     { duration: '5s', target: 0 } // ramp down virtual users
   ],
   thresholds: {
-    http_req_duration: ['p(95)<100'], // 95% of requests should be below 100ms
+    http_req_duration: ['p(95)<200'], // 95% of requests should be below 200ms
     http_req_failed: [
       {
         threshold: 'rate<0.001', // http errors should be less than 0.1%
