@@ -1,7 +1,11 @@
-output "firewall_policy_id" {
+output "api_firewall_policy_id" {
   description = "The ID of the Front Door firewall policy."
   value       = azurerm_cdn_frontdoor_firewall_policy.api_firewall_policy.id
+}
 
+output "cloudbeaver_firewall_policy_id" {
+  description = "The ID of the CloudBeaver firewall policy."
+  value       = var.enable_cloudbeaver ? azurerm_cdn_frontdoor_firewall_policy.cloudbeaver_firewall_policy[0].id : null
 }
 
 output "frontdoor_id" {

@@ -51,10 +51,10 @@ variable "db_master_password" {
   }
 }
 
-variable "enable_psql_sidecar" {
+variable "enable_cloudbeaver" {
   description = "Whether to enable the CloudBeaver database management container"
   type        = bool
-  default     = true
+  default     = false
 }
 
 variable "frontdoor_sku_name" {
