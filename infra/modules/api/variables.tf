@@ -70,6 +70,12 @@ variable "api_subnet_id" {
   nullable    = false
 }
 
+variable "cloudbeaver_frontdoor_firewall_policy_id" {
+  description = "The resource ID of the CloudBeaver firewall policy for the API."
+  type        = string
+  nullable    = true
+}
+
 variable "common_tags" {
   description = "A map of tags to apply to resources."
   type        = map(string)
@@ -102,7 +108,7 @@ variable "db_ssl_mode" {
   default     = "require"
 }
 
-variable "enable_psql_sidecar" {
+variable "enable_cloudbeaver" {
   description = "Whether to enable the CloudBeaver PostgreSQL sidecar."
   type        = bool
   default     = false

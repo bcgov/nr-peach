@@ -88,7 +88,7 @@ module "migration" {
   location                     = var.location
   log_analytics_workspace_id   = module.monitoring.log_analytics_workspace_workspaceId
   log_analytics_workspace_key  = module.monitoring.log_analytics_workspace_key
-  postgres_host                = module.postgresql.postgres_host
+  postgres_host                = module.postgresql.database_host
   postgresql_admin_username    = var.postgresql_admin_username
   resource_group_name          = var.resource_group_name
 
@@ -100,6 +100,7 @@ module "frontdoor" {
 
   app_name            = var.app_name
   common_tags         = var.common_tags
+  enable_cloudbeaver  = var.enable_cloudbeaver
   frontdoor_sku_name  = var.frontdoor_sku_name
   location            = var.location
   resource_group_name = var.resource_group_name
@@ -110,13 +111,14 @@ module "frontdoor" {
 module "api" {
   source = "./modules/api"
 
-  api_frontdoor_id                 = module.frontdoor.frontdoor_id
-  api_frontdoor_resource_guid      = module.frontdoor.frontdoor_resource_guid
-  api_frontdoor_firewall_policy_id = module.frontdoor.firewall_policy_id
-  api_image                        = var.api_image
-  app_env                          = var.app_env
-  app_name                         = var.app_name
-  app_service_sku_name_api         = var.app_service_sku_name_api
+  api_frontdoor_id                         = module.frontdoor.frontdoor_id
+  api_frontdoor_resource_guid              = module.frontdoor.frontdoor_resource_guid
+  api_frontdoor_firewall_policy_id         = module.frontdoor.api_firewall_policy_id
+  cloudbeaver_frontdoor_firewall_policy_id = module.frontdoor.cloudbeaver_firewall_policy_id
+  api_image                                = var.api_image
+  app_env                                  = var.app_env
+  app_name                                 = var.app_name
+  app_service_sku_name_api                 = var.app_service_sku_name_api
   # app_service_subnet_id                   = module.network.app_service_subnet_id
   appinsights_connection_string   = module.monitoring.appinsights_connection_string
   appinsights_instrumentation_key = module.monitoring.appinsights_instrumentation_key
@@ -124,11 +126,11 @@ module "api" {
   common_tags                     = var.common_tags
   database_name                   = var.database_name
   db_master_password              = var.db_master_password
-  enable_psql_sidecar             = var.enable_psql_sidecar
+  enable_cloudbeaver              = var.enable_cloudbeaver
   # frontend_possible_outbound_ip_addresses = module.frontend.possible_outbound_ip_addresses
   location                         = var.location
   log_analytics_workspace_id       = module.monitoring.log_analytics_workspace_id
-  postgres_host                    = module.postgresql.postgres_host
+  postgres_host                    = module.postgresql.database_host
   postgresql_admin_username        = var.postgresql_admin_username
   private_endpoint_subnet_id       = module.network.private_endpoint_subnet_id
   repo_name                        = var.repo_name
