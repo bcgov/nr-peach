@@ -78,13 +78,13 @@ resource "azurerm_linux_web_app" "api" {
       }
       name = "Allow traffic from Front Door"
     }
-    ip_restriction {
-      name        = "DenyAll"
-      action      = "Deny"
-      priority    = 500
-      ip_address  = "0.0.0.0/0"
-      description = "Deny all other traffic"
-    }
+    # ip_restriction {
+    #   name        = "DenyAll"
+    #   action      = "Deny"
+    #   priority    = 500
+    #   ip_address  = "0.0.0.0/0"
+    #   description = "Deny all other traffic"
+    # }
   }
   app_settings = {
     APPINSIGHTS_INSTRUMENTATIONKEY        = var.appinsights_instrumentation_key
@@ -416,13 +416,13 @@ resource "azurerm_linux_web_app" "cloudbeaver" {
       }
       name = "Allow traffic from Front Door"
     }
-    ip_restriction {
-      name        = "DenyAll"
-      action      = "Deny"
-      priority    = 500
-      ip_address  = "0.0.0.0/0"
-      description = "Deny all other traffic"
-    }
+    # ip_restriction {
+    #   name        = "DenyAll"
+    #   action      = "Deny"
+    #   priority    = 500
+    #   ip_address  = "0.0.0.0/0"
+    #   description = "Deny all other traffic"
+    # }
   }
   app_settings = {
     APPINSIGHTS_INSTRUMENTATIONKEY        = var.appinsights_instrumentation_key
