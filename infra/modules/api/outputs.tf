@@ -8,17 +8,17 @@ output "api_app_service_url" {
   value       = "https://${azurerm_linux_web_app.api.default_hostname}"
 }
 
-output "api_frontdoor_endpoint" {
-  description = "The API endpoint"
-  value       = "https://${azurerm_cdn_frontdoor_endpoint.api_fd_endpoint.host_name}/"
-}
+# output "api_frontdoor_endpoint" {
+#   description = "The API endpoint"
+#   value       = "https://${azurerm_cdn_frontdoor_endpoint.api_fd_endpoint.host_name}/"
+# }
 
 output "cloudbeaver_app_service_url" {
   description = "The URL of the CloudBeaver App Service"
   value       = var.enable_cloudbeaver ? "https://${azurerm_linux_web_app.cloudbeaver[0].default_hostname}" : null
 }
 
-output "cloudbeaver_frontdoor_endpoint" {
-  description = "The CloudBeaver endpoint"
-  value       = var.enable_cloudbeaver ? "https://${azurerm_cdn_frontdoor_endpoint.cloudbeaver_fd_endpoint[0].host_name}/" : null
-}
+# output "cloudbeaver_frontdoor_endpoint" {
+#   description = "The CloudBeaver endpoint"
+#   value       = var.enable_cloudbeaver ? "https://${azurerm_cdn_frontdoor_endpoint.cloudbeaver_fd_endpoint[0].host_name}/" : null
+# }
