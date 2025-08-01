@@ -12,7 +12,7 @@ resource "azurerm_resource_group" "main" {
 
 # PostgreSQL Flexible Server
 resource "azurerm_postgresql_flexible_server" "postgresql" {
-  name                = "${var.app_name}-postgresql"
+  name                = "${var.app_name}-${var.module_name}"
   resource_group_name = "${var.resource_group_name}-${var.module_name}-rg"
   location            = var.location
 
@@ -71,7 +71,7 @@ resource "azurerm_postgresql_flexible_server_database" "postgres_database" {
 # Private Endpoint for PostgreSQL Flexible Server
 # Note: DNS zone association will be automatically managed by Azure Policy
 resource "azurerm_private_endpoint" "postgresql" {
-  name                = "${var.app_name}-postgresql-pe"
+  name                = "${var.app_name}-${var.module_name}-pe"
   location            = var.location
   resource_group_name = "${var.resource_group_name}-${var.module_name}-rg"
   subnet_id           = var.private_endpoint_subnet_id

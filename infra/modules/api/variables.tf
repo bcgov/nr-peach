@@ -1,20 +1,20 @@
-variable "api_frontdoor_firewall_policy_id" {
-  description = "The resource ID of the Front Door firewall policy for the API."
-  type        = string
-  nullable    = false
-}
+# variable "api_frontdoor_firewall_policy_id" {
+#   description = "The resource ID of the Front Door firewall policy for the API."
+#   type        = string
+#   nullable    = false
+# }
 
-variable "api_frontdoor_id" {
-  description = "The resource ID of the Front Door profile for the API."
-  type        = string
-  nullable    = false
-}
+# variable "api_frontdoor_id" {
+#   description = "The resource ID of the Front Door profile for the API."
+#   type        = string
+#   nullable    = false
+# }
 
-variable "api_frontdoor_resource_guid" {
-  description = "The resource GUID for the Front Door service associated with the API App Service."
-  type        = string
-  nullable    = false
-}
+# variable "api_frontdoor_resource_guid" {
+#   description = "The resource GUID for the Front Door service associated with the API App Service."
+#   type        = string
+#   nullable    = false
+# }
 
 variable "api_image" {
   description = "The Docker image for the api."
@@ -70,11 +70,11 @@ variable "api_subnet_id" {
   nullable    = false
 }
 
-variable "cloudbeaver_frontdoor_firewall_policy_id" {
-  description = "The resource ID of the CloudBeaver firewall policy for the API."
-  type        = string
-  nullable    = true
-}
+# variable "cloudbeaver_frontdoor_firewall_policy_id" {
+#   description = "The resource ID of the CloudBeaver firewall policy for the API."
+#   type        = string
+#   nullable    = true
+# }
 
 variable "common_tags" {
   description = "A map of tags to apply to resources."

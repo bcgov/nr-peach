@@ -57,11 +57,11 @@ variable "enable_cloudbeaver" {
   default     = false
 }
 
-variable "frontdoor_sku_name" {
-  description = "SKU name for the Front Door"
-  type        = string
-  default     = "Standard_AzureFrontDoor"
-}
+# variable "frontdoor_sku_name" {
+#   description = "SKU name for the Front Door"
+#   type        = string
+#   default     = "Standard_AzureFrontDoor"
+# }
 
 variable "location" {
   description = "Azure region for resources"
