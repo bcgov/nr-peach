@@ -1,3 +1,7 @@
+# -----------------------------------------
+# Monitoring Module Terraform Configuration
+# -----------------------------------------
+
 # Create the main resource group for all monitoring resources
 resource "azurerm_resource_group" "main" {
   name     = "${var.resource_group_name}-${var.module_name}-rg"
@@ -25,6 +29,8 @@ resource "azurerm_log_analytics_workspace" "main" {
       tags
     ]
   }
+
+  depends_on = [azurerm_resource_group.main]
 }
 
 # Application Insights for enhanced monitoring and logging
@@ -42,4 +48,6 @@ resource "azurerm_application_insights" "main" {
       tags
     ]
   }
+
+  depends_on = [azurerm_resource_group.main]
 }

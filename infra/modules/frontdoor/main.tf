@@ -1,3 +1,7 @@
+# ----------------------------------------
+# FrontDoor Module Terraform Configuration
+# ----------------------------------------
+
 # Create the main resource group for all frontdoor resources
 resource "azurerm_resource_group" "main" {
   name     = "${var.resource_group_name}-${var.module_name}-rg"
@@ -22,6 +26,8 @@ resource "azurerm_cdn_frontdoor_profile" "api_frontdoor" {
       tags
     ]
   }
+
+  depends_on = [azurerm_resource_group.main]
 }
 
 resource "azurerm_cdn_frontdoor_firewall_policy" "api_firewall_policy" {
@@ -88,6 +94,8 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "api_firewall_policy" {
       tags
     ]
   }
+
+  depends_on = [azurerm_resource_group.main]
 }
 
 resource "azurerm_cdn_frontdoor_firewall_policy" "cloudbeaver_firewall_policy" {
@@ -155,4 +163,6 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "cloudbeaver_firewall_policy" {
       tags
     ]
   }
+
+  depends_on = [azurerm_resource_group.main]
 }

@@ -1,7 +1,15 @@
+# --------------------------------------
+# Network Module Terraform Configuration
+# --------------------------------------
+
 data "azurerm_virtual_network" "main" {
   name                = var.vnet_name
   resource_group_name = var.vnet_resource_group_name
 }
+
+# ------------------------------
+# Network Security Groups (NSGs)
+# ------------------------------
 
 # NSG for privateendpoints subnet
 resource "azurerm_network_security_group" "privateendpoints" {
@@ -301,7 +309,10 @@ resource "azurerm_network_security_group" "container_instance" {
   }
 }
 
+# -------
 # Subnets
+# -------
+
 # In Azure, subnets must be created within the same resource group as their parent virtual network.
 # You cannot create a subnet in a different resource group from the VNet.
 resource "azapi_resource" "privateendpoints_subnet" {

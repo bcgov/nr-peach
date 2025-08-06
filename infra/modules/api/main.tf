@@ -1,3 +1,7 @@
+# ----------------------------------
+# API Module Terraform Configuration
+# ----------------------------------
+
 # Create the main resource group for all api resources
 resource "azurerm_resource_group" "main" {
   name     = "${var.resource_group_name}-${var.module_name}-rg"
@@ -24,6 +28,86 @@ resource "azurerm_service_plan" "api" {
 
   depends_on = [azurerm_resource_group.main]
 }
+
+# API Autoscaler
+resource "azurerm_monitor_autoscale_setting" "api_autoscale" {
+  name                = "${var.app_name}-api-autoscale"
+  resource_group_name = "${var.resource_group_name}-${var.module_name}-rg"
+  location            = var.location
+  target_resource_id  = azurerm_service_plan.api.id
+  enabled             = var.api_autoscale_enabled
+  profile {
+    name = "default"
+    capacity {
+      default = 2
+      minimum = 1
+      maximum = 10
+    }
+    rule {
+      metric_trigger {
+        metric_name        = "CpuPercentage"
+        metric_resource_id = azurerm_service_plan.api.id
+        time_grain         = "PT1M"
+        statistic          = "Average"
+        time_window        = "PT5M"
+        time_aggregation   = "Average"
+        operator           = "GreaterThan"
+        threshold          = 70
+      }
+      scale_action {
+        direction = "Increase"
+        type      = "ChangeCount"
+        value     = "1"
+        cooldown  = "PT1M"
+      }
+    }
+    rule {
+      metric_trigger {
+        metric_name        = "CpuPercentage"
+        metric_resource_id = azurerm_service_plan.api.id
+        time_grain         = "PT1M"
+        statistic          = "Average"
+        time_window        = "PT5M"
+        time_aggregation   = "Average"
+        operator           = "LessThan"
+        threshold          = 30
+      }
+      scale_action {
+        direction = "Decrease"
+        type      = "ChangeCount"
+        value     = "1"
+        cooldown  = "PT1M"
+      }
+    }
+  }
+
+  depends_on = [azurerm_resource_group.main]
+}
+
+# API Diagnostics
+resource "azurerm_monitor_diagnostic_setting" "api_diagnostics" {
+  name                       = "${var.app_name}-api-diagnostics"
+  target_resource_id         = azurerm_linux_web_app.api.id
+  log_analytics_workspace_id = var.log_analytics_workspace_id
+  enabled_log {
+    category = "AppServiceHTTPLogs"
+  }
+  enabled_log {
+    category = "AppServiceConsoleLogs"
+  }
+  enabled_log {
+    category = "AppServiceAppLogs"
+  }
+  enabled_log {
+    category = "AppServicePlatformLogs"
+  }
+
+  depends_on = [azurerm_resource_group.main]
+}
+
+# ---------------------------
+# API Terraform Configuration
+# ---------------------------
 
 # API App Service
 resource "azurerm_linux_web_app" "api" {
@@ -117,81 +201,7 @@ resource "azurerm_linux_web_app" "api" {
     ignore_changes = [tags]
   }
 
-  depends_on = [azurerm_resource_group.main]
-}
-
-# API Autoscaler
-resource "azurerm_monitor_autoscale_setting" "api_autoscale" {
-  name                = "${var.app_name}-api-autoscale"
-  resource_group_name = "${var.resource_group_name}-${var.module_name}-rg"
-  location            = var.location
-  target_resource_id  = azurerm_service_plan.api.id
-  enabled             = var.api_autoscale_enabled
-  profile {
-    name = "default"
-    capacity {
-      default = 2
-      minimum = 1
-      maximum = 10
-    }
-    rule {
-      metric_trigger {
-        metric_name        = "CpuPercentage"
-        metric_resource_id = azurerm_service_plan.api.id
-        time_grain         = "PT1M"
-        statistic          = "Average"
-        time_window        = "PT5M"
-        time_aggregation   = "Average"
-        operator           = "GreaterThan"
-        threshold          = 70
-      }
-      scale_action {
-        direction = "Increase"
-        type      = "ChangeCount"
-        value     = "1"
-        cooldown  = "PT1M"
-      }
-    }
-    rule {
-      metric_trigger {
-        metric_name        = "CpuPercentage"
-        metric_resource_id = azurerm_service_plan.api.id
-        time_grain         = "PT1M"
-        statistic          = "Average"
-        time_window        = "PT5M"
-        time_aggregation   = "Average"
-        operator           = "LessThan"
-        threshold          = 30
-      }
-      scale_action {
-        direction = "Decrease"
-        type      = "ChangeCount"
-        value     = "1"
-        cooldown  = "PT1M"
-      }
-    }
-  }
-
-  depends_on = [azurerm_resource_group.main]
-}
-
-# API Diagnostics
-resource "azurerm_monitor_diagnostic_setting" "api_diagnostics" {
-  name                       = "${var.app_name}-api-diagnostics"
-  target_resource_id         = azurerm_linux_web_app.api.id
-  log_analytics_workspace_id = var.log_analytics_workspace_id
-  enabled_log {
-    category = "AppServiceHTTPLogs"
-  }
-  enabled_log {
-    category = "AppServiceConsoleLogs"
-  }
-  enabled_log {
-    category = "AppServiceAppLogs"
-  }
-  enabled_log {
-    category = "AppServicePlatformLogs"
-  }
+  depends_on = [azurerm_service_plan.api]
 }
 
 # resource "azurerm_cdn_frontdoor_endpoint" "api_fd_endpoint" {
@@ -255,71 +265,9 @@ resource "azurerm_monitor_diagnostic_setting" "api_diagnostics" {
 #   }
 # }
 
-# resource "azurerm_cdn_frontdoor_endpoint" "cloudbeaver_fd_endpoint" {
-#   count                    = var.enable_cloudbeaver ? 1 : 0
-#   name                     = "${var.repo_name}-${var.app_env}-cloudbeaver-fd"
-#   cdn_frontdoor_profile_id = var.api_frontdoor_id
-# }
-
-# resource "azurerm_cdn_frontdoor_origin_group" "cloudbeaver_origin_group" {
-#   count                    = var.enable_cloudbeaver ? 1 : 0
-#   name                     = "${var.repo_name}-${var.app_env}-cloudbeaver-origin-group"
-#   cdn_frontdoor_profile_id = var.api_frontdoor_id
-#   session_affinity_enabled = true
-
-#   load_balancing {
-#     sample_size                 = 4
-#     successful_samples_required = 3
-#   }
-# }
-
-# resource "azurerm_cdn_frontdoor_origin" "cloudbeaver_app_service_origin" {
-#   count                         = var.enable_cloudbeaver ? 1 : 0
-#   name                          = "${var.repo_name}-${var.app_env}-cloudbeaver-origin"
-#   cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.cloudbeaver_origin_group[0].id
-
-#   enabled                        = true
-#   host_name                      = azurerm_linux_web_app.cloudbeaver[0].default_hostname
-#   http_port                      = 80
-#   https_port                     = 443
-#   origin_host_header             = azurerm_linux_web_app.cloudbeaver[0].default_hostname
-#   priority                       = 1
-#   weight                         = 1000
-#   certificate_name_check_enabled = true
-# }
-
-# resource "azurerm_cdn_frontdoor_route" "cloudbeaver_route" {
-#   count                         = var.enable_cloudbeaver ? 1 : 0
-#   name                          = "${var.repo_name}-${var.app_env}-cloudbeaver-fd"
-#   cdn_frontdoor_endpoint_id     = azurerm_cdn_frontdoor_endpoint.cloudbeaver_fd_endpoint[0].id
-#   cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.cloudbeaver_origin_group[0].id
-#   cdn_frontdoor_origin_ids      = [azurerm_cdn_frontdoor_origin.cloudbeaver_app_service_origin[0].id]
-
-#   supported_protocols    = ["Http", "Https"]
-#   patterns_to_match      = ["/*"]
-#   forwarding_protocol    = "HttpsOnly"
-#   link_to_default_domain = true
-#   https_redirect_enabled = true
-# }
-
-# resource "azurerm_cdn_frontdoor_security_policy" "cloudbeaver_fd_security_policy" {
-#   count                    = var.enable_cloudbeaver ? 1 : 0
-#   name                     = "${var.app_name}-cloudbeaver-fd-waf-security-policy"
-#   cdn_frontdoor_profile_id = var.api_frontdoor_id
-
-#   security_policies {
-#     firewall {
-#       cdn_frontdoor_firewall_policy_id = var.cloudbeaver_frontdoor_firewall_policy_id
-
-#       association {
-#         domain {
-#           cdn_frontdoor_domain_id = azurerm_cdn_frontdoor_endpoint.cloudbeaver_fd_endpoint[0].id
-#         }
-#         patterns_to_match = ["/*"]
-#       }
-#     }
-#   }
-# }
+# -----------------------------------
+# Cloudbeaver Terraform Configuration
+# -----------------------------------
 
 # CloudBeaver Storage Account (optional)
 resource "azurerm_storage_account" "cloudbeaver" {
@@ -335,6 +283,8 @@ resource "azurerm_storage_account" "cloudbeaver" {
   lifecycle {
     ignore_changes = [tags]
   }
+
+  depends_on = [azurerm_resource_group.main]
 }
 
 resource "azurerm_storage_share" "cloudbeaver_workspace" {
@@ -342,6 +292,8 @@ resource "azurerm_storage_share" "cloudbeaver_workspace" {
   name               = "${var.app_name}-cb-workspace"
   storage_account_id = azurerm_storage_account.cloudbeaver[0].id
   quota              = 10
+
+  depends_on = [azurerm_storage_account.cloudbeaver]
 }
 
 resource "azurerm_private_endpoint" "cloudbeaver_storage" {
@@ -360,6 +312,8 @@ resource "azurerm_private_endpoint" "cloudbeaver_storage" {
   lifecycle {
     ignore_changes = [tags, private_dns_zone_group]
   }
+
+  depends_on = [azurerm_resource_group.main]
 }
 
 resource "random_string" "cloudbeaver_admin_name" {
@@ -460,4 +414,72 @@ resource "azurerm_linux_web_app" "cloudbeaver" {
   lifecycle {
     ignore_changes = [tags]
   }
+
+  depends_on = [azurerm_service_plan.api]
 }
+
+# resource "azurerm_cdn_frontdoor_endpoint" "cloudbeaver_fd_endpoint" {
+#   count                    = var.enable_cloudbeaver ? 1 : 0
+#   name                     = "${var.repo_name}-${var.app_env}-cloudbeaver-fd"
+#   cdn_frontdoor_profile_id = var.api_frontdoor_id
+# }
+
+# resource "azurerm_cdn_frontdoor_origin_group" "cloudbeaver_origin_group" {
+#   count                    = var.enable_cloudbeaver ? 1 : 0
+#   name                     = "${var.repo_name}-${var.app_env}-cloudbeaver-origin-group"
+#   cdn_frontdoor_profile_id = var.api_frontdoor_id
+#   session_affinity_enabled = true
+
+#   load_balancing {
+#     sample_size                 = 4
+#     successful_samples_required = 3
+#   }
+# }
+
+# resource "azurerm_cdn_frontdoor_origin" "cloudbeaver_app_service_origin" {
+#   count                         = var.enable_cloudbeaver ? 1 : 0
+#   name                          = "${var.repo_name}-${var.app_env}-cloudbeaver-origin"
+#   cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.cloudbeaver_origin_group[0].id
+
+#   enabled                        = true
+#   host_name                      = azurerm_linux_web_app.cloudbeaver[0].default_hostname
+#   http_port                      = 80
+#   https_port                     = 443
+#   origin_host_header             = azurerm_linux_web_app.cloudbeaver[0].default_hostname
+#   priority                       = 1
+#   weight                         = 1000
+#   certificate_name_check_enabled = true
+# }
+
+# resource "azurerm_cdn_frontdoor_route" "cloudbeaver_route" {
+#   count                         = var.enable_cloudbeaver ? 1 : 0
+#   name                          = "${var.repo_name}-${var.app_env}-cloudbeaver-fd"
+#   cdn_frontdoor_endpoint_id     = azurerm_cdn_frontdoor_endpoint.cloudbeaver_fd_endpoint[0].id
+#   cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.cloudbeaver_origin_group[0].id
+#   cdn_frontdoor_origin_ids      = [azurerm_cdn_frontdoor_origin.cloudbeaver_app_service_origin[0].id]
+
+#   supported_protocols    = ["Http", "Https"]
+#   patterns_to_match      = ["/*"]
+#   forwarding_protocol    = "HttpsOnly"
+#   link_to_default_domain = true
+#   https_redirect_enabled = true
+# }
+
+# resource "azurerm_cdn_frontdoor_security_policy" "cloudbeaver_fd_security_policy" {
+#   count                    = var.enable_cloudbeaver ? 1 : 0
+#   name                     = "${var.app_name}-cloudbeaver-fd-waf-security-policy"
+#   cdn_frontdoor_profile_id = var.api_frontdoor_id
+
+#   security_policies {
+#     firewall {
+#       cdn_frontdoor_firewall_policy_id = var.cloudbeaver_frontdoor_firewall_policy_id
+
+#       association {
+#         domain {
+#           cdn_frontdoor_domain_id = azurerm_cdn_frontdoor_endpoint.cloudbeaver_fd_endpoint[0].id
+#         }
+#         patterns_to_match = ["/*"]
+#       }
+#     }
+#   }
+# }

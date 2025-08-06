@@ -1,8 +1,8 @@
-# -------------
+# ----------------------------------
 # Root Level Terraform Configuration
-# -------------
+# ----------------------------------
 
-# Create the main resource group for all application resources
+# Create the main resource group
 resource "azurerm_resource_group" "main" {
   name     = "${var.resource_group_name}-rg"
   location = var.location
@@ -24,9 +24,9 @@ resource "azurerm_user_assigned_identity" "app_service_identity" {
   depends_on = [azurerm_resource_group.main]
 }
 
-# -------------
+# -----------------------------
 # Modules based on Dependencies
-# -------------
+# -----------------------------
 module "monitoring" {
   source = "./modules/monitoring"
 

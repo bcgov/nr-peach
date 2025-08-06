@@ -1,6 +1,6 @@
-# -------------
+# -----------------------------------------
 # Common Variables for Azure Infrastructure
-# -------------
+# -----------------------------------------
 
 variable "api_image" {
   description = "The image for the API container"
