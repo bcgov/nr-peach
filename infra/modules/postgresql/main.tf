@@ -1,3 +1,7 @@
+# -----------------------------------------
+# PostgreSQL Module Terraform Configuration
+# -----------------------------------------
+
 # Create the main resource group for all postgresql resources
 resource "azurerm_resource_group" "main" {
   name     = "${var.resource_group_name}-${var.module_name}-rg"
