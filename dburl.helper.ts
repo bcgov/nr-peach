@@ -1,4 +1,4 @@
-#!/usr/bin/env node --experimental-transform-types
+#!/usr/bin/env node
 
 import { config } from 'dotenv';
 

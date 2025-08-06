@@ -8,10 +8,10 @@
   "type": "module",
   "main": "server.ts",
   "scripts": {
-    "codegen": "kysely-codegen --url $(node --experimental-transform-types dburl.helper.ts)",
+    "codegen": "kysely-codegen --url $(node dburl.helper.ts)",
     "clean": "rimraf coverage",
-    "debug": "node --experimental-transform-types --inspect server.ts",
-    "dev": "node --experimental-transform-types --watch server.ts",
+    "debug": "node --inspect server.ts",
+    "dev": "node --watch server.ts",
     "format": "prettier --write \"**/*.{json,md,ts,yaml}\"",
     "lint": "eslint",
     "lint:fix": "eslint --fix",
@@ -29,7 +29,7 @@
     "seed:list": "kysely seed list",
     "seed:make": "kysely seed make",
     "seed:run": "kysely seed run",
-    "start": "cross-env NODE_ENV=production node --experimental-transform-types server.ts",
+    "start": "cross-env NODE_ENV=production node server.ts",
     "test": "vitest",
     "test:shuffle": "vitest --sequence.shuffle",
     "typecheck": "tsc --noEmit"
