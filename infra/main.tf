@@ -122,6 +122,7 @@ module "api" {
   # app_service_subnet_id                   = module.network.app_service_subnet_id
   appinsights_connection_string   = module.monitoring.appinsights_connection_string
   appinsights_instrumentation_key = module.monitoring.appinsights_instrumentation_key
+  api_autoscale_enabled           = var.api_autoscale_enabled
   api_subnet_id                   = module.network.app_service_subnet_id
   common_tags                     = var.common_tags
   database_name                   = var.database_name
@@ -138,5 +139,5 @@ module "api" {
   user_assigned_identity_client_id = azurerm_user_assigned_identity.app_service_identity.client_id
   user_assigned_identity_id        = azurerm_user_assigned_identity.app_service_identity.id
 
-  depends_on = [module.postgresql]
+  depends_on = [module.migration]
 }

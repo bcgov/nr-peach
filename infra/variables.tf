@@ -7,6 +7,12 @@ variable "api_image" {
   type        = string
 }
 
+variable "api_autoscale_enabled" {
+  description = "Whether autoscaling is enabled for the api App Service plan."
+  type        = bool
+  default     = false
+}
+
 variable "app_env" {
   description = "Application environment (dev, test, prod)"
   type        = string

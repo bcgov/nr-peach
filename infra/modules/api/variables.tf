@@ -61,7 +61,7 @@ variable "appinsights_instrumentation_key" {
 variable "api_autoscale_enabled" {
   description = "Whether autoscaling is enabled for the api App Service plan."
   type        = bool
-  default     = true
+  default     = false
 }
 
 variable "api_subnet_id" {

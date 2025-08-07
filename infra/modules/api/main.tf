@@ -35,6 +35,7 @@ resource "azurerm_monitor_autoscale_setting" "api_autoscale" {
   resource_group_name = "${var.resource_group_name}-${var.module_name}-rg"
   location            = var.location
   target_resource_id  = azurerm_service_plan.api.id
+  # This does not work if the SKU is not Premium
   enabled             = var.api_autoscale_enabled
   profile {
     name = "default"
