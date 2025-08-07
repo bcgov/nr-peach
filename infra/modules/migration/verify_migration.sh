@@ -22,9 +22,9 @@ done
 
 EXIT_CODE=$(az container show --resource-group "$RG_NAME" --name "$CG_NAME" --query "containers[0].instanceView.currentState.exitCode" -o tsv)
 if [ "$EXIT_CODE" != "0" ]; then
-  echo "Migration failed with exit code $EXIT_CODE"
   echo "----- Container Logs -----"
   az container logs --resource-group "$RG_NAME"  --name "$CG_NAME"  --container-name "$CONTAINER_NAME" || true
   echo "--------------------------"
+  echo "Migration failed with exit code $EXIT_CODE"
   exit 1
 fi
