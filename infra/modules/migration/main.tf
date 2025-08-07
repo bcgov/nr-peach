@@ -71,6 +71,9 @@ resource "null_resource" "verify_migration" {
   provisioner "local-exec" {
     command = "sh ${path.module}/verify_migration.sh '${azurerm_container_group.migration.resource_group_name}' '${azurerm_container_group.migration.name}' migration"
   }
+  triggers = {
+    always_run = timestamp()
+  }
 
   depends_on = [azurerm_container_group.migration]
 }
