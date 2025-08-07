@@ -100,13 +100,41 @@ resource "azurerm_private_endpoint" "postgresql" {
   depends_on = [azurerm_resource_group.main]
 }
 
-resource "time_sleep" "wait_for_postgresql" {
-  create_duration = "20s"
+# Wait for Private Endpoint to report back as succeeded and not just created
+# Will timeout after 10 minutes if the provisioning state does not succeed
+resource "null_resource" "validate_private_endpoint" {
+  provisioner "local-exec" {
+    command = <<-EOT
+      max_wait=$((10 * 60))
+      interval=10
+      waited=0
+      while true; do
+        state=$(az network private-endpoint show \
+          --ids ${azurerm_private_endpoint.postgresql.id} \
+          --query 'provisioningState' -o tsv)
+        echo "Status: $state..."
+        if [ "$state" = "Succeeded" ]; then
+          echo "Provisioning succeeded!"
+          exit 0
+        fi
+        if [ $waited -ge $max_wait ]; then
+          echo "ERROR: Timeout after waiting for provisioning."
+          exit 1
+        fi
+        sleep $interval
+        waited=$((waited + interval))
+      done
+    EOT
+  }
 
-  depends_on = [
-    azurerm_postgresql_flexible_server_database.postgres_database,
-    azurerm_private_endpoint.postgresql
-  ]
+  depends_on = [azurerm_private_endpoint.postgresql]
+}
+
+
+resource "time_sleep" "wait_for_postgresql" {
+  create_duration = "60s"
+
+  depends_on = [azurerm_postgresql_flexible_server_database.postgres_database, null_resource.validate_private_endpoint]
 }
 
 resource "azurerm_postgresql_flexible_server_configuration" "log_statement" {
