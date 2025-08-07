@@ -132,7 +132,7 @@ resource "null_resource" "validate_private_endpoint" {
 
 
 resource "time_sleep" "wait_for_postgresql" {
-  create_duration = "60s"
+  create_duration = "10m"
 
   depends_on = [azurerm_postgresql_flexible_server_database.postgres_database, null_resource.validate_private_endpoint]
 }
