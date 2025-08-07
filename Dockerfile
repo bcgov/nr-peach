@@ -1,6 +1,6 @@
 ARG APP_ROOT=/app
 ARG APP_PORT=3000
-ARG BASE_IMAGE=docker.io/node:22.17.1-alpine
+ARG BASE_IMAGE=docker.io/node:22.18.0-alpine
 ARG GIT_COMMIT
 
 #
