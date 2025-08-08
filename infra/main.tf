@@ -88,7 +88,7 @@ module "migration" {
   location                     = var.location
   log_analytics_workspace_id   = module.monitoring.log_analytics_workspace_workspaceId
   log_analytics_workspace_key  = module.monitoring.log_analytics_workspace_key
-  postgres_host                = module.postgresql.database_host
+  postgres_host                = module.postgresql.database_ip
   postgresql_admin_username    = var.postgresql_admin_username
   resource_group_name          = var.resource_group_name
 
@@ -131,7 +131,7 @@ module "api" {
   # frontend_possible_outbound_ip_addresses = module.frontend.possible_outbound_ip_addresses
   location                         = var.location
   log_analytics_workspace_id       = module.monitoring.log_analytics_workspace_id
-  postgres_host                    = module.postgresql.database_host
+  postgres_host                    = module.postgresql.database_ip
   postgresql_admin_username        = var.postgresql_admin_username
   private_endpoint_subnet_id       = module.network.private_endpoint_subnet_id
   repo_name                        = var.repo_name
