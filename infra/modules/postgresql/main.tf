@@ -57,23 +57,10 @@ resource "azurerm_postgresql_flexible_server" "postgresql" {
   depends_on = [azurerm_resource_group.main]
 }
 
-# Create database
-resource "azurerm_postgresql_flexible_server_database" "postgres_database" {
-  name      = var.database_name
-  server_id = azurerm_postgresql_flexible_server.postgresql.id
-  collation = "en_US.utf8"
-  charset   = "utf8"
-
-  depends_on = [azurerm_postgresql_flexible_server.postgresql]
-}
-
-# Note: PostgreSQL Flexible Server private endpoint is created above
+# Private Endpoint for PostgreSQL Flexible Server
 # Private DNS Zone association is automatically managed by Azure Landing Zone Policy
 # The Landing Zone automation will automatically associate the private endpoint
 # with the appropriate managed DNS zone (privatelink.postgres.database.azure.com)
-
-# Private Endpoint for PostgreSQL Flexible Server
-# Note: DNS zone association will be automatically managed by Azure Policy
 resource "azurerm_private_endpoint" "postgresql" {
   name                = "${var.app_name}-${var.module_name}-pe"
   location            = var.location
@@ -97,7 +84,7 @@ resource "azurerm_private_endpoint" "postgresql" {
     ]
   }
 
-  depends_on = [azurerm_resource_group.main]
+  depends_on = [azurerm_postgresql_flexible_server.postgresql]
 }
 
 # Wait for Private Endpoint to report back as succeeded and not just created
@@ -130,11 +117,22 @@ resource "null_resource" "validate_private_endpoint" {
   depends_on = [azurerm_private_endpoint.postgresql]
 }
 
-
+# Wait for PostgreSQL to be ready before configuring
 resource "time_sleep" "wait_for_postgresql" {
-  create_duration = "12m"
+  create_duration = "30s"
 
-  depends_on = [azurerm_postgresql_flexible_server_database.postgres_database, null_resource.validate_private_endpoint]
+  depends_on = [azurerm_postgresql_flexible_server.postgresql]
+}
+
+# Create database
+# TODO: This resource may be moved to migration to separate infrastructure lifecycles
+resource "azurerm_postgresql_flexible_server_database" "postgres_database" {
+  name      = var.database_name
+  server_id = azurerm_postgresql_flexible_server.postgresql.id
+  collation = "en_US.utf8"
+  charset   = "utf8"
+
+  depends_on = [time_sleep.wait_for_postgresql]
 }
 
 resource "azurerm_postgresql_flexible_server_configuration" "log_statement" {
@@ -142,7 +140,7 @@ resource "azurerm_postgresql_flexible_server_configuration" "log_statement" {
   server_id = azurerm_postgresql_flexible_server.postgresql.id
   value     = "all"
 
-  depends_on = [time_sleep.wait_for_postgresql]
+  depends_on = [azurerm_postgresql_flexible_server_database.postgres_database]
 }
 
 # PostgreSQL Configuration for performance
@@ -153,4 +151,15 @@ resource "azurerm_postgresql_flexible_server_configuration" "shared_preload_libr
   value     = "pg_stat_statements"
 
   depends_on = [azurerm_postgresql_flexible_server_configuration.log_statement]
+}
+
+# Wait for Private Endpoint to be ready before exiting module - can take 10 minutes before the IP address is available
+# Ref: https://developer.gov.bc.ca/docs/default/component/public-cloud-techdocs/azure/best-practices/be-mindful/#private-endpoints-and-dns
+resource "time_sleep" "wait_for_private_endpoint" {
+  create_duration = "10m"
+
+  depends_on = [
+    azurerm_postgresql_flexible_server_configuration.shared_preload_libraries,
+    null_resource.validate_private_endpoint
+  ]
 }
