@@ -23,6 +23,11 @@ output "database_host" {
   value       = module.postgresql.database_host
 }
 
+output "database_ip" {
+  description = "The private endpoint IP address of the PostgreSQL server."
+  value       = module.postgresql.database_ip
+}
+
 output "database_name" {
   description = "The name of the PostgreSQL database."
   value       = module.postgresql.database_name
