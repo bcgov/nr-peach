@@ -140,9 +140,10 @@ dist
 *Desktop.ini
 *Thumbs.db
 
-# Terraform files
-.terraform/
+# Terraform/Terragrunt files
+*.terraform
 *.lock.hcl
+*.terragrunt-cache
 *.tfstate
 *.tfstate.backup
 *.tfstate.lock.info

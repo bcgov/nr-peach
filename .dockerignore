@@ -135,6 +135,11 @@ dist
 .yarn/install-state.gz
 .pnp.*
 
-# Terraform files
-.terraform/
-.terraform.lock.hcl
+# Terraform/Terragrunt files
+*.terraform
+*.lock.hcl
+*.terragrunt-cache
+*.tfstate
+*.tfstate.backup
+*.tfstate.lock.info
+*.tfvars
