@@ -15,7 +15,6 @@ const log = getLogger(import.meta.filename);
 const port = normalizePort(process.env.APP_PORT ?? '3000');
 
 // Create HTTP server and listen on provided port, on all network interfaces.
-// eslint-disable-next-line @typescript-eslint/no-misused-promises
 const server = http.createServer(app);
 server.listen(port, () => {
   log.info(`Server running on http://localhost:${port}`);
