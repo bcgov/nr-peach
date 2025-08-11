@@ -1,3 +1,7 @@
+# ----------------------------------------
+# Migration Module Terraform Configuration
+# ----------------------------------------
+
 # Create the main resource group for all migration resources
 resource "azurerm_resource_group" "main" {
   name     = "${var.resource_group_name}-${var.module_name}-rg"
@@ -66,6 +70,9 @@ resource "null_resource" "trigger_migration" {
 resource "null_resource" "verify_migration" {
   provisioner "local-exec" {
     command = "sh ${path.module}/verify_migration.sh '${azurerm_container_group.migration.resource_group_name}' '${azurerm_container_group.migration.name}' migration"
+  }
+  triggers = {
+    always_run = timestamp()
   }
 
   depends_on = [azurerm_container_group.migration]

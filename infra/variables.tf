@@ -1,10 +1,16 @@
-# -------------
+# -----------------------------------------
 # Common Variables for Azure Infrastructure
-# -------------
+# -----------------------------------------
 
 variable "api_image" {
   description = "The image for the API container"
   type        = string
+}
+
+variable "api_autoscale_enabled" {
+  description = "Whether autoscaling is enabled for the api App Service plan."
+  type        = bool
+  default     = false
 }
 
 variable "app_env" {
@@ -51,17 +57,17 @@ variable "db_master_password" {
   }
 }
 
-variable "enable_psql_sidecar" {
+variable "enable_cloudbeaver" {
   description = "Whether to enable the CloudBeaver database management container"
   type        = bool
-  default     = true
+  default     = false
 }
 
-variable "frontdoor_sku_name" {
-  description = "SKU name for the Front Door"
-  type        = string
-  default     = "Standard_AzureFrontDoor"
-}
+# variable "frontdoor_sku_name" {
+#   description = "SKU name for the Front Door"
+#   type        = string
+#   default     = "Standard_AzureFrontDoor"
+# }
 
 variable "location" {
   description = "Azure region for resources"

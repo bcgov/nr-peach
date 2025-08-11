@@ -27,7 +27,7 @@ const pool = new Pool({
   port: +(process.env.PGPORT ?? 5432),
   // TODO: Consider using 'rejectUnauthorized: true' with proper certificate configuration
   ssl: process.env.PGSSLMODE === 'require' ? { rejectUnauthorized: false } : false,
-  connectionTimeoutMillis: +(process.env.PGPOOL_TIMEOUT ?? 5000),
+  connectionTimeoutMillis: +(process.env.PGPOOL_TIMEOUT ?? 0),
   idleTimeoutMillis: +(process.env.PGPOOL_IDLE_TIMEOUT ?? 10000),
   max: +(process.env.PGPOOL_MAX ?? 10),
   min: +(process.env.PGPOOL_MIN ?? 0),

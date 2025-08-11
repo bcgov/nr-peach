@@ -6,7 +6,6 @@
       "request": "launch",
       "name": "Launch",
       "program": "${workspaceFolder}/server.ts",
-      "args": ["--experimental-transform-types"],
       "skipFiles": ["<node_internals>/**", "${workspaceFolder}/node_modules/**"],
       "console": "integratedTerminal",
       "internalConsoleOptions": "neverOpen"

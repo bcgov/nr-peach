@@ -45,4 +45,4 @@ USER appuser:appgroup
 EXPOSE ${APP_PORT}
 # Healthcheck is unsupported for OCI images
 # HEALTHCHECK --interval=10s --timeout=3s CMD wget --quiet --spider http://localhost:${APP_PORT}/live || exit 1
-CMD ["node", "--experimental-transform-types", "--max-old-space-size=50", "server.ts"]
+CMD ["node", "server.ts"]

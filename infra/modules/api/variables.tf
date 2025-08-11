@@ -1,20 +1,20 @@
-variable "api_frontdoor_firewall_policy_id" {
-  description = "The resource ID of the Front Door firewall policy for the API."
-  type        = string
-  nullable    = false
-}
+# variable "api_frontdoor_firewall_policy_id" {
+#   description = "The resource ID of the Front Door firewall policy for the API."
+#   type        = string
+#   nullable    = false
+# }
 
-variable "api_frontdoor_id" {
-  description = "The resource ID of the Front Door profile for the API."
-  type        = string
-  nullable    = false
-}
+# variable "api_frontdoor_id" {
+#   description = "The resource ID of the Front Door profile for the API."
+#   type        = string
+#   nullable    = false
+# }
 
-variable "api_frontdoor_resource_guid" {
-  description = "The resource GUID for the Front Door service associated with the API App Service."
-  type        = string
-  nullable    = false
-}
+# variable "api_frontdoor_resource_guid" {
+#   description = "The resource GUID for the Front Door service associated with the API App Service."
+#   type        = string
+#   nullable    = false
+# }
 
 variable "api_image" {
   description = "The Docker image for the api."
@@ -61,7 +61,7 @@ variable "appinsights_instrumentation_key" {
 variable "api_autoscale_enabled" {
   description = "Whether autoscaling is enabled for the api App Service plan."
   type        = bool
-  default     = true
+  default     = false
 }
 
 variable "api_subnet_id" {
@@ -69,6 +69,12 @@ variable "api_subnet_id" {
   type        = string
   nullable    = false
 }
+
+# variable "cloudbeaver_frontdoor_firewall_policy_id" {
+#   description = "The resource ID of the CloudBeaver firewall policy for the API."
+#   type        = string
+#   nullable    = true
+# }
 
 variable "common_tags" {
   description = "A map of tags to apply to resources."
@@ -102,7 +108,7 @@ variable "db_ssl_mode" {
   default     = "require"
 }
 
-variable "enable_psql_sidecar" {
+variable "enable_cloudbeaver" {
   description = "Whether to enable the CloudBeaver PostgreSQL sidecar."
   type        = bool
   default     = false

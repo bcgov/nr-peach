@@ -10,6 +10,12 @@ variable "common_tags" {
   nullable    = false
 }
 
+variable "enable_cloudbeaver" {
+  description = "Whether to enable the CloudBeaver PostgreSQL sidecar."
+  type        = bool
+  default     = false
+}
+
 variable "frontdoor_sku_name" {
   description = "The SKU name for the Front Door."
   type        = string
