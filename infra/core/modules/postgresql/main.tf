@@ -2,23 +2,12 @@
 # PostgreSQL Module Terraform Configuration
 # -----------------------------------------
 
-# Create the main resource group for all postgresql resources
-resource "azurerm_resource_group" "main" {
-  name     = "${var.resource_group_name}-${var.module_name}-rg"
-  location = var.location
-  tags     = var.common_tags
-  lifecycle {
-    ignore_changes = [
-      tags
-    ]
-  }
-}
-
 # PostgreSQL Flexible Server
 resource "azurerm_postgresql_flexible_server" "postgresql" {
   name                = "${var.app_name}-${var.module_name}"
-  resource_group_name = "${var.resource_group_name}-${var.module_name}-rg"
+  resource_group_name = var.resource_group_name
   location            = var.location
+  tags                = var.common_tags
 
   administrator_login    = var.postgresql_admin_username
   administrator_password = var.db_master_password
@@ -45,7 +34,6 @@ resource "azurerm_postgresql_flexible_server" "postgresql" {
 
   # Auto-scaling configuration
   auto_grow_enabled = var.auto_grow_enabled
-  tags              = var.common_tags
 
   # Lifecycle block to handle automatic DNS zone associations by Azure Policy
   lifecycle {
@@ -53,8 +41,6 @@ resource "azurerm_postgresql_flexible_server" "postgresql" {
       tags
     ]
   }
-
-  depends_on = [azurerm_resource_group.main]
 }
 
 # Private Endpoint for PostgreSQL Flexible Server
@@ -64,8 +50,9 @@ resource "azurerm_postgresql_flexible_server" "postgresql" {
 resource "azurerm_private_endpoint" "postgresql" {
   name                = "${var.app_name}-${var.module_name}-pe"
   location            = var.location
-  resource_group_name = "${var.resource_group_name}-${var.module_name}-rg"
+  resource_group_name = var.resource_group_name
   subnet_id           = var.private_endpoint_subnet_id
+  tags                = var.common_tags
 
   private_service_connection {
     name                           = "${var.app_name}-postgresql-psc"
@@ -73,8 +60,6 @@ resource "azurerm_private_endpoint" "postgresql" {
     subresource_names              = ["postgresqlServer"]
     is_manual_connection           = false
   }
-
-  tags = var.common_tags
 
   # Lifecycle block to ignore DNS zone group changes managed by Azure Policy
   lifecycle {
@@ -87,52 +72,11 @@ resource "azurerm_private_endpoint" "postgresql" {
   depends_on = [azurerm_postgresql_flexible_server.postgresql]
 }
 
-# Wait for Private Endpoint to report back as succeeded and not just created
-# Will timeout after 10 minutes if the provisioning state does not succeed
-resource "null_resource" "validate_private_endpoint" {
-  provisioner "local-exec" {
-    command = <<-EOT
-      max_wait=$((10 * 60))
-      interval=10
-      waited=0
-      while true; do
-        state=$(az network private-endpoint show \
-          --ids ${azurerm_private_endpoint.postgresql.id} \
-          --query 'provisioningState' -o tsv)
-        echo "Status: $state..."
-        if [ "$state" = "Succeeded" ]; then
-          echo "Provisioning succeeded!"
-          exit 0
-        fi
-        if [ $waited -ge $max_wait ]; then
-          echo "ERROR: Timeout after waiting for provisioning."
-          exit 1
-        fi
-        sleep $interval
-        waited=$((waited + interval))
-      done
-    EOT
-  }
-
-  depends_on = [azurerm_private_endpoint.postgresql]
-}
-
 # Wait for PostgreSQL to be ready before configuring
 resource "time_sleep" "wait_for_postgresql" {
-  create_duration = "30s"
+  create_duration = "1m"
 
   depends_on = [azurerm_postgresql_flexible_server.postgresql]
-}
-
-# Create database
-# TODO: This resource may be moved to migration to separate infrastructure lifecycles
-resource "azurerm_postgresql_flexible_server_database" "postgres_database" {
-  name      = var.database_name
-  server_id = azurerm_postgresql_flexible_server.postgresql.id
-  collation = "en_US.utf8"
-  charset   = "utf8"
-
-  depends_on = [time_sleep.wait_for_postgresql]
 }
 
 resource "azurerm_postgresql_flexible_server_configuration" "log_statement" {
@@ -140,11 +84,10 @@ resource "azurerm_postgresql_flexible_server_configuration" "log_statement" {
   server_id = azurerm_postgresql_flexible_server.postgresql.id
   value     = "all"
 
-  depends_on = [azurerm_postgresql_flexible_server_database.postgres_database]
+  depends_on = [time_sleep.wait_for_postgresql]
 }
 
-# PostgreSQL Configuration for performance
-# These configurations require the server to be fully operational
+# PostgreSQL Configuration for performance - the server must be fully operational first
 resource "azurerm_postgresql_flexible_server_configuration" "shared_preload_libraries" {
   name      = "shared_preload_libraries"
   server_id = azurerm_postgresql_flexible_server.postgresql.id
@@ -160,6 +103,6 @@ resource "time_sleep" "wait_for_private_endpoint" {
 
   depends_on = [
     azurerm_postgresql_flexible_server_configuration.shared_preload_libraries,
-    null_resource.validate_private_endpoint
+    azurerm_private_endpoint.postgresql
   ]
 }

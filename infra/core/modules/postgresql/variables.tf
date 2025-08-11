@@ -22,12 +22,6 @@ variable "common_tags" {
   nullable    = false
 }
 
-variable "database_name" {
-  description = "Name of the database to create"
-  type        = string
-  nullable    = false
-}
-
 variable "db_master_password" {
   description = "The password for the PostgreSQL admin user."
   type        = string

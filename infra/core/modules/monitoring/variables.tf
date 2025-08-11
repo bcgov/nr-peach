@@ -15,12 +15,6 @@ variable "location" {
   default     = "Canada Central"
 }
 
-variable "module_name" {
-  description = "Name of the module"
-  type        = string
-  default     = "monitoring"
-}
-
 variable "log_analytics_retention_days" {
   description = "Number of days to retain data in Log Analytics Workspace"
   type        = number

@@ -25,13 +25,6 @@ variable "location" {
   nullable    = false
 }
 
-# Not used in this module, but kept for consistency
-# variable "module_name" {
-#   description = "Name of the module"
-#   type        = string
-#   default     = "network"
-# }
-
 variable "private_endpoint_subnet_name" {
   description = "Name of the subnet for private endpoints"
   type        = string
