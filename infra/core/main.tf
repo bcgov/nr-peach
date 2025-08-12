@@ -35,7 +35,7 @@ module "monitoring" {
   location                     = var.location
   log_analytics_retention_days = var.log_analytics_retention_days
   log_analytics_sku            = var.log_analytics_sku
-  resource_group_name          = "${var.resource_group_name}-${var.lifecycle_name}-rg"
+  resource_group_name          = azurerm_resource_group.main.name
 
   depends_on = [azurerm_resource_group.main]
 }
@@ -60,7 +60,7 @@ module "appservice" {
   api_autoscale_enabled = var.api_autoscale_enabled
   common_tags           = var.common_tags
   location              = var.location
-  resource_group_name   = "${var.resource_group_name}-${var.lifecycle_name}-rg"
+  resource_group_name   = azurerm_resource_group.main.name
 
   depends_on = [module.network]
 }
@@ -81,7 +81,7 @@ module "postgresql" {
   postgresql_sku_name          = var.postgres_sku_name
   postgresql_storage_mb        = var.postgres_storage_mb
   private_endpoint_subnet_id   = module.network.private_endpoint_subnet_id
-  resource_group_name          = "${var.resource_group_name}-${var.lifecycle_name}-rg"
+  resource_group_name          = azurerm_resource_group.main.name
   standby_availability_zone    = var.postgres_standby_availability_zone
   zone                         = var.postgres_zone
 
