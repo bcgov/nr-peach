@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { config } from 'dotenv';
-import http from 'node:http';
+import { createServer } from 'node:http';
 import { isMainThread } from 'node:worker_threads';
 
 import { app } from './src/app.ts';
@@ -15,10 +15,8 @@ const log = getLogger(import.meta.filename);
 const port = normalizePort(process.env.APP_PORT ?? '3000');
 
 // Create HTTP server and listen on provided port, on all network interfaces.
-const server = http.createServer(app);
-server.listen(port, () => {
-  log.info(`Server running on http://localhost:${port}`);
-});
+const server = createServer(app);
+server.listen(port, () => log.info(`Server running on http://localhost:${port}`));
 server.on('error', onError);
 
 if (isMainThread) {
@@ -28,7 +26,7 @@ if (isMainThread) {
   });
 
   // Graceful shutdown support
-  ['SIGTERM', 'SIGINT', 'SIGUSR1', 'SIGUSR2'].forEach((signal) => {
+  ['SIGHUP', 'SIGINT', 'SIGTERM', 'SIGUSR1', 'SIGUSR2'].forEach((signal) => {
     process.on(signal, () => shutdown(signal as NodeJS.Signals));
   });
   process.on('exit', () => log.info('Exiting...'));
@@ -66,11 +64,11 @@ function onError(error: { syscall?: string; code: string }): void {
   switch (error.code) {
     case 'EACCES':
       log.error(`${bind} requires elevated privileges`);
-      process.exit(1);
+      shutdown('SIGABRT');
       break;
     case 'EADDRINUSE':
       log.error(`${bind} is already in use`);
-      process.exit(1);
+      shutdown('SIGABRT');
       break;
     default:
       throw error; // eslint-disable-line @typescript-eslint/only-throw-error
@@ -80,8 +78,9 @@ function onError(error: { syscall?: string; code: string }): void {
 /**
  * Gracefully shuts down the server and exits the process.
  * @see https://nodejs.org/api/http.html#servercloseallconnections
+ * @param signal - Optional termination signal (e.g., 'SIGINT', 'SIGTERM').
  */
-function cleanup(): void {
+function cleanup(signal?: NodeJS.Signals): void {
   state.ready = false;
   log.debug('Stop accepting new connections...');
   server.close(() => {
@@ -90,7 +89,8 @@ function cleanup(): void {
       log.debug('Closing all server connections...');
       server.closeAllConnections();
       log.info('Server shut down');
-      process.exit(0);
+      if (signal) process.kill(process.pid, signal);
+      else process.exit();
     });
   });
 }
@@ -102,7 +102,7 @@ function cleanup(): void {
 function shutdown(signal: NodeJS.Signals): void {
   state.shutdown = true;
   log.info(`Received ${signal} signal. Shutting down...`);
-  cleanup();
+  cleanup(signal);
 }
 
 /**
