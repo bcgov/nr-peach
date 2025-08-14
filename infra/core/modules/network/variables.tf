@@ -25,7 +25,7 @@ variable "location" {
   nullable    = false
 }
 
-variable "private_endpoint_subnet_name" {
+variable "private_endpoints_subnet_name" {
   description = "Name of the subnet for private endpoints"
   type        = string
   default     = "privateendpoints-subnet"

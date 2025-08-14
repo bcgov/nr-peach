@@ -36,6 +36,12 @@ data "azapi_resource" "container_instance_subnet" {
   parent_id = data.azurerm_virtual_network.main.id
 }
 
+data "azapi_resource" "privateendpoints_subnet" {
+  type      = "Microsoft.Network/virtualNetworks/subnets@2024-07-01"
+  name      = var.private_endpoints_subnet_name
+  parent_id = data.azurerm_virtual_network.main.id
+}
+
 # Core Monitoring
 data "azurerm_application_insights" "main" {
   name                = "${var.app_name}-appinsights"
@@ -110,4 +116,27 @@ module "api" {
   user_assigned_identity_id        = data.azurerm_user_assigned_identity.app_service_identity.id
 
   depends_on = [module.migration]
+}
+
+module "cloudbeaver" {
+  count  = local.cloudbeaver_count
+  source = "./modules/cloudbeaver"
+
+  app_env                          = var.app_env
+  app_name                         = var.app_name
+  app_service_plan_id              = data.azurerm_service_plan.api.id
+  appinsights_connection_string    = data.azurerm_application_insights.main.connection_string
+  appinsights_instrumentation_key  = data.azurerm_application_insights.main.instrumentation_key
+  api_subnet_id                    = data.azapi_resource.app_service_subnet.output.id
+  common_tags                      = var.common_tags
+  database_name                    = local.database_name
+  db_master_password               = var.db_master_password
+  location                         = var.location
+  postgres_host                    = data.azurerm_postgresql_flexible_server.postgresql.fqdn
+  postgresql_admin_username        = var.postgresql_admin_username
+  private_endpoints_subnet_id      = data.azapi_resource.privateendpoints_subnet.output.id
+  repo_name                        = var.repo_name
+  resource_group_name              = var.resource_group_name
+  user_assigned_identity_client_id = data.azurerm_user_assigned_identity.app_service_identity.client_id
+  user_assigned_identity_id        = data.azurerm_user_assigned_identity.app_service_identity.id
 }

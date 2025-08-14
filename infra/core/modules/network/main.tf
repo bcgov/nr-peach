@@ -308,7 +308,7 @@ resource "azurerm_network_security_group" "container_instance" {
 # You cannot create a subnet in a different resource group from the VNet.
 resource "azapi_resource" "privateendpoints_subnet" {
   type      = "Microsoft.Network/virtualNetworks/subnets@2023-04-01"
-  name      = var.private_endpoint_subnet_name
+  name      = var.private_endpoints_subnet_name
   parent_id = data.azurerm_virtual_network.main.id
   locks     = [data.azurerm_virtual_network.main.id]
   body = {

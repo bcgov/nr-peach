@@ -77,6 +77,13 @@ variable "postgresql_admin_username" {
   default     = "pgadmin"
 }
 
+variable "private_endpoints_subnet_name" {
+  description = "Name of the subnet for private endpoints"
+  type        = string
+  default     = "privateendpoints-subnet"
+  nullable    = false
+}
+
 variable "repo_name" {
   description = "Name of the repository, used for resource naming"
   type        = string
