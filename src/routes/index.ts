@@ -11,7 +11,10 @@ const router = Router();
 
 /** Root Endpoint */
 router.get('/', (_req: Request, res: Response): void => {
-  res.status(200).json({ endpoints: ['/api', '/docs', '/live', '/ready'] });
+  res.status(200).json({
+    endpoints: ['/api', '/docs', '/live', '/ready'],
+    gitRev: state.gitRev
+  });
 });
 
 /** API Endpoint */
