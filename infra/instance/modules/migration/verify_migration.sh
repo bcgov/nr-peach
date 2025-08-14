@@ -1,6 +1,6 @@
 #!/bin/bash
 set -e
-TIMEOUT=300
+TIMEOUT=600
 INTERVAL=5
 ELAPSED=0
 RG_NAME="$1"
@@ -13,7 +13,10 @@ while true; do
     break
   fi
   if [ $ELAPSED -ge $TIMEOUT ]; then
-    echo "Timeout waiting for container to finish"
+    echo "Timed out waiting for container to finish"
+    echo "----- Container Logs -----"
+    az container logs --resource-group "$RG_NAME"  --name "$CG_NAME"  --container-name "$CONTAINER_NAME" || true
+    echo "--------------------------"
     exit 1
   fi
   sleep $INTERVAL

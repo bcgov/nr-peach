@@ -49,10 +49,6 @@ resource "azurerm_container_group" "migration" {
     ignore_changes       = [tags, ip_address_type]
     replace_triggered_by = [null_resource.trigger_migration]
   }
-  timeouts {
-    create = var.container_group_timeout
-    update = var.container_group_timeout
-  }
 
   depends_on = [azurerm_postgresql_flexible_server_database.postgres_database]
 }

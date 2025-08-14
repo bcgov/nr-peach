@@ -10,12 +10,6 @@ variable "common_tags" {
   default     = {}
 }
 
-variable "container_group_timeout" {
-  description = "The timeout for the container group."
-  type        = string
-  default     = "10m"
-}
-
 variable "container_image" {
   description = "The container image for database migrations."
   type        = string
