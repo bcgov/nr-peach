@@ -10,6 +10,12 @@ variable "common_tags" {
   default     = {}
 }
 
+variable "container_group_timeout" {
+  description = "The timeout for the container group."
+  type        = string
+  default     = "10m"
+}
+
 variable "container_image" {
   description = "The container image for database migrations."
   type        = string
@@ -31,6 +37,12 @@ variable "container_registry_url" {
 
 variable "database_name" {
   description = "The name of the PostgreSQL database."
+  type        = string
+  nullable    = false
+}
+
+variable "database_id" {
+  description = "ID of the database"
   type        = string
   nullable    = false
 }
@@ -60,12 +72,6 @@ variable "location" {
   nullable    = false
 }
 
-variable "module_name" {
-  description = "Name of the module"
-  type        = string
-  default     = "migration"
-}
-
 variable "log_analytics_workspace_id" {
   description = "The resource ID of the Log Analytics workspace for diagnostics."
   type        = string
@@ -91,7 +97,7 @@ variable "postgresql_admin_username" {
 }
 
 variable "resource_group_name" {
-  description = "The name of the resource group in which to create resources."
+  description = "The name of the resource group to create."
   type        = string
   nullable    = false
 }

@@ -2,23 +2,19 @@
 # Migration Module Terraform Configuration
 # ----------------------------------------
 
-# Create the main resource group for all migration resources
-resource "azurerm_resource_group" "main" {
-  name     = "${var.resource_group_name}-${var.module_name}-rg"
-  location = var.location
-  tags     = var.common_tags
-  lifecycle {
-    ignore_changes = [
-      tags
-    ]
-  }
+# Create database
+resource "azurerm_postgresql_flexible_server_database" "postgres_database" {
+  name      = var.database_name
+  server_id = var.database_id
+  collation = "en_US.utf8"
+  charset   = "utf8"
 }
 
 # Container Instance for Migration
 resource "azurerm_container_group" "migration" {
   name                = "${var.app_name}-migration"
   location            = var.location
-  resource_group_name = "${var.resource_group_name}-${var.module_name}-rg"
+  resource_group_name = var.resource_group_name
   subnet_ids          = [var.container_instance_subnet_id]
   priority            = "Regular"
   dns_config {
@@ -47,14 +43,18 @@ resource "azurerm_container_group" "migration" {
   }
   ip_address_type = "None"
   os_type         = "Linux"
-  restart_policy  = "Never"
+  restart_policy  = "OnFailure" # DNS resolution is nondeterministic so we need to keep trying until it works
   tags            = var.common_tags
   lifecycle {
     ignore_changes       = [tags, ip_address_type]
     replace_triggered_by = [null_resource.trigger_migration]
   }
+  timeouts {
+    create = var.container_group_timeout
+    update = var.container_group_timeout
+  }
 
-  depends_on = [azurerm_resource_group.main]
+  depends_on = [azurerm_postgresql_flexible_server_database.postgres_database]
 }
 
 # Ensure that the migration container runs on every apply
@@ -63,13 +63,13 @@ resource "null_resource" "trigger_migration" {
     always_run = timestamp()
   }
 
-  depends_on = [azurerm_resource_group.main]
+  depends_on = [azurerm_postgresql_flexible_server_database.postgres_database]
 }
 
 # Verify migration completion and handle exit codes
 resource "null_resource" "verify_migration" {
   provisioner "local-exec" {
-    command = "sh ${path.module}/verify_migration.sh '${azurerm_container_group.migration.resource_group_name}' '${azurerm_container_group.migration.name}' migration"
+    command = "sh ${path.module}/verify_migration.sh '${var.resource_group_name}' '${azurerm_container_group.migration.name}' migration"
   }
   triggers = {
     always_run = timestamp()

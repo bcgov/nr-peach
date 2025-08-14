@@ -41,6 +41,13 @@ variable "common_tags" {
   type        = map(string)
 }
 
+variable "container_instance_subnet_name" {
+  description = "Name of the subnet for container instances"
+  type        = string
+  default     = "container-instance-subnet"
+  nullable    = false
+}
+
 variable "database_name" {
   description = "Name of the database to create"
   type        = string
@@ -63,11 +70,17 @@ variable "enable_cloudbeaver" {
   default     = false
 }
 
-# variable "frontdoor_sku_name" {
-#   description = "SKU name for the Front Door"
-#   type        = string
-#   default     = "Standard_AzureFrontDoor"
-# }
+variable "frontdoor_sku_name" {
+  description = "SKU name for the Front Door"
+  type        = string
+  default     = "Standard_AzureFrontDoor"
+}
+
+variable "lifecycle_name" {
+  description = "Name of the lifecycle"
+  type        = string
+  default     = "instance"
+}
 
 variable "location" {
   description = "Azure region for resources"
@@ -75,77 +88,17 @@ variable "location" {
   default     = "Canada Central"
 }
 
-variable "log_analytics_retention_days" {
-  description = "Number of days to retain data in Log Analytics Workspace"
-  type        = number
-  default     = 30
-}
-
-variable "log_analytics_sku" {
-  description = "SKU for Log Analytics Workspace"
-  type        = string
-  default     = "PerGB2018"
-}
-
-variable "postgres_auto_grow_enabled" {
-  description = "Enable auto-grow for PostgreSQL Flexible Server storage"
-  type        = bool
-  default     = true
-}
-
-variable "postgres_backup_retention_period" {
-  description = "Backup retention period in days for PostgreSQL Flexible Server"
-  type        = number
-  default     = 7
-}
-
-variable "postgres_geo_redundant_backup_enabled" {
-  description = "Enable geo-redundant backup for PostgreSQL Flexible Server"
-  type        = bool
-  default     = false
-}
-
-variable "postgres_ha_enabled" {
-  description = "Enable high availability for PostgreSQL Flexible Server"
-  type        = bool
-  default     = false
-}
-
-variable "postgres_sku_name" {
-  description = "SKU name for PostgreSQL Flexible Server"
-  type        = string
-  default     = "B_Standard_B1ms"
-}
-
-variable "postgres_standby_availability_zone" {
-  description = "Availability zone for standby replica of PostgreSQL Flexible Server"
-  type        = string
-  default     = "1"
-}
-
-variable "postgres_storage_mb" {
-  description = "Storage in MB for PostgreSQL Flexible Server"
-  type        = number
-  default     = 32768
-}
-
-variable "postgres_version" {
-  description = "Version of PostgreSQL Flexible Server"
-  type        = string
-  default     = "16"
-}
-
-variable "postgres_zone" {
-  description = "Availability zone for PostgreSQL server"
-  type        = string
-  default     = "1"
-}
-
 variable "postgresql_admin_username" {
   description = "Administrator username for PostgreSQL server"
   type        = string
   default     = "pgadmin"
 }
+
+# variable "prefer_fqdn" {
+#   description = "Whether to prefer FQDN for PostgreSQL server"
+#   type        = bool
+#   default     = false
+# }
 
 variable "repo_name" {
   description = "Name of the repository, used for resource naming"
@@ -169,11 +122,6 @@ variable "tenant_id" {
   description = "Azure tenant ID"
   type        = string
   sensitive   = true
-}
-
-variable "vnet_address_space" {
-  type        = string
-  description = "Address space for the virtual network, it is created by platform team"
 }
 
 variable "vnet_name" {
