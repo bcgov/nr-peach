@@ -1,21 +1,3 @@
-# variable "api_frontdoor_firewall_policy_id" {
-#   description = "The resource ID of the Front Door firewall policy for the API."
-#   type        = string
-#   nullable    = false
-# }
-
-# variable "api_frontdoor_id" {
-#   description = "The resource ID of the Front Door profile for the API."
-#   type        = string
-#   nullable    = false
-# }
-
-# variable "api_frontdoor_resource_guid" {
-#   description = "The resource GUID for the Front Door service associated with the API App Service."
-#   type        = string
-#   nullable    = false
-# }
-
 variable "api_image" {
   description = "The Docker image for the api."
   type        = string
@@ -28,23 +10,11 @@ variable "app_env" {
   nullable    = false
 }
 
-variable "app_name" {
-  description = "The base name of the application. Used for naming Azure resources."
+variable "app_service_plan_id" {
+  description = "Azure App Service Plan ID"
   type        = string
   nullable    = false
 }
-
-variable "app_service_sku_name_api" {
-  description = "The SKU name for the api App Service plan."
-  type        = string
-  nullable    = false
-}
-
-# variable "app_service_subnet_id" {
-#   description = "The subnet ID for the App Service."
-#   type        = string
-#   nullable    = false
-# }
 
 variable "appinsights_connection_string" {
   description = "The Application Insights connection string for monitoring."
@@ -58,23 +28,11 @@ variable "appinsights_instrumentation_key" {
   nullable    = false
 }
 
-variable "api_autoscale_enabled" {
-  description = "Whether autoscaling is enabled for the api App Service plan."
-  type        = bool
-  default     = false
-}
-
 variable "api_subnet_id" {
   description = "The subnet ID for the api App Service."
   type        = string
   nullable    = false
 }
-
-# variable "cloudbeaver_frontdoor_firewall_policy_id" {
-#   description = "The resource ID of the CloudBeaver firewall policy for the API."
-#   type        = string
-#   nullable    = true
-# }
 
 variable "common_tags" {
   description = "A map of tags to apply to resources."
@@ -108,20 +66,14 @@ variable "db_ssl_mode" {
   default     = "require"
 }
 
-variable "enable_cloudbeaver" {
-  description = "Whether to enable the CloudBeaver PostgreSQL sidecar."
-  type        = bool
-  default     = false
-}
-
-variable "location" {
-  description = "The Azure region where resources will be created."
+variable "instance_name" {
+  description = "Name of the instance"
   type        = string
   nullable    = false
 }
 
-variable "log_analytics_workspace_id" {
-  description = "The resource ID of the Log Analytics workspace for diagnostics."
+variable "location" {
+  description = "The Azure region where resources will be created."
   type        = string
   nullable    = false
 }
@@ -146,12 +98,6 @@ variable "postgres_host" {
 
 variable "postgresql_admin_username" {
   description = "The admin username for the PostgreSQL server."
-  type        = string
-  nullable    = false
-}
-
-variable "private_endpoint_subnet_id" {
-  description = "The subnet ID for private endpoints."
   type        = string
   nullable    = false
 }

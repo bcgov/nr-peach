@@ -7,12 +7,6 @@ variable "api_image" {
   type        = string
 }
 
-variable "api_autoscale_enabled" {
-  description = "Whether autoscaling is enabled for the api App Service plan."
-  type        = bool
-  default     = false
-}
-
 variable "app_env" {
   description = "Application environment (dev, test, prod)"
   type        = string
@@ -23,10 +17,11 @@ variable "app_name" {
   type        = string
 }
 
-variable "app_service_sku_name_api" {
-  description = "SKU name for the api App Service Plan"
+variable "app_service_subnet_name" {
+  description = "Name of the subnet for App Services"
   type        = string
-  default     = "B2" # Basic tier
+  default     = "app-service-subnet"
+  nullable    = false
 }
 
 variable "client_id" {
@@ -48,12 +43,6 @@ variable "container_instance_subnet_name" {
   nullable    = false
 }
 
-variable "database_name" {
-  description = "Name of the database to create"
-  type        = string
-  default     = "app"
-}
-
 variable "db_master_password" {
   description = "Master password for the PostgreSQL server"
   type        = string
@@ -70,16 +59,10 @@ variable "enable_cloudbeaver" {
   default     = false
 }
 
-variable "frontdoor_sku_name" {
-  description = "SKU name for the Front Door"
+variable "instance_name" {
+  description = "Name of the instance"
   type        = string
-  default     = "Standard_AzureFrontDoor"
-}
-
-variable "lifecycle_name" {
-  description = "Name of the lifecycle"
-  type        = string
-  default     = "instance"
+  nullable    = false
 }
 
 variable "location" {
@@ -93,12 +76,6 @@ variable "postgresql_admin_username" {
   type        = string
   default     = "pgadmin"
 }
-
-# variable "prefer_fqdn" {
-#   description = "Whether to prefer FQDN for PostgreSQL server"
-#   type        = bool
-#   default     = false
-# }
 
 variable "repo_name" {
   description = "Name of the repository, used for resource naming"
