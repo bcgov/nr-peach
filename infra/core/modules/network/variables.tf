@@ -1,4 +1,4 @@
-variable "apps_service_subnet_name" {
+variable "app_service_subnet_name" {
   description = "Name of the subnet for App Services"
   type        = string
   default     = "app-service-subnet"

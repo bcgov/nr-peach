@@ -324,7 +324,7 @@ resource "azapi_resource" "privateendpoints_subnet" {
 
 resource "azapi_resource" "app_service_subnet" {
   type      = "Microsoft.Network/virtualNetworks/subnets@2023-04-01"
-  name      = var.apps_service_subnet_name
+  name      = var.app_service_subnet_name
   parent_id = data.azurerm_virtual_network.main.id
   locks     = [data.azurerm_virtual_network.main.id]
   body = {
