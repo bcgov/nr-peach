@@ -11,9 +11,21 @@ describe('GET /', () => {
   it('should return the root endpoints', async () => {
     const response = await request(app).get('/');
     expect(response.status).toBe(200);
-    expect(response.body).toEqual({
-      endpoints: ['/api', '/docs', '/live', '/ready']
-    });
+    expect(response.body).toEqual(
+      expect.objectContaining({
+        endpoints: ['/api', '/docs', '/live', '/ready']
+      })
+    );
+  });
+
+  it('should return the git revision', async () => {
+    const response = await request(app).get('/');
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual(
+      expect.objectContaining({
+        gitRev: state.gitRev
+      })
+    );
   });
 });
 
