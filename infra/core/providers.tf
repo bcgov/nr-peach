@@ -1,5 +1,11 @@
 terraform {
   required_version = ">= 1.12.0"
+  backend "azurerm" {
+    resource_group_name  = "b9cee3-test-networking"
+    storage_account_name = "tfstatenrpeachtest"
+    container_name       = "tfstate"
+    key                  = "core.tfstate"
+  }
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
