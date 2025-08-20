@@ -25,7 +25,7 @@ resource "azurerm_monitor_autoscale_setting" "api_autoscale" {
   target_resource_id  = azurerm_service_plan.appservice.id
 
   # This does not work if the SKU is not Premium
-  enabled = var.api_autoscale_enabled
+  enabled = var.enable_api_autoscale
   profile {
     name = "default"
     capacity {

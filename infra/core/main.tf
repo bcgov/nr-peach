@@ -55,12 +55,12 @@ module "network" {
 module "appservice" {
   source = "./modules/appservice"
 
-  app_name              = var.app_name
-  app_service_sku_name  = var.app_service_sku_name
-  api_autoscale_enabled = var.api_autoscale_enabled
-  common_tags           = var.common_tags
-  location              = var.location
-  resource_group_name   = azurerm_resource_group.main.name
+  app_name             = var.app_name
+  app_service_sku_name = var.app_service_sku_name
+  enable_api_autoscale = var.enable_api_autoscale
+  common_tags          = var.common_tags
+  location             = var.location
+  resource_group_name  = azurerm_resource_group.main.name
 
   depends_on = [module.network]
 }
@@ -68,22 +68,22 @@ module "appservice" {
 module "postgresql" {
   source = "./modules/postgresql"
 
-  app_name                     = var.app_name
-  auto_grow_enabled            = var.postgres_auto_grow_enabled
-  backup_retention_period      = var.postgres_backup_retention_period
-  common_tags                  = var.common_tags
-  db_master_password           = var.db_master_password
-  geo_redundant_backup_enabled = var.postgres_geo_redundant_backup_enabled
-  ha_enabled                   = var.postgres_ha_enabled
-  location                     = var.location
-  postgres_version             = var.postgres_version
-  postgresql_admin_username    = var.postgresql_admin_username
-  postgresql_sku_name          = var.postgres_sku_name
-  postgresql_storage_mb        = var.postgres_storage_mb
-  private_endpoint_subnet_id   = module.network.private_endpoint_subnet_id
-  resource_group_name          = azurerm_resource_group.main.name
-  standby_availability_zone    = var.postgres_standby_availability_zone
-  zone                         = var.postgres_zone
+  app_name                    = var.app_name
+  enable_auto_grow            = var.enable_postgres_auto_grow
+  backup_retention_period     = var.postgres_backup_retention_period
+  common_tags                 = var.common_tags
+  db_master_password          = var.db_master_password
+  enable_geo_redundant_backup = var.enable_postgres_geo_redundant_backup
+  enable_ha                   = var.enable_postgres_ha
+  location                    = var.location
+  postgres_version            = var.postgres_version
+  postgresql_admin_username   = var.postgresql_admin_username
+  postgresql_sku_name         = var.postgres_sku_name
+  postgresql_storage_mb       = var.postgres_storage_mb
+  private_endpoint_subnet_id  = module.network.private_endpoint_subnet_id
+  resource_group_name         = azurerm_resource_group.main.name
+  standby_availability_zone   = var.postgres_standby_availability_zone
+  zone                        = var.postgres_zone
 
   depends_on = [module.network]
 }

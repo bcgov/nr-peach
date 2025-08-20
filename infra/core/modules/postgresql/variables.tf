@@ -4,7 +4,7 @@ variable "app_name" {
   nullable    = false
 }
 
-variable "auto_grow_enabled" {
+variable "enable_auto_grow" {
   description = "Enable auto-grow for storage"
   type        = bool
   nullable    = false
@@ -29,13 +29,13 @@ variable "db_master_password" {
   nullable    = false
 }
 
-variable "geo_redundant_backup_enabled" {
+variable "enable_geo_redundant_backup" {
   description = "Enable geo-redundant backup"
   type        = bool
   nullable    = false
 }
 
-variable "ha_enabled" {
+variable "enable_ha" {
   description = "Enable high availability"
   type        = bool
   nullable    = false

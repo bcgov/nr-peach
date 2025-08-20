@@ -10,7 +10,7 @@ variable "app_service_sku_name" {
   nullable    = false
 }
 
-variable "api_autoscale_enabled" {
+variable "enable_api_autoscale" {
   description = "Whether autoscaling is enabled for the api App Service plan."
   type        = bool
   default     = false

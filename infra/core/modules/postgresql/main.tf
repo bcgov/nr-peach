@@ -17,7 +17,7 @@ resource "azurerm_postgresql_flexible_server" "postgresql" {
   zone                         = var.zone
   storage_mb                   = var.postgresql_storage_mb
   backup_retention_days        = var.backup_retention_period
-  geo_redundant_backup_enabled = var.geo_redundant_backup_enabled
+  geo_redundant_backup_enabled = var.enable_geo_redundant_backup
 
   # Not allowed to be public in Azure Landing Zone
   # Public network access is disabled to comply with Azure Landing Zone security requirements
@@ -25,7 +25,7 @@ resource "azurerm_postgresql_flexible_server" "postgresql" {
 
   # High availability configuration
   dynamic "high_availability" {
-    for_each = var.ha_enabled ? [1] : []
+    for_each = var.enable_ha ? [1] : []
     content {
       mode                      = "ZoneRedundant"
       standby_availability_zone = var.standby_availability_zone
@@ -33,7 +33,7 @@ resource "azurerm_postgresql_flexible_server" "postgresql" {
   }
 
   # Auto-scaling configuration
-  auto_grow_enabled = var.auto_grow_enabled
+  auto_grow_enabled = var.enable_auto_grow
 
   # Lifecycle block to handle automatic DNS zone associations by Azure Policy
   lifecycle {

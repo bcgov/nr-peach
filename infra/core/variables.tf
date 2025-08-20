@@ -2,12 +2,6 @@
 # Common Variables for Core Azure Infrastructure
 # ----------------------------------------------
 
-variable "api_autoscale_enabled" {
-  description = "Whether autoscaling is enabled for the api App Service plan."
-  type        = bool
-  default     = false
-}
-
 variable "app_name" {
   description = "Name of the application"
   type        = string
@@ -41,6 +35,30 @@ variable "db_master_password" {
   }
 }
 
+variable "enable_api_autoscale" {
+  description = "Whether autoscaling is enabled for the api App Service plan."
+  type        = bool
+  default     = false
+}
+
+variable "enable_postgres_auto_grow" {
+  description = "Enable auto-grow for PostgreSQL Flexible Server storage"
+  type        = bool
+  default     = true
+}
+
+variable "enable_postgres_ha" {
+  description = "Enable high availability for PostgreSQL Flexible Server"
+  type        = bool
+  default     = false
+}
+
+variable "enable_postgres_geo_redundant_backup" {
+  description = "Enable geo-redundant backup for PostgreSQL Flexible Server"
+  type        = bool
+  default     = false
+}
+
 variable "lifecycle_name" {
   description = "Name of the lifecycle"
   type        = string
@@ -65,28 +83,10 @@ variable "log_analytics_sku" {
   default     = "PerGB2018"
 }
 
-variable "postgres_auto_grow_enabled" {
-  description = "Enable auto-grow for PostgreSQL Flexible Server storage"
-  type        = bool
-  default     = true
-}
-
 variable "postgres_backup_retention_period" {
   description = "Backup retention period in days for PostgreSQL Flexible Server"
   type        = number
   default     = 7
-}
-
-variable "postgres_geo_redundant_backup_enabled" {
-  description = "Enable geo-redundant backup for PostgreSQL Flexible Server"
-  type        = bool
-  default     = false
-}
-
-variable "postgres_ha_enabled" {
-  description = "Enable high availability for PostgreSQL Flexible Server"
-  type        = bool
-  default     = false
 }
 
 variable "postgres_sku_name" {
