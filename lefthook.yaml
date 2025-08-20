@@ -1,0 +1,44 @@
+# Refer for explanation to following link: https://lefthook.dev/configuration/
+assert_lefthook_installed: true
+colors: false
+
+pre-commit:
+  parallel: true
+  jobs:
+    - name: Format Source and Tests
+      glob: '*.{js,json,md,ts,yaml}'
+      run: npm run format
+
+    - name: Format Infra
+      glob: '*.{hcl,tf,tfvars}'
+      run: terraform fmt -no-color -recursive
+
+    - name: Lint Core Infra
+      glob: 'infra/core/*.{hcl,tf,tfvars}'
+      root: infra/core
+      run: tflint --no-color --recursive -f compact
+
+    - name: Lint Instance Infra
+      glob: 'infra/instance/*.{hcl,tf,tfvars}'
+      root: infra/instance
+      run: tflint --no-color --recursive -f compact
+
+pre-push:
+  parallel: true
+  jobs:
+    - name: Typecheck Source and Tests
+      glob: '*.{js,json,md,ts,yaml}'
+      run: npm run typecheck
+
+    - name: Validate Branch Naming
+      run: node prepush.helper.ts
+
+    # - name: Validate Core Infra
+    #   glob: 'infra/core/*.{hcl,tf,tfvars}'
+    #   root: infra/core
+    #   run: terraform validate -no-color
+
+    # - name: Validate Instance Infra
+    #   glob: 'infra/instance/*.{hcl,tf,tfvars}'
+    #   root: infra/instance
+    #   run: terraform validate -no-color
