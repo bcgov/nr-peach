@@ -72,7 +72,6 @@ module "postgresql" {
   enable_auto_grow            = var.enable_postgres_auto_grow
   backup_retention_period     = var.postgres_backup_retention_period
   common_tags                 = var.common_tags
-  db_master_password          = var.db_master_password
   enable_geo_redundant_backup = var.enable_postgres_geo_redundant_backup
   enable_ha                   = var.enable_postgres_ha
   location                    = var.location

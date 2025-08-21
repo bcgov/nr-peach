@@ -25,16 +25,6 @@ variable "common_tags" {
   type        = map(string)
 }
 
-variable "db_master_password" {
-  description = "Master password for the PostgreSQL server"
-  type        = string
-  sensitive   = true
-  validation {
-    condition     = length(var.db_master_password) >= 12
-    error_message = "The db_master_password must be at least 12 characters long."
-  }
-}
-
 variable "enable_api_autoscale" {
   description = "Whether autoscaling is enabled for the api App Service plan."
   type        = bool

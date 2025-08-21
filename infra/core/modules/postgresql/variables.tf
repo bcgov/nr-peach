@@ -22,13 +22,6 @@ variable "common_tags" {
   nullable    = false
 }
 
-variable "db_master_password" {
-  description = "The password for the PostgreSQL admin user."
-  type        = string
-  sensitive   = true
-  nullable    = false
-}
-
 variable "enable_geo_redundant_backup" {
   description = "Enable geo-redundant backup"
   type        = bool

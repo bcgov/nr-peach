@@ -2,6 +2,11 @@
 # PostgreSQL Module Terraform Configuration
 # -----------------------------------------
 
+resource "random_password" "postgres_master_password" {
+  length  = 16
+  special = true
+}
+
 # PostgreSQL Flexible Server
 resource "azurerm_postgresql_flexible_server" "postgresql" {
   name                = "${var.app_name}-${var.module_name}"
@@ -10,7 +15,7 @@ resource "azurerm_postgresql_flexible_server" "postgresql" {
   tags                = var.common_tags
 
   administrator_login    = var.postgresql_admin_username
-  administrator_password = var.db_master_password
+  administrator_password = random_password.postgres_master_password.result
 
   sku_name                     = var.postgresql_sku_name
   version                      = var.postgres_version
