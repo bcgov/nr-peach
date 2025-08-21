@@ -5,7 +5,7 @@ output "api_app_service_url" {
 
 output "cloudbeaver_app_service_url" {
   description = "The URL of the CloudBeaver App Service"
-  value       = var.enable_cloudbeaver ? module.cloudbeaver[0].cloudbeaver_app_service_url : null
+  value       = local.cloudbeaver_count == 1 ? module.cloudbeaver[0].cloudbeaver_app_service_url : null
 }
 
 output "database_host" {
