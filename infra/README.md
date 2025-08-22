@@ -1,84 +1,14 @@
 # Infrastructure
 
-> [!NOTE]
-> Documentation on this page is still under construction
+This readme outlines the general cloud infrastructure as code used by nr-peach. It is mainly structured for the Azure
+Cloud environment.
 
 ## Overview
 
-Our infrastructure is split into two logical lifecycles: core and instance.
+Our infrastructure is split into two logical lifecycles:
 
-- Core: Contains all shared baseline infrastructure such as the database, servers, monitoring and networking
-- Instance: Contains all infrastructure specific to a single instance of the application and their migrations
-
-## Azure Login
-
-Ensure you have the Azure CLI installed and configured. You can log in and set your subscription with the following
-commands:
-
-```sh
-az login
-az account set --subscription "<existing-subscription-id>"
-export ARM_SUBSCRIPTION_ID=$(az account show --query id -o tsv)
-```
-
-Since the core and instance infrastructure are separate Terraform states, you will need to change directories into the
-infrastructure you wish to work on first.
-
-## Terraform Linting
-
-Ensure you have [TFLint](https://github.com/terraform-linters/tflint) installed. TFLint will focus on ensuring that
-your code is properly indented and free of syntax errors.
-
-```sh
-tflint init
-tflint --recursive -f compact
-tflint --fix
-```
-
-## Terraform Commands
-
-Ensure you have [Terraform](https://www.terraform.io/downloads.html) installed. You can run the following commands to
-initialize, format, validate, plan, and apply your Terraform configuration:
-
-```sh
-terraform init
-
-terraform fmt -recursive
-terraform validate
-
-terraform plan
-terraform apply
-
-terraform destroy
-```
-
-### Terraform Arguments
-
-When working with Terraform, you may need to pass various arguments to customize the behavior of your commands. Some
-common arguments include:
-
-- `-auto-approve`: Skip interactive approval for plan and apply
-- `-backend-config`: Configure the backend for storing Terraform state
-- `-migrate-state`: Migrate the Terraform state to a new backend (only used if doing large relocations)
-- `-no-color`: Disable colored output (usually used for cleaning up CI/CD output logs)
-- `-reconfigure`: Reconfigure the backend settings (this mostly happens when we context switch instances)
-- `-recursive`: Enable recursive module processing (usually used for formatting purposes)
-- `-upgrade`: Upgrade the provider plugins (this will happen frequently as we pin on patch releases)
-- `-var`: Set a variable in the Terraform configuration
-- `-var-file`: Specify a file containing variable definitions
-
-Environment variables can be passed into Terraform through the `TF_VAR_` prefix. For example, to set the `region`
-variable, you can use the following command:
-
-```sh
-export TF_VAR_region="canada-central"
-```
-
-### Instance Specific Lifecycles
-
-Our infrastructure is divided into two separate lifecycles: core and instance. Core focuses on the baseline shared
-infrastructure that is common to the entire environment. Instance focuses on the specific application deployment and
-all of the supporting elements.
+- **Core**: Shared baseline infrastructure (database, servers, monitoring, networking)
+- **Instance**: Infrastructure specific to a single application instance
 
 Core should only need to be applied seldomly as the infrastructure should be relatively static in nature, while
 instances will have various lifecycles depending on their function and purpose. The most common pattern will be to have
@@ -95,25 +25,101 @@ Our infrastructure paradigm aims to ensure that the CI/CD process is able to be 
 in the event some things go wrong or need to be debugged. We will outline some of the key commands and workflows that
 can be used to manage the infrastructure below.
 
-#### Core
+## Prerequisites
+
+- [Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli)
+- [Terraform](https://www.terraform.io/downloads.html)
+- [TFLint](https://github.com/terraform-linters/tflint)
+
+## Azure Login
+
+Remember to change directories between core and instance as needed.
+
+```sh
+az login
+az account set --subscription "<existing-subscription-id>"
+export ARM_SUBSCRIPTION_ID=$(az account show --query id -o tsv)
+```
+
+## Terraform Linting
+
+```sh
+tflint init
+tflint --recursive -f compact
+tflint --fix
+```
+
+## Terraform Workflow
+
+### Common Commands
+
+```sh
+terraform init
+
+terraform fmt -recursive
+terraform validate
+
+terraform plan
+terraform apply
+
+terraform destroy
+```
+
+#### Common Arguments
+
+When working with Terraform, you may need to pass various arguments to customize the behavior of your commands. Some
+common arguments include:
+
+- `-auto-approve`: Skip interactive approval for plan and apply
+- `-backend-config`: Configure the backend for storing Terraform state
+- `-migrate-state`: Migrate the Terraform state to a new backend (only used if doing large relocations)
+- `-no-color`: Disable colored output (usually used for cleaning up CI/CD output logs)
+- `-reconfigure`: Reconfigure the backend settings (this mostly happens when we context switch instances)
+- `-recursive`: Enable recursive module processing (usually used for formatting purposes)
+- `-upgrade`: Upgrade the provider plugins (this will happen frequently as we pin on patch releases)
+- `-var`: Set a variable in the Terraform configuration
+- `-var-file`: Specify a file containing variable definitions
+
+#### Environment Variables
+
+Environment variables can be passed into Terraform through the `TF_VAR_` prefix. For example, to set the `region`
+variable, you can use the following command:
+
+```sh
+export TF_VAR_region="canada-central"
+```
+
+#### Variable Files
+
+For local machine deployments, you can create `*.tfvars` files to define your variables. These files can then be passed
+to Terraform using the `-var-file` option. By default, Terraform will look for a file named `terraform.tfvars` in the
+current directory. Specifying an additional `-var-file` option allows you to include other variable files as needed,
+which will overlay on top of the `terraform.tfvars` if that file also already exists.
+
+For core infrastructure, a `terraform.tfvars` should be sufficient. However, for instance infrastructure, we recommend
+creating a `terraform.main.tfvars`, `terraform.pr.tfvars` and `terraform.tfvars` file to cover the different
+configurations. Anything common should reside in `terraform.tfvars`, and anything that is specifically different should
+be stored in the respective `terraform.main.tfvars` or `terraform.pr.tfvars` files.
+
+## Core Infrastructure
 
 For the core infrastructure, a direct init and apply should suffice as it is a direct mapping of infrastructure. You can
 use the following commands (change the angle bracket values to their appropriate values):
 
 ```sh
-terraform init -upgrade -reconfigure \
+terraform init -upgrade \
   -backend-config="resource_group_name=<123456-env-networking>" \
   -backend-config="storage_account_name=<tfstatenrpeachenv>"
 
 terraform apply -auto-approve
 ```
 
-#### Instance
+## Instance Infrastructure
 
 For the instance infrastructure, you will need to specify the appropriate key and variable files for the instance. You
 can use the following commands (change the angle bracket values to their appropriate values):
 
-##### Main
+### Main Instance
 
 ```sh
 terraform init -upgrade -reconfigure \
@@ -124,7 +130,7 @@ terraform init -upgrade -reconfigure \
 terraform apply -auto-approve -var-file=<terraform.main.tfvars>
 ```
 
-##### Pull Request
+### Pull Request Instance
 
 ```sh
 terraform init -upgrade -reconfigure \
@@ -135,7 +141,7 @@ terraform init -upgrade -reconfigure \
 terraform apply -auto-approve -var-file=<terraform.pr.tfvars>
 ```
 
-### Terraform Cleanup
+## Cleanup
 
 To clean up your Terraform environment and remove all resources, you can use the following command:
 
