@@ -1,0 +1,63 @@
+name: Manage Core Infra
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'The environment (dev, test, prod) to act on. BE CAREFUL HERE!'
+        required: true
+        default: test # TODO: Set default to dev when we have our real environments
+        type: choice
+        options:
+          # - dev # TODO: Uncomment when we have our real environments
+          - test
+          # - prod # TODO: Uncomment when we have our real environments
+      manage_action:
+        description: 'The management action to perform on the core infrastructure.'
+        required: true
+        default: plan
+        type: choice
+        options:
+          - refresh
+          - plan
+          - apply
+          - destroy
+
+permissions:
+  contents: write # This is required for actions/checkout
+  id-token: write # This is required for requesting the JWT
+  packages: write
+
+jobs:
+  apply:
+    name: Apply Core Infra
+    if: github.event.inputs.manage_action == 'apply'
+    uses: ./.github/workflows/.core-deployer.yaml
+    secrets: inherit
+    with:
+      command: ${{ github.event.inputs.manage_action }}
+      environment: ${{ github.event.inputs.environment }}
+  destroy:
+    name: Destroy Core Infra
+    if: github.event.inputs.manage_action == 'destroy'
+    uses: ./.github/workflows/.core-deployer.yaml
+    secrets: inherit
+    with:
+      command: ${{ github.event.inputs.manage_action }}
+      environment: ${{ github.event.inputs.environment }}
+  plan:
+    name: Plan Core Infra
+    if: github.event.inputs.manage_action == 'plan'
+    uses: ./.github/workflows/.core-deployer.yaml
+    secrets: inherit
+    with:
+      command: ${{ github.event.inputs.manage_action }}
+      environment: ${{ github.event.inputs.environment }}
+  refresh:
+    name: Refresh Core Infra
+    if: github.event.inputs.manage_action == 'refresh'
+    uses: ./.github/workflows/.core-deployer.yaml
+    secrets: inherit
+    with:
+      command: ${{ github.event.inputs.manage_action }}
+      environment: ${{ github.event.inputs.environment }}
