@@ -43,11 +43,6 @@ jobs:
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3.1.2
-      - name: Image Tags
-        id: image-tags
-        run: |
-          API_IMAGE="ghcr.io/${{ github.repository }}:${{ inputs.tag }}"
-          echo "api-image=$API_IMAGE" >> $GITHUB_OUTPUT
       - name: Terraform Init
         working-directory: infra/core
         run: |
@@ -58,3 +53,24 @@ jobs:
             -backend-config="tenant_id=${{ secrets.AZURE_TENANT_ID }}" \
             -backend-config="client_id=${{ secrets.AZURE_CLIENT_ID }}" \
             -backend-config="use_oidc=true"
+      - name: Terraform ${{ inputs.command }}
+        working-directory: infra/core
+        env:
+          TF_VAR_app_name: nr-peach
+          TF_VAR_azure_client_id: ${{ secrets.AZURE_CLIENT_ID }}
+          TF_VAR_azure_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          TF_VAR_azure_tenant_id: ${{ secrets.AZURE_TENANT_ID }}
+          TF_VAR_client_id: ${{ secrets.AZURE_CLIENT_ID }}
+          TF_VAR_common_tags: >-
+            {"app_name":"peach","environment":"${{ inputs.environment }}","instance":"core","repo_name":"nr-peach","managed_by":"terraform"}
+          TF_VAR_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          TF_VAR_tenant_id: ${{ secrets.AZURE_TENANT_ID }}
+          TF_VAR_vnet_address_space: ${{ secrets.VNET_ADDRESS_SPACE }}
+          TF_VAR_vnet_name: ${{ secrets.VNET_NAME }}
+          TF_VAR_vnet_resource_group_name: ${{ secrets.VNET_RESOURCE_GROUP_NAME }}
+        run: |
+          if [[ "${{ inputs.command }}" == "apply" || "${{ inputs.command }}" == "destroy" ]]; then
+            terraform ${{ inputs.command }} -auto-approve -input=false
+          else
+            terraform ${{ inputs.command }} -input=false
+          fi
