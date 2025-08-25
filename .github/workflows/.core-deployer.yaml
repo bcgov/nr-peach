@@ -35,6 +35,26 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v5.0.0
+      - name: Verify required GitHub secrets
+        env:
+          AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+          AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          VNET_RESOURCE_GROUP_NAME: ${{ secrets.VNET_RESOURCE_GROUP_NAME }}
+          VNET_ADDRESS_SPACE: ${{ secrets.VNET_ADDRESS_SPACE }}
+          VNET_NAME: ${{ secrets.VNET_NAME }}
+        run: |
+          missing=0
+          for secret in AZURE_CLIENT_ID AZURE_TENANT_ID AZURE_SUBSCRIPTION_ID VNET_RESOURCE_GROUP_NAME VNET_ADDRESS_SPACE VNET_NAME; do
+            if [ -z "${!secret}" ]; then
+              echo "Missing required secret: $secret"
+              missing=1
+            fi
+          done
+          if [ "$missing" -eq 1 ]; then
+            echo "One or more required secrets are missing. Failing workflow."
+            exit 1
+          fi
       - name: Azure CLI Login
         uses: azure/login@v2.3.0
         with:

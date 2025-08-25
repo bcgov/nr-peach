@@ -30,7 +30,7 @@ permissions:
 
 jobs:
   infra:
-    name: Infra ${{ github.event.inputs.manage_action }}
+    name: Core Infra ${{ github.event.inputs.manage_action }}
     uses: ./.github/workflows/.core-deployer.yaml
     secrets: inherit
     with:
