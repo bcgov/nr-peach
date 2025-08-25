@@ -29,8 +29,8 @@ permissions:
 
 jobs:
   infra:
-    environment: ${{ inputs.environment }}
     name: Terraform ${{inputs.command}} ${{ inputs.environment }}
+    environment: ${{ inputs.environment }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout

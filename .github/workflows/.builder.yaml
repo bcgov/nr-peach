@@ -1,0 +1,117 @@
+name: .Builder
+
+on:
+  workflow_call:
+
+permissions:
+  attestations: write # for actions/attest-build-provenance attestation persistence
+  contents: write # set to write for anchore/sbom-action artifact uploads during release builds
+  id-token: write # for actions/attest-build-provenance OIDC token to request a Sigstore signing certificate
+  packages: write # for docker/build-push-action to push images to GitHub Container Registry
+
+jobs:
+  builder:
+    name: Builder
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5.0.0
+      # - name: Set up Docker Buildx
+      #   uses: docker/setup-buildx-action@v3.11.1
+      - name: Login to Github Container Registry
+        uses: docker/login-action@v3.5.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Prepare Container Metadata tags
+        id: meta
+        uses: docker/metadata-action@v5.8.0
+        # env:
+        #   # Ref: https://github.com/orgs/community/discussions/45969#discussioncomment-13352049
+        #   DOCKER_METADATA_ANNOTATIONS_LEVELS: manifest,index
+        with:
+          images: ghcr.io/${{ github.repository }}
+          # Creates tags based off of branch names and semver tags
+          tags: |
+            type=sha,format=short
+            type=sha,prefix=,format=long
+            type=ref,event=branch
+            type=ref,event=pr
+            type=raw,value=latest,enable={{is_default_branch}}
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
+      - name: Build and Push to Container Registry
+        id: builder
+        uses: docker/build-push-action@v6.18.0
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          annotations: ${{ steps.meta.outputs.annotations }}
+          build-args: |
+            GIT_COMMIT=${{ github.sha }}
+          # The following options require docker/setup-buildx-action.
+          # cache-from: type=gha
+          # cache-to: type=gha,mode=max
+          # platforms: linux/amd64,linux/arm64
+          # provenance: true
+          # sbom: true
+
+      - name: Attest
+        id: attest
+        uses: actions/attest-build-provenance@v2.4.0
+        with:
+          subject-name: ghcr.io/${{ github.repository }}
+          subject-digest: ${{ steps.builder.outputs.digest }}
+          # push-to-registry: true # Enable if you want to push the attestation to the github container registry
+      - name: Generate SBOM (SPDX) with Syft
+        uses: anchore/sbom-action@da167eac915b4e86f08b264dbdbc867b61be6f0c # v0.20.5
+        with:
+          format: spdx-json
+          image: ghcr.io/${{ github.repository }}@${{ steps.builder.outputs.digest }}
+          dependency-snapshot: true
+      - name: Generate SBOM (CycloneDX) with Syft
+        uses: anchore/sbom-action@da167eac915b4e86f08b264dbdbc867b61be6f0c # v0.20.5
+        with:
+          format: cyclonedx-json
+          image: ghcr.io/${{ github.repository }}@${{ steps.builder.outputs.digest }}
+          dependency-snapshot: true
+
+      - name: Inspect image
+        run: docker image inspect ghcr.io/${{ github.repository }}:${{ github.sha }}
+      - name: Verify Attestation
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh attestation verify oci://ghcr.io/${{ github.repository }}:${{ github.sha }} -R ${{ github.repository }}
+
+      # # Cosign may not be prod-ready yet. Ref: https://github.com/sigstore/cosign#what--is-not--production-ready
+      # - name: Set up Cosign
+      #   uses: sigstore/cosign-installer@398d4b0eeef1380460a10c8013a76f728fb906ac # v3.9.1
+      # - name: Sign images with Cosign
+      #   env:
+      #     TAGS: ${{ steps.meta.outputs.tags }}
+      #   run: |
+      #     images=""
+      #     for tag in ${TAGS}; do
+      #       images+="${tag}@${{ steps.builder.outputs.digest }} "
+      #     done
+      #     cosign sign --yes ${images}
+      # # # This step does not work - the in-toto attestation is not compatible with slsaprovenance.
+      # # - name: Generate SLSA Provenance Attestation
+      # #   run: |
+      # #     cosign attest --yes --type slsaprovenance --predicate ${{ steps.attest.outputs.bundle-path }} ghcr.io/${{ github.repository }}@${{ steps.builder.outputs.digest }}
+      # - name: Upload Provenance artifact
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: provenance
+      #     path: ${{ steps.attest.outputs.bundle-path }}
+      # - name: List & Verify image attestations
+      #   run: |
+      #     cosign tree ghcr.io/${{ github.repository }}@${{ steps.builder.outputs.digest }}
+      #     cosign verify ghcr.io/${{ github.repository }}@${{ steps.builder.outputs.digest }} \
+      #       --certificate-identity-regexp 'https://github.com/${{ github.repository }}/.+/.+/.+@${{ github.ref }}' \
+      #       --certificate-oidc-issuer https://token.actions.githubusercontent.com
