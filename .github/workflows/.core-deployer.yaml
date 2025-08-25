@@ -69,8 +69,8 @@ jobs:
           TF_VAR_vnet_name: ${{ secrets.VNET_NAME }}
           TF_VAR_vnet_resource_group_name: ${{ secrets.VNET_RESOURCE_GROUP_NAME }}
         run: |
+          args="-input=false"
           if [[ "${{ inputs.command }}" == "apply" || "${{ inputs.command }}" == "destroy" ]]; then
-            terraform ${{ inputs.command }} -auto-approve -input=false
-          else
-            terraform ${{ inputs.command }} -input=false
+            args="$args -auto-approve"
           fi
+          terraform ${{ inputs.command }} $args

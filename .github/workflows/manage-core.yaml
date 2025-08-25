@@ -29,33 +29,8 @@ permissions:
   packages: write
 
 jobs:
-  apply:
-    name: Apply Core Infra
-    if: github.event.inputs.manage_action == 'apply'
-    uses: ./.github/workflows/.core-deployer.yaml
-    secrets: inherit
-    with:
-      command: ${{ github.event.inputs.manage_action }}
-      environment: ${{ github.event.inputs.environment }}
-  destroy:
-    name: Destroy Core Infra
-    if: github.event.inputs.manage_action == 'destroy'
-    uses: ./.github/workflows/.core-deployer.yaml
-    secrets: inherit
-    with:
-      command: ${{ github.event.inputs.manage_action }}
-      environment: ${{ github.event.inputs.environment }}
-  plan:
-    name: Plan Core Infra
-    if: github.event.inputs.manage_action == 'plan'
-    uses: ./.github/workflows/.core-deployer.yaml
-    secrets: inherit
-    with:
-      command: ${{ github.event.inputs.manage_action }}
-      environment: ${{ github.event.inputs.environment }}
-  refresh:
-    name: Refresh Core Infra
-    if: github.event.inputs.manage_action == 'refresh'
+  infra:
+    name: Infra ${{ github.event.inputs.manage_action }}
     uses: ./.github/workflows/.core-deployer.yaml
     secrets: inherit
     with:
