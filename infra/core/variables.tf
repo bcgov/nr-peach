@@ -5,12 +5,14 @@
 variable "app_name" {
   description = "Name of the application"
   type        = string
+  nullable    = false
 }
 
 variable "app_service_sku_name" {
   description = "SKU name for the App Service Plan"
   type        = string
   default     = "B2" # Basic tier
+  nullable    = false
 }
 
 variable "client_id" {
@@ -29,121 +31,142 @@ variable "enable_api_autoscale" {
   description = "Whether autoscaling is enabled for the api App Service plan."
   type        = bool
   default     = false
+  nullable    = false
 }
 
 variable "enable_postgres_auto_grow" {
   description = "Enable auto-grow for PostgreSQL Flexible Server storage"
   type        = bool
   default     = true
+  nullable    = false
 }
 
 variable "enable_postgres_ha" {
   description = "Enable high availability for PostgreSQL Flexible Server"
   type        = bool
   default     = false
+  nullable    = false
 }
 
 variable "enable_postgres_geo_redundant_backup" {
   description = "Enable geo-redundant backup for PostgreSQL Flexible Server"
   type        = bool
   default     = false
+  nullable    = false
 }
 
 variable "lifecycle_name" {
   description = "Name of the lifecycle"
   type        = string
   default     = "core"
+  nullable    = false
 }
 
 variable "location" {
   description = "Azure region for resources"
   type        = string
   default     = "Canada Central"
+  nullable    = false
 }
 
 variable "log_analytics_retention_days" {
   description = "Number of days to retain data in Log Analytics Workspace"
   type        = number
   default     = 30
+  nullable    = false
 }
 
 variable "log_analytics_sku" {
   description = "SKU for Log Analytics Workspace"
   type        = string
   default     = "PerGB2018"
+  nullable    = false
 }
 
 variable "postgres_backup_retention_period" {
   description = "Backup retention period in days for PostgreSQL Flexible Server"
   type        = number
   default     = 7
+  nullable    = false
 }
 
 variable "postgres_sku_name" {
   description = "SKU name for PostgreSQL Flexible Server"
   type        = string
   default     = "B_Standard_B1ms"
+  nullable    = false
 }
 
 variable "postgres_standby_availability_zone" {
   description = "Availability zone for standby replica of PostgreSQL Flexible Server"
   type        = string
   default     = "1"
+  nullable    = false
 }
 
 variable "postgres_storage_mb" {
   description = "Storage in MB for PostgreSQL Flexible Server"
   type        = number
   default     = 32768
+  nullable    = false
 }
 
 variable "postgres_version" {
   description = "Version of PostgreSQL Flexible Server"
   type        = string
   default     = "16"
+  nullable    = false
 }
 
 variable "postgres_zone" {
   description = "Availability zone for PostgreSQL server"
   type        = string
   default     = "1"
+  nullable    = false
 }
 
 variable "postgresql_admin_username" {
   description = "Administrator username for PostgreSQL server"
   type        = string
   default     = "pgadmin"
+  nullable    = false
 }
 
 variable "resource_group_name" {
   description = "Name of the resource group"
   type        = string
   default     = "nr-permitting"
+  nullable    = false
 }
 
 variable "subscription_id" {
   description = "Azure subscription ID"
   type        = string
+  nullable    = false
   sensitive   = true
 }
 
 variable "tenant_id" {
   description = "Azure tenant ID"
   type        = string
+  nullable    = false
   sensitive   = true
 }
 
 variable "vnet_address_space" {
   type        = string
   description = "Address space for the virtual network, it is created by platform team"
+  nullable    = false
 }
 
 variable "vnet_name" {
   description = "Name of the existing virtual network"
   type        = string
+  nullable    = false
 }
 
 variable "vnet_resource_group_name" {
   description = "Resource group name where the virtual network exists"
   type        = string
+  nullable    = false
 }
