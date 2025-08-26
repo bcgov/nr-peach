@@ -35,10 +35,10 @@ resource "azurerm_container_group" "migration" {
     environment_variables = {
       FORCE_REDEPLOY = null_resource.trigger_migration.id
       PGDATABASE     = var.database_name
-      PGHOST         = var.postgres_host
-      PGUSER         = var.postgresql_admin_username
-      PGPASSWORD     = var.db_master_password
-      PGSSLMODE      = var.db_ssl_mode
+      PGHOST         = var.database_host
+      PGUSER         = var.database_admin_username
+      PGPASSWORD     = var.database_admin_password
+      PGSSLMODE      = var.database_ssl_mode
     }
   }
   ip_address_type = "None"

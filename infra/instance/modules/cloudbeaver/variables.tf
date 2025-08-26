@@ -54,16 +54,28 @@ variable "container_registry_url" {
   default     = "https://index.docker.io"
 }
 
-variable "database_name" {
-  description = "The name of the PostgreSQL database."
+variable "database_admin_password" {
+  description = "The password for the PostgreSQL admin user."
+  type        = string
+  sensitive   = true
+  nullable    = false
+}
+
+variable "database_admin_username" {
+  description = "The admin username for the PostgreSQL server."
   type        = string
   nullable    = false
 }
 
-variable "db_master_password" {
-  description = "The password for the PostgreSQL admin user."
+variable "database_host" {
+  description = "The FQDN of the PostgreSQL server."
   type        = string
-  sensitive   = true
+  nullable    = false
+}
+
+variable "database_name" {
+  description = "The name of the PostgreSQL database."
+  type        = string
   nullable    = false
 }
 
@@ -77,18 +89,6 @@ variable "module_name" {
   description = "Name of the module"
   type        = string
   default     = "cloudbeaver"
-}
-
-variable "postgres_host" {
-  description = "The FQDN of the PostgreSQL server."
-  type        = string
-  nullable    = false
-}
-
-variable "postgresql_admin_username" {
-  description = "The admin username for the PostgreSQL server."
-  type        = string
-  nullable    = false
 }
 
 variable "private_endpoints_subnet_id" {

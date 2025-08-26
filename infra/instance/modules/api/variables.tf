@@ -47,20 +47,32 @@ variable "container_registry_url" {
   default     = "https://ghcr.io"
 }
 
-variable "database_name" {
-  description = "The name of the PostgreSQL database."
-  type        = string
-  nullable    = false
-}
-
-variable "db_master_password" {
+variable "database_admin_password" {
   description = "The password for the PostgreSQL admin user."
   type        = string
   sensitive   = true
   nullable    = false
 }
 
-variable "db_ssl_mode" {
+variable "database_admin_username" {
+  description = "The admin username for the PostgreSQL server."
+  type        = string
+  nullable    = false
+}
+
+variable "database_host" {
+  description = "The FQDN of the PostgreSQL server."
+  type        = string
+  nullable    = false
+}
+
+variable "database_name" {
+  description = "The name of the PostgreSQL database."
+  type        = string
+  nullable    = false
+}
+
+variable "database_ssl_mode" {
   description = "The SSL mode for the PostgreSQL connection (e.g., 'require', 'disable')."
   type        = string
   default     = "require"
@@ -88,18 +100,6 @@ variable "node_env" {
   description = "The Node.js environment (e.g., production, development)."
   type        = string
   default     = "production"
-}
-
-variable "postgres_host" {
-  description = "The FQDN of the PostgreSQL server."
-  type        = string
-  nullable    = false
-}
-
-variable "postgresql_admin_username" {
-  description = "The admin username for the PostgreSQL server."
-  type        = string
-  nullable    = false
 }
 
 variable "repo_name" {

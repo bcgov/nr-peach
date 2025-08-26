@@ -87,7 +87,9 @@ jobs:
             -backend-config="tenant_id=${{ secrets.AZURE_TENANT_ID }}" \
             -backend-config="client_id=${{ secrets.AZURE_CLIENT_ID }}" \
             -backend-config="use_oidc=true"
-          echo "db_password=$(terraform output -raw database_master_password)" >> $GITHUB_OUTPUT
+
+          echo "database_host=$(terraform output -raw database_host)" >> $GITHUB_OUTPUT
+          echo "database_password=$(terraform output -raw database_master_password)" >> $GITHUB_OUTPUT
       - name: Terraform Init
         working-directory: infra/instance
         run: |
@@ -111,7 +113,8 @@ jobs:
           TF_VAR_client_id: ${{ secrets.AZURE_CLIENT_ID }}
           TF_VAR_common_tags: >-
             {"app_name":"peach","environment":"${{ inputs.environment }}","instance":"${{ steps.instance.outputs.instance }}","repo_name":"nr-peach","managed_by":"terraform"}
-          TF_VAR_db_master_password: ${{ steps.core.outputs.db_password }}
+          TF_VAR_database_admin_password: ${{ steps.core.outputs.database_password }}
+          TF_VAR_database_host: ${{ steps.core.outputs.database_host }}
           TF_VAR_enable_cloudbeaver: 'true'
           TF_VAR_instance_name: ${{ steps.instance.outputs.instance }}
           TF_VAR_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}

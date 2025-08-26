@@ -43,10 +43,10 @@ resource "azurerm_linux_web_app" "api" {
     DOCKER_ENABLE_CI                      = "true"
     NODE_ENV                              = var.node_env
     PGDATABASE                            = var.database_name
-    PGHOST                                = var.postgres_host
-    PGPASSWORD                            = var.db_master_password
-    PGSSLMODE                             = var.db_ssl_mode
-    PGUSER                                = var.postgresql_admin_username
+    PGHOST                                = var.database_host
+    PGPASSWORD                            = var.database_admin_password
+    PGSSLMODE                             = var.database_ssl_mode
+    PGUSER                                = var.database_admin_username
     PORT                                  = "80"
     WEBSITE_ENABLE_SYNC_UPDATE_SITE       = "1"
     WEBSITE_SKIP_RUNNING_KUDUAGENT        = "false"

@@ -80,15 +80,15 @@ module "migration" {
 
   container_image              = var.api_image
   container_instance_subnet_id = data.azapi_resource.container_instance_subnet.output.id
-  database_name                = local.database_name
+  database_admin_password      = var.database_admin_password
+  database_admin_username      = var.database_admin_username
+  database_host                = local.database_host
   database_id                  = data.azurerm_postgresql_flexible_server.postgresql.id
-  db_master_password           = var.db_master_password
+  database_name                = local.database_name
   dns_servers                  = data.azurerm_virtual_network.main.dns_servers
   location                     = var.location
   log_analytics_workspace_id   = data.azurerm_log_analytics_workspace.main.workspace_id
   log_analytics_workspace_key  = data.azurerm_log_analytics_workspace.main.primary_shared_key
-  postgres_host                = data.azurerm_postgresql_flexible_server.postgresql.fqdn
-  postgresql_admin_username    = var.postgresql_admin_username
   resource_group_name          = azurerm_resource_group.main.name
 
   depends_on = [azurerm_resource_group.main]
@@ -104,12 +104,12 @@ module "api" {
   appinsights_instrumentation_key  = data.azurerm_application_insights.main.instrumentation_key
   api_subnet_id                    = data.azapi_resource.app_service_subnet.output.id
   common_tags                      = var.common_tags
+  database_admin_password          = var.database_admin_password
+  database_admin_username          = var.database_admin_username
+  database_host                    = local.database_host
   database_name                    = local.database_name
-  db_master_password               = var.db_master_password
   instance_name                    = var.instance_name
   location                         = var.location
-  postgres_host                    = data.azurerm_postgresql_flexible_server.postgresql.fqdn
-  postgresql_admin_username        = var.postgresql_admin_username
   repo_name                        = var.repo_name
   resource_group_name              = azurerm_resource_group.main.name
   user_assigned_identity_client_id = data.azurerm_user_assigned_identity.app_service_identity.client_id
@@ -129,11 +129,11 @@ module "cloudbeaver" {
   appinsights_instrumentation_key  = data.azurerm_application_insights.main.instrumentation_key
   api_subnet_id                    = data.azapi_resource.app_service_subnet.output.id
   common_tags                      = var.common_tags
+  database_admin_password          = var.database_admin_password
+  database_admin_username          = var.database_admin_username
+  database_host                    = local.database_host
   database_name                    = local.database_name
-  db_master_password               = var.db_master_password
   location                         = var.location
-  postgres_host                    = data.azurerm_postgresql_flexible_server.postgresql.fqdn
-  postgresql_admin_username        = var.postgresql_admin_username
   private_endpoints_subnet_id      = data.azapi_resource.privateendpoints_subnet.output.id
   repo_name                        = var.repo_name
   resource_group_name              = var.resource_group_name

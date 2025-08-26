@@ -47,15 +47,30 @@ variable "container_instance_subnet_name" {
   nullable    = false
 }
 
-variable "db_master_password" {
+variable "database_admin_username" {
+  description = "Administrator username for PostgreSQL server"
+  type        = string
+  default     = "pgadmin"
+  nullable    = false
+}
+
+variable "database_admin_password" {
   description = "Master password for the PostgreSQL server"
   type        = string
   nullable    = false
   sensitive   = true
   validation {
-    condition     = length(var.db_master_password) >= 16
-    error_message = "The db_master_password must be at least 16 characters long."
+    condition     = length(var.database_admin_password) >= 16
+    error_message = "The database_admin_password must be at least 16 characters long."
   }
+}
+
+variable "database_host" {
+  description = "Hostname of the the PostgreSQL server"
+  type        = string
+  default     = null
+  nullable    = true
+  sensitive   = true
 }
 
 variable "enable_cloudbeaver" {
@@ -75,13 +90,6 @@ variable "location" {
   description = "Azure region for resources"
   type        = string
   default     = "Canada Central"
-  nullable    = false
-}
-
-variable "postgresql_admin_username" {
-  description = "Administrator username for PostgreSQL server"
-  type        = string
-  default     = "pgadmin"
   nullable    = false
 }
 

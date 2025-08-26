@@ -114,10 +114,10 @@ resource "azurerm_linux_web_app" "cloudbeaver" {
     DOCKER_ENABLE_CI                      = "true"
     PORT                                  = "8978"
     POSTGRES_DATABASE                     = var.database_name
-    POSTGRES_HOST                         = var.postgres_host
-    POSTGRES_PASSWORD                     = var.db_master_password
+    database_host                         = var.database_host
+    POSTGRES_PASSWORD                     = var.database_admin_password
     POSTGRES_PORT                         = "5432"
-    POSTGRES_USER                         = var.postgresql_admin_username
+    POSTGRES_USER                         = var.database_admin_username
     WEBSITES_ENABLE_APP_SERVICE_STORAGE   = "false"
     WEBSITES_PORT                         = "8978"
     WORKSPACE_PATH                        = "/opt/cloudbeaver/workspace"

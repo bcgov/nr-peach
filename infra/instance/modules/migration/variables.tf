@@ -29,8 +29,21 @@ variable "container_registry_url" {
   default     = "ghcr.io"
 }
 
-variable "database_name" {
-  description = "The name of the PostgreSQL database."
+variable "database_admin_password" {
+  description = "The password for the PostgreSQL admin user."
+  type        = string
+  sensitive   = true
+  nullable    = false
+}
+
+variable "database_admin_username" {
+  description = "The admin username for the PostgreSQL server."
+  type        = string
+  nullable    = false
+}
+
+variable "database_host" {
+  description = "The FQDN of the PostgreSQL server."
   type        = string
   nullable    = false
 }
@@ -41,14 +54,13 @@ variable "database_id" {
   nullable    = false
 }
 
-variable "db_master_password" {
-  description = "The password for the PostgreSQL admin user."
+variable "database_name" {
+  description = "The name of the PostgreSQL database."
   type        = string
-  sensitive   = true
   nullable    = false
 }
 
-variable "db_ssl_mode" {
+variable "database_ssl_mode" {
   description = "The SSL mode for the PostgreSQL connection (e.g., 'require', 'disable')."
   type        = string
   default     = "require"
@@ -74,18 +86,6 @@ variable "log_analytics_workspace_id" {
 
 variable "log_analytics_workspace_key" {
   description = "The primary shared key for the Log Analytics workspace."
-  type        = string
-  nullable    = false
-}
-
-variable "postgres_host" {
-  description = "The FQDN of the PostgreSQL server."
-  type        = string
-  nullable    = false
-}
-
-variable "postgresql_admin_username" {
-  description = "The admin username for the PostgreSQL server."
   type        = string
   nullable    = false
 }
