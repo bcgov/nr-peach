@@ -19,7 +19,7 @@ variable "backup_retention_period" {
 variable "common_tags" {
   description = "Common tags to apply to all resources"
   type        = map(string)
-  nullable    = false
+  default     = {}
 }
 
 variable "enable_geo_redundant_backup" {

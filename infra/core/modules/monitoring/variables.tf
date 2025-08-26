@@ -6,7 +6,7 @@ variable "app_name" {
 variable "common_tags" {
   description = "Common tags to apply to all resources"
   type        = map(string)
-  nullable    = false
+  default     = {}
 }
 
 variable "location" {

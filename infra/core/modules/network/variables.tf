@@ -8,7 +8,7 @@ variable "app_service_subnet_name" {
 variable "common_tags" {
   description = "Common tags to apply to all resources"
   type        = map(string)
-  nullable    = false
+  default     = {}
 }
 
 variable "container_instance_subnet_name" {
