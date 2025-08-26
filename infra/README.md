@@ -165,3 +165,40 @@ az storage blob delete \
 
 This should drop the file from the backend storage account and ensure that we keep the storage account clean and free
 of any orphaned state files.
+
+## Troubleshooting
+
+### Releasing State Lock
+
+There will be times when you need to manually release the state lock in Terraform. This can happen if a previous
+operation was interrupted or failed, leaving the state locked. An example state lock error:
+
+```sh
+│ Error: Error acquiring the state lock
+│
+│ Error message: state blob is already locked
+│ Lock Info:
+│   ID:        00000000-0000-0000-0000-000000000000
+│   Path:      tfstate/main.instance.tfstate
+│   Operation: OperationTypePlan
+│   Who:       someuser@somehost
+│   Version:   1.13.0
+│   Created:   2025-08-26 16:13:06.961696 +0000 UTC
+│   Info:
+```
+
+To release the state lock, you can use the following command:
+
+```sh
+terraform force-unlock <LOCK_ID>
+```
+
+Replace `<LOCK_ID>` with the ID of the lock you want to release. You can find the lock ID in the error message returned
+by Terraform when it fails to acquire the lock.
+
+The alternative way to release the state lock is to manually delete the lock file from the backend storage. This
+approach should be used with caution, as it can lead to inconsistencies if not done properly.
+
+- Visit your backend storage account via Azure Portal and navigate to the `tfstate` container.
+- Locate the lock file (e.g., `main.instance.tfstate`) and break the lease on it.
+- Remove the `Terraformlockid` metadata on the same tfstate lock file.
