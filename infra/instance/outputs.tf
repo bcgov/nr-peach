@@ -11,7 +11,7 @@ output "cloudbeaver_app_service_url" {
 
 output "database_host" {
   description = "The FQDN of the PostgreSQL server."
-  value       = data.azurerm_postgresql_flexible_server.postgresql.fqdn
+  value       = local.database_host
   sensitive   = true
 }
 
