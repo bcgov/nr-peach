@@ -86,6 +86,7 @@ module "migration" {
   database_id                  = data.azurerm_postgresql_flexible_server.postgresql.id
   database_name                = local.database_name
   dns_servers                  = data.azurerm_virtual_network.main.dns_servers
+  enable_force_migration       = var.enable_force_migration
   location                     = var.location
   log_analytics_workspace_id   = data.azurerm_log_analytics_workspace.main.workspace_id
   log_analytics_workspace_key  = data.azurerm_log_analytics_workspace.main.primary_shared_key

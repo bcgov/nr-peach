@@ -80,6 +80,13 @@ variable "enable_cloudbeaver" {
   nullable    = false
 }
 
+variable "enable_force_migration" {
+  description = "Whether to enable forced rerun of database migration"
+  type        = bool
+  default     = false
+  nullable    = true
+}
+
 variable "instance_name" {
   description = "Name of the instance"
   type        = string

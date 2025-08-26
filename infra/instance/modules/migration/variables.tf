@@ -72,6 +72,13 @@ variable "dns_servers" {
   nullable    = false
 }
 
+variable "enable_force_migration" {
+  description = "Whether to enable forced rerun of database migration"
+  type        = bool
+  default     = false
+  nullable    = true
+}
+
 variable "location" {
   description = "The Azure region where resources will be created."
   type        = string

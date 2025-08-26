@@ -33,7 +33,7 @@ resource "azurerm_container_group" "migration" {
     memory   = "0.2"
     commands = ["/bin/sh", "-c", "kysely migrate latest && kysely seed run"]
     environment_variables = {
-      FORCE_REDEPLOY = null_resource.trigger_migration.id
+      FORCE_REDEPLOY = local.force_redeploy
       PGDATABASE     = var.database_name
       PGHOST         = var.database_host
       PGUSER         = var.database_admin_username
@@ -46,17 +46,7 @@ resource "azurerm_container_group" "migration" {
   restart_policy  = "OnFailure" # DNS resolution is nondeterministic so we need to keep trying until it works
   tags            = var.common_tags
   lifecycle {
-    ignore_changes       = [tags, ip_address_type]
-    replace_triggered_by = [null_resource.trigger_migration]
-  }
-
-  depends_on = [azurerm_postgresql_flexible_server_database.postgres_database]
-}
-
-# Ensure that the migration container runs on every apply
-resource "null_resource" "trigger_migration" {
-  triggers = {
-    always_run = timestamp()
+    ignore_changes = [tags, ip_address_type]
   }
 
   depends_on = [azurerm_postgresql_flexible_server_database.postgres_database]
@@ -68,7 +58,7 @@ resource "null_resource" "verify_migration" {
     command = "sh ${path.module}/verify_migration.sh '${var.resource_group_name}' '${azurerm_container_group.migration.name}' migration"
   }
   triggers = {
-    always_run = timestamp()
+    container_group_id = azurerm_container_group.migration.id
   }
 
   depends_on = [azurerm_container_group.migration]
