@@ -1,0 +1,39 @@
+name: Manage Instance Infra
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'The environment (dev, test, prod) to act on. BE CAREFUL HERE!'
+        required: true
+        default: test # TODO: Set default to dev when we have our real environments
+        type: choice
+        options:
+          # - dev # TODO: Uncomment when we have our real environments
+          - test
+          # - prod # TODO: Uncomment when we have our real environments
+      manage_action:
+        description: 'The management action to perform on the core infrastructure.'
+        required: true
+        default: plan
+        type: choice
+        options:
+          - refresh
+          - plan
+          - apply
+          - destroy
+
+permissions:
+  contents: write # This is required for actions/checkout
+  id-token: write # This is required for requesting the JWT
+  packages: write
+
+jobs:
+  infra:
+    name: Instance Infra ${{ github.event.inputs.manage_action }}
+    uses: ./.github/workflows/.instance-deployer.yaml
+    secrets: inherit
+    with:
+      command: ${{ github.event.inputs.manage_action }}
+      environment: ${{ github.event.inputs.environment }}
+      tag: ${{ github.sha }}

@@ -1,4 +1,4 @@
-name: .Core Deployer
+name: .Instance Deployer
 
 on:
   workflow_call:
@@ -10,9 +10,9 @@ on:
         default: apply
       environment:
         description: 'The name of the environment to deploy to'
-        required: true
+        required: false
         type: string
-        default: dev
+        default: test # TODO: Set default to dev when we have our real environments
       tag:
         description: 'The tag of the containers to deploy'
         required: false
@@ -55,6 +55,19 @@ jobs:
             echo "One or more required secrets are missing. Failing workflow."
             exit 1
           fi
+      - name: Detect Instance
+        id: instance
+        run: |
+          if [[ "${{ github.event.pull_request.number }}" != "" ]]; then
+            echo "instance=pr-${{ github.event.pull_request.number }}" >> $GITHUB_OUTPUT
+            echo "key=pr/pr-${{ github.event.pull_request.number }}.instance.tfstate" >> $GITHUB_OUTPUT
+          elif [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+            echo "instance=main" >> $GITHUB_OUTPUT
+            echo "key=main.instance.tfstate" >> $GITHUB_OUTPUT
+          else
+            echo "Unable to detect valid instance. Failing workflow."
+            exit 1
+          fi
       - name: Azure CLI Login
         uses: azure/login@v2.3.0
         with:
@@ -63,7 +76,8 @@ jobs:
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3.1.2
-      - name: Terraform Init
+      - name: Fetch Core Configurations
+        id: core
         working-directory: infra/core
         run: |
           terraform init -upgrade \
@@ -73,16 +87,33 @@ jobs:
             -backend-config="tenant_id=${{ secrets.AZURE_TENANT_ID }}" \
             -backend-config="client_id=${{ secrets.AZURE_CLIENT_ID }}" \
             -backend-config="use_oidc=true"
+          echo "db_password=$(terraform output -raw database_master_password)" >> $GITHUB_OUTPUT
+      - name: Terraform Init
+        working-directory: infra/instance
+        run: |
+          terraform init -upgrade \
+            -backend-config="resource_group_name=${{ secrets.VNET_RESOURCE_GROUP_NAME }}" \
+            -backend-config="storage_account_name=tfstatenrpeach${{ inputs.environment }}" \
+            -backend-config="subscription_id=${{ secrets.AZURE_SUBSCRIPTION_ID }}" \
+            -backend-config="tenant_id=${{ secrets.AZURE_TENANT_ID }}" \
+            -backend-config="client_id=${{ secrets.AZURE_CLIENT_ID }}" \
+            -backend-config="use_oidc=true" \
+            -backend-config="key=${{ steps.instance.outputs.key }}"
       - name: Terraform ${{ inputs.command }}
-        working-directory: infra/core
+        working-directory: infra/instance
         env:
+          TF_VAR_api_image: ghcr.io/${{ github.repository }}:${{ inputs.tag }}
+          TF_VAR_app_env: ${{ inputs.environment }}
           TF_VAR_app_name: nr-peach
           TF_VAR_azure_client_id: ${{ secrets.AZURE_CLIENT_ID }}
           TF_VAR_azure_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
           TF_VAR_azure_tenant_id: ${{ secrets.AZURE_TENANT_ID }}
           TF_VAR_client_id: ${{ secrets.AZURE_CLIENT_ID }}
           TF_VAR_common_tags: >-
-            {"app_name":"peach","environment":"${{ inputs.environment }}","instance":"core","repo_name":"nr-peach","managed_by":"terraform"}
+            {"app_name":"peach","environment":"${{ inputs.environment }}","instance":"${{ steps.instance.outputs.instance }}","repo_name":"nr-peach","managed_by":"terraform"}
+          TF_VAR_db_master_password: ${{ steps.core.outputs.db_password }}
+          TF_VAR_enable_cloudbeaver: 'true'
+          TF_VAR_instance_name: ${{ steps.instance.outputs.instance }}
           TF_VAR_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
           TF_VAR_tenant_id: ${{ secrets.AZURE_TENANT_ID }}
           TF_VAR_vnet_address_space: ${{ secrets.VNET_ADDRESS_SPACE }}
