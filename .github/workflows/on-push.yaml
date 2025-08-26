@@ -18,3 +18,17 @@ jobs:
       cancel-in-progress: true
     uses: ./.github/workflows/.builder.yaml
     secrets: inherit
+
+  deploy-test:
+    name: Deploy to Test
+    needs: build-push
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    concurrency:
+      group: deploy-test-${{ github.event.number || 'latest' }}
+      cancel-in-progress: false # Terraform deployments should not be interrupted
+    uses: ./.github/workflows/.instance-deployer.yaml
+    secrets: inherit
+    with:
+      command: apply
+      environment: test
+      tag: ${{ github.sha }}
