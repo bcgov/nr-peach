@@ -9,7 +9,7 @@ import {
 import type { Request, Response } from 'express';
 import type { ProcessEventSet, SystemRecordQuery } from '../types/index.d.ts';
 
-export const deleteProcessEventsController = async (
+export const deleteRecordController = async (
   req: Request<never, never, never, SystemRecordQuery>,
   res: Response
 ): Promise<void> => {
@@ -18,7 +18,7 @@ export const deleteProcessEventsController = async (
   res.status(204).end();
 };
 
-export const getProcessEventsController = async (
+export const getRecordController = async (
   req: Request<never, never, never, SystemRecordQuery>,
   res: Response<ProcessEventSet>
 ): Promise<void> => {
@@ -27,7 +27,7 @@ export const getProcessEventsController = async (
   res.status(200).json(result);
 };
 
-export const postProcessEventsController = async (
+export const postRecordController = async (
   req: Request<never, never, ProcessEventSet>,
   res: Response
 ): Promise<void> => {
@@ -36,7 +36,7 @@ export const postProcessEventsController = async (
   res.status(202).end();
 };
 
-export const putProcessEventsController = async (
+export const putRecordController = async (
   req: Request<never, never, ProcessEventSet>,
   res: Response
 ): Promise<void> => {

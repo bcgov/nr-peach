@@ -2,11 +2,11 @@ import express from 'express';
 import request from 'supertest';
 
 import {
-  deleteProcessEventsController,
-  getProcessEventsController,
-  postProcessEventsController,
-  putProcessEventsController
-} from '../../../src/controllers/process.ts';
+  deleteRecordController,
+  getRecordController,
+  postRecordController,
+  putRecordController
+} from '../../../src/controllers/record.ts';
 import * as services from '../../../src/services/index.ts';
 import { Problem } from '../../../src/utils/index.ts';
 
@@ -28,10 +28,10 @@ describe('Process Controllers', () => {
   beforeEach(() => {
     app = express();
     app.use(express.json());
-    app.delete('/process-events', deleteProcessEventsController);
-    app.get('/process-events', getProcessEventsController);
-    app.post('/process-events', postProcessEventsController);
-    app.put('/process-events', putProcessEventsController);
+    app.delete('/process-events', deleteRecordController);
+    app.get('/process-events', getRecordController);
+    app.post('/process-events', postRecordController);
+    app.put('/process-events', putRecordController);
   });
 
   describe('DELETE /process-events', () => {
