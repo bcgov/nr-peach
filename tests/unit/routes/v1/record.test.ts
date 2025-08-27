@@ -2,18 +2,18 @@ import express from 'express';
 import request from 'supertest';
 
 import {
-  deleteProcessEventsController,
-  getProcessEventsController,
-  postProcessEventsController,
-  putProcessEventsController
+  deleteRecordController,
+  getRecordController,
+  postRecordController,
+  putRecordController
 } from '../../../../src/controllers/index.ts';
 import {
-  deleteProcessEventsSchemaValidator,
-  getProcessEventsSchemaValidator,
-  postProcessEventsIntegrityValidator,
-  postProcessEventsSchemaValidator,
-  putProcessEventsIntegrityValidator,
-  putProcessEventsSchemaValidator
+  deleteRecordSchemaValidator,
+  getRecordSchemaValidator,
+  postRecordIntegrityValidator,
+  postRecordSchemaValidator,
+  putRecordIntegrityValidator,
+  putRecordSchemaValidator
 } from '../../../../src/validators/index.ts';
 
 import router from '../../../../src/routes/v1/record.ts';
@@ -23,11 +23,11 @@ import type { NextFunction } from 'express';
 const app = express();
 app.use(router);
 
-vi.mock('../../../../src/controllers/process.ts', () => ({
-  deleteProcessEventsController: vi.fn((_req, _res, next: NextFunction): void => next()),
-  getProcessEventsController: vi.fn((_req, _res, next: NextFunction): void => next()),
-  postProcessEventsController: vi.fn((_req, _res, next: NextFunction): void => next()),
-  putProcessEventsController: vi.fn((_req, _res, next: NextFunction): void => next())
+vi.mock('../../../../src/controllers/record.ts', () => ({
+  deleteRecordController: vi.fn((_req, _res, next: NextFunction): void => next()),
+  getRecordController: vi.fn((_req, _res, next: NextFunction): void => next()),
+  postRecordController: vi.fn((_req, _res, next: NextFunction): void => next()),
+  putRecordController: vi.fn((_req, _res, next: NextFunction): void => next())
 }));
 
 vi.mock('../../../../src/middlewares/validator.ts', () => ({
@@ -36,37 +36,37 @@ vi.mock('../../../../src/middlewares/validator.ts', () => ({
 }));
 
 describe('Process Routes', () => {
-  describe('DELETE /process-events', () => {
+  describe('DELETE /records', () => {
     it('should call the schema validator and controller', async () => {
-      await request(app).delete('/process-events');
-      expect(deleteProcessEventsSchemaValidator).toHaveBeenCalled();
-      expect(deleteProcessEventsController).toHaveBeenCalled();
+      await request(app).delete('/records');
+      expect(deleteRecordSchemaValidator).toHaveBeenCalled();
+      expect(deleteRecordController).toHaveBeenCalled();
     });
   });
 
-  describe('GET /process-events', () => {
+  describe('GET /records', () => {
     it('should call the schema validator and controller', async () => {
-      await request(app).get('/process-events');
-      expect(getProcessEventsSchemaValidator).toHaveBeenCalled();
-      expect(getProcessEventsController).toHaveBeenCalled();
+      await request(app).get('/records');
+      expect(getRecordSchemaValidator).toHaveBeenCalled();
+      expect(getRecordController).toHaveBeenCalled();
     });
   });
 
-  describe('POST /process-events', () => {
+  describe('POST /records', () => {
     it('should call the schema validator, integrity validator and controller', async () => {
-      await request(app).post('/process-events').send({});
-      expect(postProcessEventsSchemaValidator).toHaveBeenCalled();
-      expect(postProcessEventsIntegrityValidator).toHaveBeenCalled();
-      expect(postProcessEventsController).toHaveBeenCalled();
+      await request(app).post('/records').send({});
+      expect(postRecordSchemaValidator).toHaveBeenCalled();
+      expect(postRecordIntegrityValidator).toHaveBeenCalled();
+      expect(postRecordController).toHaveBeenCalled();
     });
   });
 
-  describe('PUT /process-events', () => {
+  describe('PUT /records', () => {
     it('should call the schema validator, integrity validator and controller', async () => {
-      await request(app).put('/process-events').send({});
-      expect(putProcessEventsSchemaValidator).toHaveBeenCalled();
-      expect(putProcessEventsIntegrityValidator).toHaveBeenCalled();
-      expect(putProcessEventsController).toHaveBeenCalled();
+      await request(app).put('/records').send({});
+      expect(putRecordSchemaValidator).toHaveBeenCalled();
+      expect(putRecordIntegrityValidator).toHaveBeenCalled();
+      expect(putRecordController).toHaveBeenCalled();
     });
   });
 });
