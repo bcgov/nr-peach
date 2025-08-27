@@ -3,15 +3,14 @@ name: .Builder
 on:
   workflow_call:
 
-permissions:
-  attestations: write # for actions/attest-build-provenance attestation persistence
-  contents: write # set to write for anchore/sbom-action artifact uploads during release builds
-  id-token: write # for actions/attest-build-provenance OIDC token to request a Sigstore signing certificate
-  packages: write # for docker/build-push-action to push images to GitHub Container Registry
-
 jobs:
   builder:
     name: Builder
+    permissions:
+      attestations: write # for actions/attest-build-provenance attestation persistence
+      contents: write # set to write for anchore/sbom-action artifact uploads during release builds
+      id-token: write # for actions/attest-build-provenance OIDC token to request a Sigstore signing certificate
+      packages: write # for docker/build-push-action to push images to GitHub Container Registry
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:

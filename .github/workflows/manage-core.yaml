@@ -23,15 +23,13 @@ on:
           - apply
           - destroy
 
-permissions:
-  contents: write # This is required for actions/checkout
-  id-token: write # This is required for requesting the JWT
-  packages: write
-
 jobs:
   infra:
     name: Core Infra ${{ github.event.inputs.manage_action }}
     uses: ./.github/workflows/.core-deployer.yaml
+    permissions:
+      contents: write # This is required for actions/checkout
+      id-token: write # This is required for requesting the JWT
     secrets: inherit
     with:
       command: ${{ github.event.inputs.manage_action }}

@@ -17,6 +17,11 @@ jobs:
       group: build-push-${{ github.event.number || 'latest' }}
       cancel-in-progress: true
     uses: ./.github/workflows/.builder.yaml
+    permissions:
+      attestations: write
+      contents: write
+      id-token: write
+      packages: write
     secrets: inherit
 
   deploy-test:
@@ -27,6 +32,9 @@ jobs:
       group: deploy-test-${{ github.event.number || 'latest' }}
       cancel-in-progress: false # Terraform deployments should not be interrupted
     uses: ./.github/workflows/.instance-deployer.yaml
+    permissions:
+      contents: write
+      id-token: write
     secrets: inherit
     with:
       command: apply
