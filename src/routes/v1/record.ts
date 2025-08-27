@@ -1,29 +1,42 @@
 import { Router } from 'express';
 
-import { Problem } from '../../utils/index.ts';
 import {
-  deleteRecordLinkagesSchemaValidator,
-  getRecordLinkagesSchemaValidator,
-  putRecordLinkagesSchemaValidator
+  deleteProcessEventsController,
+  getProcessEventsController,
+  postProcessEventsController,
+  putProcessEventsController
+} from '../../controllers/index.ts';
+import {
+  deleteProcessEventsSchemaValidator,
+  getProcessEventsSchemaValidator,
+  postProcessEventsIntegrityValidator,
+  postProcessEventsSchemaValidator,
+  putProcessEventsIntegrityValidator,
+  putProcessEventsSchemaValidator
 } from '../../validators/index.ts';
-
-import type { Request, Response } from 'express';
 
 const router = Router();
 
-/** Get Record Linkages */
-router.get('/record-linkages', getRecordLinkagesSchemaValidator, (req: Request, res: Response): void => {
-  new Problem(501).send(req, res);
-});
+/** Get Process Events */
+router.get('/process-events', getProcessEventsSchemaValidator, getProcessEventsController);
 
-/** Put Record Linkages */
-router.put('/record-linkages', putRecordLinkagesSchemaValidator, (req: Request, res: Response): void => {
-  new Problem(501).send(req, res);
-});
+/** Post Process Events */
+router.post(
+  '/process-events',
+  postProcessEventsSchemaValidator,
+  postProcessEventsIntegrityValidator,
+  postProcessEventsController
+);
 
-/** Delete Record Linkages */
-router.delete('/record-linkages', deleteRecordLinkagesSchemaValidator, (req: Request, res: Response): void => {
-  new Problem(501).send(req, res);
-});
+/** Put Process Events */
+router.put(
+  '/process-events',
+  putProcessEventsSchemaValidator,
+  putProcessEventsIntegrityValidator,
+  putProcessEventsController
+);
+
+/** Delete Process Events */
+router.delete('/process-events', deleteProcessEventsSchemaValidator, deleteProcessEventsController);
 
 export default router;

@@ -1,7 +1,7 @@
 import { Router } from 'express';
 
-import processes from './process.ts';
-import records from './record.ts';
+import processes from './record.ts';
+import records from './recordLinkage.ts';
 import systems from './system.ts';
 
 import type { Request, Response } from 'express';

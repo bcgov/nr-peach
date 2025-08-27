@@ -2,9 +2,18 @@ import express from 'express';
 import request from 'supertest';
 
 import {
-  deleteRecordLinkagesSchemaValidator,
-  getRecordLinkagesSchemaValidator,
-  putRecordLinkagesSchemaValidator
+  deleteProcessEventsController,
+  getProcessEventsController,
+  postProcessEventsController,
+  putProcessEventsController
+} from '../../../../src/controllers/index.ts';
+import {
+  deleteProcessEventsSchemaValidator,
+  getProcessEventsSchemaValidator,
+  postProcessEventsIntegrityValidator,
+  postProcessEventsSchemaValidator,
+  putProcessEventsIntegrityValidator,
+  putProcessEventsSchemaValidator
 } from '../../../../src/validators/index.ts';
 
 import router from '../../../../src/routes/v1/record.ts';
@@ -14,33 +23,50 @@ import type { NextFunction } from 'express';
 const app = express();
 app.use(router);
 
+vi.mock('../../../../src/controllers/process.ts', () => ({
+  deleteProcessEventsController: vi.fn((_req, _res, next: NextFunction): void => next()),
+  getProcessEventsController: vi.fn((_req, _res, next: NextFunction): void => next()),
+  postProcessEventsController: vi.fn((_req, _res, next: NextFunction): void => next()),
+  putProcessEventsController: vi.fn((_req, _res, next: NextFunction): void => next())
+}));
+
 vi.mock('../../../../src/middlewares/validator.ts', () => ({
   validateRequestIntegrity: () => vi.fn((_req, _res, next: NextFunction): void => next()),
   validateRequestSchema: () => vi.fn((_req, _res, next: NextFunction): void => next())
 }));
 
-describe('Record Linkage Routes', () => {
-  describe('GET /record-linkages', () => {
-    it('should return 501', async () => {
-      const response = await request(app).get('/record-linkages');
-      expect(getRecordLinkagesSchemaValidator).toHaveBeenCalled();
-      expect(response.status).toBe(501);
+describe('Process Routes', () => {
+  describe('DELETE /process-events', () => {
+    it('should call the schema validator and controller', async () => {
+      await request(app).delete('/process-events');
+      expect(deleteProcessEventsSchemaValidator).toHaveBeenCalled();
+      expect(deleteProcessEventsController).toHaveBeenCalled();
     });
   });
 
-  describe('PUT /record-linkages', () => {
-    it('should return 501', async () => {
-      const response = await request(app).put('/record-linkages').send({});
-      expect(putRecordLinkagesSchemaValidator).toHaveBeenCalled();
-      expect(response.status).toBe(501);
+  describe('GET /process-events', () => {
+    it('should call the schema validator and controller', async () => {
+      await request(app).get('/process-events');
+      expect(getProcessEventsSchemaValidator).toHaveBeenCalled();
+      expect(getProcessEventsController).toHaveBeenCalled();
     });
   });
 
-  describe('DELETE /record-linkages', () => {
-    it('should return 501', async () => {
-      const response = await request(app).delete('/record-linkages');
-      expect(deleteRecordLinkagesSchemaValidator).toHaveBeenCalled();
-      expect(response.status).toBe(501);
+  describe('POST /process-events', () => {
+    it('should call the schema validator, integrity validator and controller', async () => {
+      await request(app).post('/process-events').send({});
+      expect(postProcessEventsSchemaValidator).toHaveBeenCalled();
+      expect(postProcessEventsIntegrityValidator).toHaveBeenCalled();
+      expect(postProcessEventsController).toHaveBeenCalled();
+    });
+  });
+
+  describe('PUT /process-events', () => {
+    it('should call the schema validator, integrity validator and controller', async () => {
+      await request(app).put('/process-events').send({});
+      expect(putProcessEventsSchemaValidator).toHaveBeenCalled();
+      expect(putProcessEventsIntegrityValidator).toHaveBeenCalled();
+      expect(putProcessEventsController).toHaveBeenCalled();
     });
   });
 });
