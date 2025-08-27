@@ -8,6 +8,7 @@ export const pies = Object.freeze({
     dir: 'docs/spec/element',
     data: {
       code: 'data/code',
+      coding: 'data/coding',
       event: 'data/event',
       header: 'data/header',
       parcelIdentifier: 'data/parcel_id',
@@ -15,10 +16,11 @@ export const pies = Object.freeze({
       // projectBundle: 'data/project_bundle'
     },
     resource: {
+      codingEvent: 'resource/coding_event',
       processEvent: 'resource/process_event'
     },
     message: {
-      processEventSet: 'message/process_event_set',
+      record: 'message/record',
       recordLinkage: 'message/record_linkage'
     }
   },

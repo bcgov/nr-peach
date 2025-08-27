@@ -25,7 +25,7 @@ export const postProcessEventsIntegrityValidator: RequestHandler = validateReque
 });
 
 export const postProcessEventsSchemaValidator: RequestHandler = validateRequestSchema({
-  body: getPiesSchemaUri(pies.spec.message.processEventSet)
+  body: getPiesSchemaUri(pies.spec.message.record)
 });
 
 export const putProcessEventsIntegrityValidator: RequestHandler = validateRequestIntegrity({
@@ -33,5 +33,5 @@ export const putProcessEventsIntegrityValidator: RequestHandler = validateReques
 });
 
 export const putProcessEventsSchemaValidator: RequestHandler = validateRequestSchema({
-  body: getPiesSchemaUri(pies.spec.message.processEventSet)
+  body: getPiesSchemaUri(pies.spec.message.record)
 });
