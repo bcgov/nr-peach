@@ -1,5 +1,5 @@
 ---
-name: Tests
+name: Validate
 
 on:
   push:
@@ -16,7 +16,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  test-preflight:
+  preflight:
     name: Preflight Checks
     runs-on: ubuntu-latest
     outputs:
@@ -47,8 +47,8 @@ jobs:
 
   lint-infra:
     name: Lint Infra
-    needs: test-preflight
-    if: needs.test-preflight.outputs.PR_EXISTS != 'true'
+    needs: preflight
+    if: needs.preflight.outputs.PR_EXISTS != 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
@@ -74,10 +74,42 @@ jobs:
       - name: Run TFLint
         run: tflint --recursive -f compact
 
+  lint-app:
+    name: Lint App
+    needs: preflight
+    if: needs.preflight.outputs.PR_EXISTS != 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v5.0.0
+      - name: Setup Node.js
+        uses: actions/setup-node@v4.4.0
+        with:
+          node-version: 22
+      - name: Cache Node modules
+        uses: actions/cache@v4.2.4
+        id: cache-app
+        env:
+          cache-name: cache-node-modules
+        with:
+          path: ${{ github.workspace }}/node_modules
+          key: ${{ runner.os }}-app-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-app-${{ env.cache-name }}-
+            ${{ runner.os }}-app-
+      - name: Install dependencies
+        if: steps.cache-app.outputs.cache-hit != 'true'
+        run: npm ci
+      - name: Lint
+        run: npm run lint
+
   test-app:
-    name: Unit Tests
-    needs: test-preflight
-    if: needs.test-preflight.outputs.PR_EXISTS != 'true'
+    name: Test App
+    needs: preflight
+    if: needs.preflight.outputs.PR_EXISTS != 'true'
     runs-on: ubuntu-latest
     outputs:
       HAS_SONAR_SECRETS: ${{ steps.check-secrets.outputs.HAS_SONAR_SECRETS }}
@@ -107,12 +139,10 @@ jobs:
       - name: Install dependencies
         if: steps.cache-app.outputs.cache-hit != 'true'
         run: npm ci
-      - name: Lint
-        run: npm run lint
       - name: Test
-        run: npm run test
         env:
           CI: true
+        run: npm run test
       - name: Save Coverage Results
         uses: actions/upload-artifact@v4.6.2
         with:
@@ -131,10 +161,10 @@ jobs:
           threshold_alert: 50
           threshold_warning: 80
 
-  test-coverage:
-    name: Publish to SonarCloud
+  coverage:
+    name: Publish Coverage
     needs: test-app
-    if: needs.test-preflight.outputs.HAS_SONAR_SECRETS == 'true'
+    if: needs.preflight.outputs.HAS_SONAR_SECRETS == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:

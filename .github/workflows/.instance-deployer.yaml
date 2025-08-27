@@ -25,12 +25,13 @@ env:
 
 jobs:
   infra:
-    name: Terraform ${{inputs.command}} ${{ inputs.environment }}
+    name: ${{ inputs.environment }} ${{ inputs.command }}
     environment: ${{ inputs.environment }}
     permissions:
       contents: write # This is required for actions/checkout
       id-token: write # This is required for requesting the JWT
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - name: Checkout
         uses: actions/checkout@v5.0.0
@@ -54,7 +55,7 @@ jobs:
             echo "One or more required secrets are missing. Failing workflow."
             exit 1
           fi
-      - name: Detect Instance
+      - name: Detect instance
         id: instance
         run: |
           if [[ "${{ github.event.pull_request.number }}" != "" ]]; then
@@ -67,7 +68,7 @@ jobs:
             echo "Unable to detect valid instance. Failing workflow."
             exit 1
           fi
-      - name: Azure CLI Login
+      - name: Azure CLI login
         uses: azure/login@v2.3.0
         with:
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
@@ -75,7 +76,7 @@ jobs:
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3.1.2
-      - name: Fetch Core Configurations
+      - name: Fetch core configurations
         id: core
         working-directory: infra/core
         run: |
@@ -86,10 +87,11 @@ jobs:
             -backend-config="tenant_id=${{ secrets.AZURE_TENANT_ID }}" \
             -backend-config="client_id=${{ secrets.AZURE_CLIENT_ID }}" \
             -backend-config="use_oidc=true"
+          terraform validate
 
           echo "database_host=$(terraform output -raw database_host)" >> $GITHUB_OUTPUT
           echo "database_password=$(terraform output -raw database_master_password)" >> $GITHUB_OUTPUT
-      - name: Terraform Init
+      - name: Terraform init
         working-directory: infra/instance
         run: |
           terraform init -upgrade \
@@ -100,6 +102,9 @@ jobs:
             -backend-config="client_id=${{ secrets.AZURE_CLIENT_ID }}" \
             -backend-config="use_oidc=true" \
             -backend-config="key=${{ steps.instance.outputs.key }}"
+      - name: Terraform validate
+        working-directory: infra/instance
+        run: terraform validate
       - name: Terraform ${{ inputs.command }}
         working-directory: infra/instance
         env:
