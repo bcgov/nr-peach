@@ -45,43 +45,19 @@ jobs:
         run: |
           echo "HAS_SONAR_SECRETS=${{ secrets.SONAR_TOKEN != '' }}" >> $GITHUB_OUTPUT
 
-  test-app:
-    name: Unit Tests
+  lint-infra:
+    name: Lint Infra
     needs: test-preflight
     if: needs.test-preflight.outputs.PR_EXISTS != 'true'
     runs-on: ubuntu-latest
-    outputs:
-      HAS_SONAR_SECRETS: ${{ steps.check-secrets.outputs.HAS_SONAR_SECRETS }}
     timeout-minutes: 10
     permissions:
       contents: read
-      pull-requests: write
-      statuses: write
-    strategy:
-      fail-fast: true
-      matrix:
-        node-version:
-          - '22.x'
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v5.0.0
-      - name: Setup Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v4.4.0
-        with:
-          node-version: ${{ matrix.node-version }}
       - name: Setup TFLint
         uses: terraform-linters/setup-tflint@v5.0.0
-      - name: Cache Node modules
-        uses: actions/cache@v4.2.4
-        id: cache-app
-        env:
-          cache-name: cache-node-modules
-        with:
-          path: ${{ github.workspace }}/node_modules
-          key: ${{ runner.os }}-app-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-app-${{ env.cache-name }}-
-            ${{ runner.os }}-app-
       - name: Cache TFLint plugins
         uses: actions/cache@v4.2.4
         id: cache-tflint
@@ -97,25 +73,54 @@ jobs:
         run: tflint --init
       - name: Run TFLint
         run: tflint --recursive -f compact
+
+  test-app:
+    name: Unit Tests
+    needs: test-preflight
+    if: needs.test-preflight.outputs.PR_EXISTS != 'true'
+    runs-on: ubuntu-latest
+    outputs:
+      HAS_SONAR_SECRETS: ${{ steps.check-secrets.outputs.HAS_SONAR_SECRETS }}
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      pull-requests: write
+      statuses: write
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v5.0.0
+      - name: Setup Node.js
+        uses: actions/setup-node@v4.4.0
+        with:
+          node-version: 22
+      - name: Cache Node modules
+        uses: actions/cache@v4.2.4
+        id: cache-app
+        env:
+          cache-name: cache-node-modules
+        with:
+          path: ${{ github.workspace }}/node_modules
+          key: ${{ runner.os }}-app-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-app-${{ env.cache-name }}-
+            ${{ runner.os }}-app-
       - name: Install dependencies
         if: steps.cache-app.outputs.cache-hit != 'true'
         run: npm ci
       - name: Lint
-        if: matrix.node-version == '22.x'
         run: npm run lint
       - name: Test
         run: npm run test
         env:
           CI: true
       - name: Save Coverage Results
-        if: matrix.node-version == '22.x'
         uses: actions/upload-artifact@v4.6.2
         with:
           name: coverage-app
           path: ${{ github.workspace }}/coverage
           retention-days: 1
       - name: Monitor Coverage
-        if: matrix.node-version == '22.x' && github.event_name == 'pull_request' && ! github.event.pull_request.head.repo.fork
+        if: github.event_name == 'pull_request' && ! github.event.pull_request.head.repo.fork
         uses: slavcodev/coverage-monitor-action@398c4cbbb710e549a8407fdef96ae8b9454d0463 # 1.10.0
         with:
           comment_mode: update
