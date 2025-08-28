@@ -30,6 +30,7 @@ variable "app_service_subnet_name" {
 variable "client_id" {
   description = "Azure client ID for the service principal"
   type        = string
+  default     = null
   nullable    = true
   sensitive   = true
 }
