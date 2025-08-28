@@ -55,81 +55,113 @@ jobs:
             echo "One or more required secrets are missing. Failing workflow."
             exit 1
           fi
+
+      - name: Debug 1
+        run: |
+          echo "${{ github.event.pull_request.state }}"
+
       - name: Detect instance
         id: instance
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          if [[ "${{ github.event.pull_request.number }}" != "" ]]; then
-            echo "instance=pr-${{ github.event.pull_request.number }}" >> $GITHUB_OUTPUT
-            echo "key=pr/pr-${{ github.event.pull_request.number }}.instance.tfstate" >> $GITHUB_OUTPUT
-          elif [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+          if [[ "${{ github.ref_name }}" == "main" ]]; then
             echo "instance=main" >> $GITHUB_OUTPUT
             echo "key=main.instance.tfstate" >> $GITHUB_OUTPUT
-          else
-            echo "Unable to detect valid instance. Failing workflow."
-            exit 1
-          fi
-      - name: Azure CLI login
-        uses: azure/login@v2.3.0
-        with:
-          client-id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3.1.2
-      - name: Fetch core configurations
-        id: core
-        working-directory: infra/core
-        run: |
-          terraform init -upgrade \
-            -backend-config="resource_group_name=${{ secrets.VNET_RESOURCE_GROUP_NAME }}" \
-            -backend-config="storage_account_name=tfstatenrpeach${{ inputs.environment }}" \
-            -backend-config="subscription_id=${{ secrets.AZURE_SUBSCRIPTION_ID }}" \
-            -backend-config="tenant_id=${{ secrets.AZURE_TENANT_ID }}" \
-            -backend-config="client_id=${{ secrets.AZURE_CLIENT_ID }}" \
-            -backend-config="use_oidc=true"
-          terraform validate
+          elif [[ ${{ github.event_name }} == 'pull_request' ]]; then
+            sleep 10
+            pr_number=${{ github.event.number }}
 
-          echo "database_host=$(terraform output -raw database_host)" >> $GITHUB_OUTPUT
-          echo "database_password=$(terraform output -raw database_master_password)" >> $GITHUB_OUTPUT
-      - name: Terraform init
-        working-directory: infra/instance
-        run: |
-          terraform init -upgrade \
-            -backend-config="resource_group_name=${{ secrets.VNET_RESOURCE_GROUP_NAME }}" \
-            -backend-config="storage_account_name=tfstatenrpeach${{ inputs.environment }}" \
-            -backend-config="subscription_id=${{ secrets.AZURE_SUBSCRIPTION_ID }}" \
-            -backend-config="tenant_id=${{ secrets.AZURE_TENANT_ID }}" \
-            -backend-config="client_id=${{ secrets.AZURE_CLIENT_ID }}" \
-            -backend-config="use_oidc=true" \
-            -backend-config="key=${{ steps.instance.outputs.key }}"
-      - name: Terraform validate
-        working-directory: infra/instance
-        run: terraform validate
-      - name: Terraform ${{ inputs.command }}
-        working-directory: infra/instance
-        env:
-          TF_VAR_api_image: ghcr.io/${{ github.repository }}:${{ inputs.tag }}
-          TF_VAR_app_env: ${{ inputs.environment }}
-          TF_VAR_app_name: nr-peach
-          TF_VAR_azure_client_id: ${{ secrets.AZURE_CLIENT_ID }}
-          TF_VAR_azure_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-          TF_VAR_azure_tenant_id: ${{ secrets.AZURE_TENANT_ID }}
-          TF_VAR_client_id: ${{ secrets.AZURE_CLIENT_ID }}
-          TF_VAR_common_tags: >-
-            {"app_name":"peach","environment":"${{ inputs.environment }}","instance":"${{ steps.instance.outputs.instance }}","repo_name":"nr-peach","managed_by":"terraform"}
-          TF_VAR_database_admin_password: ${{ steps.core.outputs.database_password }}
-          TF_VAR_database_host: ${{ steps.core.outputs.database_host }}
-          TF_VAR_enable_cloudbeaver: 'true'
-          TF_VAR_enable_force_migration: 'true'
-          TF_VAR_instance_name: ${{ steps.instance.outputs.instance }}
-          TF_VAR_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-          TF_VAR_tenant_id: ${{ secrets.AZURE_TENANT_ID }}
-          TF_VAR_vnet_address_space: ${{ secrets.VNET_ADDRESS_SPACE }}
-          TF_VAR_vnet_name: ${{ secrets.VNET_NAME }}
-          TF_VAR_vnet_resource_group_name: ${{ secrets.VNET_RESOURCE_GROUP_NAME }}
-        run: |
-          args="-input=false"
-          if [[ "${{ inputs.command }}" == "apply" || "${{ inputs.command }}" == "destroy" ]]; then
-            args="$args -auto-approve"
+            if [ -n "$pr_number" ]; then
+              echo "instance=pr-$pr_number" >> $GITHUB_OUTPUT
+              echo "key=pr/pr-$pr_number.instance.tfstate" >> $GITHUB_OUTPUT
+            else
+              echo "Unable to detect valid instance. Failing workflow."
+              exit 1
+            fi
+          else
+            sleep 10
+            pr_number=$(gh pr list --head "${{ github.ref_name }}" --state open --repo "${{ github.repository }}" --json number --jq '.[0].number')
+
+            if [ -n "$pr_number" ]; then
+              echo "instance=pr-$pr_number" >> $GITHUB_OUTPUT
+              echo "key=pr/pr-$pr_number.instance.tfstate" >> $GITHUB_OUTPUT
+            else
+              echo "Unable to detect valid instance. Failing workflow."
+              exit 1
+            fi
           fi
-          terraform ${{ inputs.command }} $args
+
+      - name: Debug 2
+        run: |
+          echo "Command: ${{ inputs.command }}"
+          echo "Environment: ${{ inputs.environment }}"
+          echo "Tag: ${{ inputs.tag }}"
+          echo "Instance: ${{ steps.instance.outputs.instance }}"
+          echo "Key: ${{ steps.instance.outputs.key }}"
+
+      # - name: Azure CLI login
+      #   uses: azure/login@v2.3.0
+      #   with:
+      #     client-id: ${{ secrets.AZURE_CLIENT_ID }}
+      #     tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+      #     subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      # - name: Setup Terraform
+      #   uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3.1.2
+      # - name: Fetch core configurations
+      #   id: core
+      #   working-directory: infra/core
+      #   run: |
+      #     terraform init -upgrade \
+      #       -backend-config="resource_group_name=${{ secrets.VNET_RESOURCE_GROUP_NAME }}" \
+      #       -backend-config="storage_account_name=tfstatenrpeach${{ inputs.environment }}" \
+      #       -backend-config="subscription_id=${{ secrets.AZURE_SUBSCRIPTION_ID }}" \
+      #       -backend-config="tenant_id=${{ secrets.AZURE_TENANT_ID }}" \
+      #       -backend-config="client_id=${{ secrets.AZURE_CLIENT_ID }}" \
+      #       -backend-config="use_oidc=true"
+      #     terraform validate
+
+      #     echo "database_host=$(terraform output -raw database_host)" >> $GITHUB_OUTPUT
+      #     echo "database_password=$(terraform output -raw database_master_password)" >> $GITHUB_OUTPUT
+      # - name: Terraform init
+      #   working-directory: infra/instance
+      #   run: |
+      #     terraform init -upgrade \
+      #       -backend-config="resource_group_name=${{ secrets.VNET_RESOURCE_GROUP_NAME }}" \
+      #       -backend-config="storage_account_name=tfstatenrpeach${{ inputs.environment }}" \
+      #       -backend-config="subscription_id=${{ secrets.AZURE_SUBSCRIPTION_ID }}" \
+      #       -backend-config="tenant_id=${{ secrets.AZURE_TENANT_ID }}" \
+      #       -backend-config="client_id=${{ secrets.AZURE_CLIENT_ID }}" \
+      #       -backend-config="use_oidc=true" \
+      #       -backend-config="key=${{ steps.instance.outputs.key }}"
+      # - name: Terraform validate
+      #   working-directory: infra/instance
+      #   run: terraform validate
+      # - name: Terraform ${{ inputs.command }}
+      #   working-directory: infra/instance
+      #   env:
+      #     TF_VAR_api_image: ghcr.io/${{ github.repository }}:${{ inputs.tag }}
+      #     TF_VAR_app_env: ${{ inputs.environment }}
+      #     TF_VAR_app_name: nr-peach
+      #     TF_VAR_azure_client_id: ${{ secrets.AZURE_CLIENT_ID }}
+      #     TF_VAR_azure_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      #     TF_VAR_azure_tenant_id: ${{ secrets.AZURE_TENANT_ID }}
+      #     TF_VAR_client_id: ${{ secrets.AZURE_CLIENT_ID }}
+      #     TF_VAR_common_tags: >-
+      #       {"app_name":"peach","environment":"${{ inputs.environment }}","instance":"${{ steps.instance.outputs.instance }}","repo_name":"nr-peach","managed_by":"terraform"}
+      #     TF_VAR_database_admin_password: ${{ steps.core.outputs.database_password }}
+      #     TF_VAR_database_host: ${{ steps.core.outputs.database_host }}
+      #     TF_VAR_enable_cloudbeaver: 'true'
+      #     TF_VAR_enable_force_migration: 'true'
+      #     TF_VAR_instance_name: ${{ steps.instance.outputs.instance }}
+      #     TF_VAR_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      #     TF_VAR_tenant_id: ${{ secrets.AZURE_TENANT_ID }}
+      #     TF_VAR_vnet_address_space: ${{ secrets.VNET_ADDRESS_SPACE }}
+      #     TF_VAR_vnet_name: ${{ secrets.VNET_NAME }}
+      #     TF_VAR_vnet_resource_group_name: ${{ secrets.VNET_RESOURCE_GROUP_NAME }}
+      #   run: |
+      #     args="-input=false"
+      #     if [[ "${{ inputs.command }}" == "apply" || "${{ inputs.command }}" == "destroy" ]]; then
+      #       args="$args -auto-approve"
+      #     fi
+      #     terraform ${{ inputs.command }} $args
