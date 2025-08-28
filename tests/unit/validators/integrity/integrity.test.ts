@@ -1,7 +1,7 @@
 import * as auditors from '../../../../src/validators/integrity/auditor.ts';
 import { integrityValidators, IntegrityDefinitions } from '../../../../src/validators/integrity/integrity.ts';
 
-import type { IntegrityError, ProcessEventSet, RecordLinkage } from '../../../../src/types/index.js';
+import type { IntegrityError, Record, RecordLinkage } from '../../../../src/types/index.js';
 
 describe('IntegrityDefinitions', () => {
   it('should be immutable and map keys correctly', () => {
@@ -16,10 +16,10 @@ describe('integrityValidators', () => {
   const auditProcessEventSpy = vi.spyOn(auditors, 'auditProcessEvent');
 
   describe('processEventSet', () => {
-    const mockData: ProcessEventSet = {
+    const mockData: Record = {
       header: { id: '1', timestamp: '2024-01-01T00:00:00Z' },
       process_event: [{ code_system: 'sys', code: 'abc' }]
-    } as unknown as ProcessEventSet;
+    } as unknown as Record;
 
     it('returns valid: true and no errors if no errors from auditors', () => {
       auditHeaderSpy.mockReturnValue([]);
@@ -29,7 +29,7 @@ describe('integrityValidators', () => {
       expect(result.valid).toBe(true);
       expect(result.errors).toBeUndefined();
       expect(auditHeaderSpy).toHaveBeenCalledWith(mockData);
-      expect(auditProcessEventSpy).toHaveBeenCalledWith(mockData.process_event);
+      expect(auditProcessEventSpy).toHaveBeenCalledWith(mockData.process_event_set);
     });
 
     it('returns valid: false and errors if auditors return errors', () => {
