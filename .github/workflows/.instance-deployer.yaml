@@ -149,3 +149,7 @@ jobs:
             args="$args -auto-approve"
           fi
           terraform ${{ inputs.command }} $args
+
+          if [[ "${{ inputs.command }}" == "destroy" ]]; then
+            az storage blob delete --account-name tfstatenrpeach${{ inputs.environment }} --container-name tfstate --name ${{ steps.instance.outputs.key }}
+          fi
