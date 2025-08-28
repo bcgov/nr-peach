@@ -11,17 +11,17 @@ import * as services from '../../../src/services/index.ts';
 import { Problem } from '../../../src/utils/index.ts';
 
 import type { Selectable } from 'kysely';
-import type { PiesSystemRecord, ProcessEventSet } from '../../../src/types/index.js';
+import type { PiesSystemRecord, Record } from '../../../src/types/index.js';
 
 describe('Process Controllers', () => {
   const checkDuplicateTransactionHeaderServiceSpy = vi.spyOn(services, 'checkDuplicateTransactionHeaderService');
-  const deleteProcessEventSetServiceSpy = vi.spyOn(services, 'deleteProcessEventSetService');
-  const findProcessEventSetServiceSpy = vi.spyOn(services, 'findProcessEventSetService');
+  const deleteRecordServiceSpy = vi.spyOn(services, 'deleteRecordService');
+  const findRecordServiceSpy = vi.spyOn(services, 'findRecordService');
   const findSingleSystemRecordServiceSpy = vi.spyOn(services, 'findSingleSystemRecordService');
-  const replaceProcessEventSetServiceSpy = vi.spyOn(services, 'replaceProcessEventSetService');
+  const replaceRecordServiceSpy = vi.spyOn(services, 'replaceRecordService');
 
   const fakeSystemRecord = { id: 1 } as Selectable<PiesSystemRecord>;
-  const fakeResult = {} as ProcessEventSet;
+  const fakeResult = {} as Record;
 
   let app: express.Application;
 
@@ -37,24 +37,24 @@ describe('Process Controllers', () => {
   describe('DELETE /process-events', () => {
     it('should call services and respond with 204', async () => {
       findSingleSystemRecordServiceSpy.mockResolvedValue(fakeSystemRecord);
-      deleteProcessEventSetServiceSpy.mockResolvedValue([]);
+      deleteRecordServiceSpy.mockResolvedValue([]);
 
       await request(app).delete('/process-events').query({ record_id: 'rec1', system_id: 'sys1' }).expect(204);
 
       expect(findSingleSystemRecordServiceSpy).toHaveBeenCalledWith('rec1', 'sys1');
-      expect(deleteProcessEventSetServiceSpy).toHaveBeenCalledWith(fakeSystemRecord);
+      expect(deleteRecordServiceSpy).toHaveBeenCalledWith(fakeSystemRecord);
     });
   });
 
   describe('GET /process-events', () => {
     it('should call services and respond with 200 and result', async () => {
       findSingleSystemRecordServiceSpy.mockResolvedValue(fakeSystemRecord);
-      findProcessEventSetServiceSpy.mockResolvedValue(fakeResult);
+      findRecordServiceSpy.mockResolvedValue(fakeResult);
 
       const res = await request(app).get('/process-events').query({ record_id: 'rec2', system_id: 'sys2' }).expect(200);
 
       expect(findSingleSystemRecordServiceSpy).toHaveBeenCalledWith('rec2', 'sys2');
-      expect(findProcessEventSetServiceSpy).toHaveBeenCalledWith(fakeSystemRecord);
+      expect(findRecordServiceSpy).toHaveBeenCalledWith(fakeSystemRecord);
       expect(res.body).toEqual(fakeResult);
     });
   });
@@ -62,50 +62,50 @@ describe('Process Controllers', () => {
   describe('POST /process-events', () => {
     it('should check for duplicate and replace, respond with 202', async () => {
       checkDuplicateTransactionHeaderServiceSpy.mockResolvedValue([]);
-      replaceProcessEventSetServiceSpy.mockResolvedValue([]);
+      replaceRecordServiceSpy.mockResolvedValue([]);
 
       await request(app).post('/process-events').send({ transaction_id: 'tx1', data: 'abc' }).expect(202);
 
       expect(checkDuplicateTransactionHeaderServiceSpy).toHaveBeenCalledWith('tx1');
-      // TODO: Swap to mergeProcessEventSetService when implemented
-      expect(replaceProcessEventSetServiceSpy).toHaveBeenCalledWith({ transaction_id: 'tx1', data: 'abc' });
+      // TODO: Swap to mergeRecordService when implemented
+      expect(replaceRecordServiceSpy).toHaveBeenCalledWith({ transaction_id: 'tx1', data: 'abc' });
     });
 
     it('should check for duplicate and halt, respond with 409', async () => {
       checkDuplicateTransactionHeaderServiceSpy.mockImplementation(() => {
         throw new Problem(409, { detail: 'Transaction already exists' }, { transaction_id: 'tx1' });
       });
-      replaceProcessEventSetServiceSpy.mockResolvedValue([]);
+      replaceRecordServiceSpy.mockResolvedValue([]);
 
       await request(app).post('/process-events').send({ transaction_id: 'tx1', data: 'abc' }).expect(409);
 
       expect(checkDuplicateTransactionHeaderServiceSpy).toHaveBeenCalledWith('tx1');
-      // TODO: Swap to mergeProcessEventSetService when implemented
-      expect(replaceProcessEventSetServiceSpy).not.toHaveBeenCalled();
+      // TODO: Swap to mergeRecordService when implemented
+      expect(replaceRecordServiceSpy).not.toHaveBeenCalled();
     });
   });
 
   describe('PUT /process-events', () => {
     it('should check for duplicate and merge, respond with 201', async () => {
       checkDuplicateTransactionHeaderServiceSpy.mockResolvedValue([]);
-      replaceProcessEventSetServiceSpy.mockResolvedValue([]);
+      replaceRecordServiceSpy.mockResolvedValue([]);
 
       await request(app).put('/process-events').send({ transaction_id: 'tx2', data: 'xyz' }).expect(201);
 
       expect(checkDuplicateTransactionHeaderServiceSpy).toHaveBeenCalledWith('tx2');
-      expect(replaceProcessEventSetServiceSpy).toHaveBeenCalledWith({ transaction_id: 'tx2', data: 'xyz' });
+      expect(replaceRecordServiceSpy).toHaveBeenCalledWith({ transaction_id: 'tx2', data: 'xyz' });
     });
 
     it('should check for duplicate and halt, respond with 409', async () => {
       checkDuplicateTransactionHeaderServiceSpy.mockImplementation(() => {
         throw new Problem(409, { detail: 'Transaction already exists' }, { transaction_id: 'tx1' });
       });
-      replaceProcessEventSetServiceSpy.mockResolvedValue([]);
+      replaceRecordServiceSpy.mockResolvedValue([]);
 
       await request(app).post('/process-events').send({ transaction_id: 'tx1', data: 'abc' }).expect(409);
 
       expect(checkDuplicateTransactionHeaderServiceSpy).toHaveBeenCalledWith('tx1');
-      expect(replaceProcessEventSetServiceSpy).not.toHaveBeenCalled();
+      expect(replaceRecordServiceSpy).not.toHaveBeenCalled();
     });
   });
 });

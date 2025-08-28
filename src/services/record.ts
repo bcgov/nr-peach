@@ -20,22 +20,23 @@ import { CodingDictionary, getLogger, Problem } from '../utils/index.ts';
 
 import type { DeleteResult, Selectable } from 'kysely';
 import type {
+  CodingEvent,
   Header,
   PiesProcessEvent,
   PiesSystemRecord,
   Process,
   ProcessEvent,
-  ProcessEventSet
+  Record
 } from '../types/index.d.ts';
 
 const log = getLogger(import.meta.filename);
 
 /**
- * Deletes the process event set for the given system record.
- * @param systemRecord - The system record for which to delete the process event set.
+ * Deletes the record for the given system record.
+ * @param systemRecord - The system record for which to delete the record.
  * @returns A Promise that resolves when the operation is complete.
  */
-export const deleteProcessEventSetService = async (
+export const deleteRecordService = async (
   systemRecord: Selectable<PiesSystemRecord>
 ): Promise<readonly DeleteResult[]> => {
   return transactionWrapper(async (trx) => {
@@ -44,12 +45,12 @@ export const deleteProcessEventSetService = async (
 };
 
 /**
- * Retrieves the process event set for the given system record.
- * @param systemRecord - The system record for which to retrieve the process event set.
- * @returns A Promise that resolves to the process event set for the given system record.
+ * Retrieves the record for the given system record.
+ * @param systemRecord - The system record for which to retrieve the record.
+ * @returns A Promise that resolves to the record for the given system record.
  * @throws {Problem} 404 if no process events are found.
  */
-export const findProcessEventSetService = (systemRecord: Selectable<PiesSystemRecord>): Promise<ProcessEventSet> => {
+export const findRecordService = (systemRecord: Selectable<PiesSystemRecord>): Promise<Record> => {
   return transactionWrapper(
     async (trx) => {
       const recordKind = await cacheableRead(new RecordKindRepository(trx), systemRecord.recordKindId).catch(
@@ -98,30 +99,29 @@ export const findProcessEventSetService = (systemRecord: Selectable<PiesSystemRe
       return {
         transaction_id: uuidv7(),
         version: recordKind.versionId,
-        kind: 'ProcessEventSet',
+        kind: 'Record',
         system_id: systemRecord.systemId,
         record_id: systemRecord.recordId,
         record_kind: recordKind.kind as Header['record_kind'],
-        process_event: processEvents as [ProcessEvent, ...ProcessEvent[]]
-      } satisfies ProcessEventSet;
+        on_hold_event_set: [] as CodingEvent[],
+        process_event_set: processEvents as [ProcessEvent, ...ProcessEvent[]]
+      } satisfies Record;
     },
     { accessMode: 'read only' }
   );
 };
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-export const mergeProcessEventSetService = (data: ProcessEventSet): Promise<void> => {
+export const mergeRecordService = (data: Record): Promise<void> => {
   throw new Error('mergeProcessEventSetService not implemented');
 };
 
 /**
- * Replaces the process event set for the given system record.
- * @param data - The process event set to replace.
+ * Replaces the record for the given system record.
+ * @param data - The record to replace.
  * @returns A promise that resolves when the operation is complete.
  */
-export const replaceProcessEventSetService = (
-  data: ProcessEventSet
-): Promise<readonly Selectable<PiesProcessEvent>[]> => {
+export const replaceRecordService = (data: Record): Promise<readonly Selectable<PiesProcessEvent>[]> => {
   return transactionWrapper(async (trx) => {
     // Update atomic fact tables
     await Promise.all([
@@ -149,7 +149,7 @@ export const replaceProcessEventSetService = (
 
     // Insert new process events
     return await Promise.all(
-      data.process_event.map(async (pe) => {
+      data.process_event_set.map(async (pe) => {
         const { event, process } = pe;
 
         const coding = await cacheableUpsert(new CodingRepository(trx), {

@@ -1,7 +1,7 @@
 import { randomIntBetween, randomItem, uniqByKeepFirst, uuidv7 } from './utils.ts';
 import { CodingDictionary } from '../../../src/utils/coding.ts';
 
-import type { Event, Process, ProcessEvent, ProcessEventSet } from '../../../src/types/elements.d.ts';
+import type { Event, Process, ProcessEvent, Record } from '../../../src/types/elements.d.ts';
 
 /**
  * Generates a mock `Event` object with sample data.
@@ -53,11 +53,11 @@ export function generateProcessEvent(): ProcessEvent {
 }
 
 /**
- * Generates a mock `ProcessEventSet` object with sample process events.
+ * Generates a mock `Record` object with sample process events.
  * @param itsm - The ITSM identifier to associate with the process events.
- * @returns A populated `ProcessEventSet` containing example process events for testing or development purposes.
+ * @returns A populated `Record` containing example process events for testing or development purposes.
  */
-export function generateProcessEventSet(itsm?: number): ProcessEventSet {
+export function generateRecord(itsm?: number): Record {
   const processEvents: ProcessEvent[] = [];
   for (let count = 0; count < randomIntBetween(1, 5); count++) {
     processEvents.push(generateProcessEvent());
@@ -66,10 +66,11 @@ export function generateProcessEventSet(itsm?: number): ProcessEventSet {
   return {
     transaction_id: uuidv7(),
     version: '0.1.0',
-    kind: 'ProcessEventSet',
+    kind: 'Record',
     system_id: `ITSM-${itsm ? itsm.toString() : randomIntBetween(1000, 99999).toString()}`,
     record_id: uuidv7(),
     record_kind: 'Permit',
-    process_event: uniqByKeepFirst(processEvents, (item) => item.process.code) as [ProcessEvent, ...ProcessEvent[]]
+    on_hold_event_set: [],
+    process_event_set: uniqByKeepFirst(processEvents, (item) => item.process.code) as [ProcessEvent, ...ProcessEvent[]]
   };
 }
