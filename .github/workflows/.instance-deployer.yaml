@@ -57,16 +57,32 @@ jobs:
           fi
       - name: Detect instance
         id: instance
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          if [[ "${{ github.event.pull_request.number }}" != "" ]]; then
-            echo "instance=pr-${{ github.event.pull_request.number }}" >> $GITHUB_OUTPUT
-            echo "key=pr/pr-${{ github.event.pull_request.number }}.instance.tfstate" >> $GITHUB_OUTPUT
-          elif [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+          if [[ ${{ github.run_attempt }} -gt 1 ]]; then
+            echo "force_migration=true" >> $GITHUB_OUTPUT
+          else
+            echo "force_migration=false" >> $GITHUB_OUTPUT
+          fi
+
+          if [[ "${{ github.ref_name }}" == "main" ]]; then
             echo "instance=main" >> $GITHUB_OUTPUT
             echo "key=main.instance.tfstate" >> $GITHUB_OUTPUT
           else
-            echo "Unable to detect valid instance. Failing workflow."
-            exit 1
+            pr_number="${{ github.event.number }}"
+            if [[ -z "$pr_number" && "${{ github.event_name }}" != "pull_request" ]]; then
+              sleep 10
+              pr_number=$(gh pr list --head "${{ github.ref_name }}" --state open --repo "${{ github.repository }}" --json number --jq '.[0].number')
+            fi
+
+            if [[ -n "$pr_number" ]]; then
+              echo "instance=pr-$pr_number" >> $GITHUB_OUTPUT
+              echo "key=pr/pr-$pr_number.instance.tfstate" >> $GITHUB_OUTPUT
+            else
+              echo "Unable to detect open PR for branch ${{ github.ref_name }}. Failing workflow."
+              # exit 1
+            fi
           fi
       - name: Azure CLI login
         uses: azure/login@v2.3.0
@@ -120,7 +136,7 @@ jobs:
           TF_VAR_database_admin_password: ${{ steps.core.outputs.database_password }}
           TF_VAR_database_host: ${{ steps.core.outputs.database_host }}
           TF_VAR_enable_cloudbeaver: 'true'
-          TF_VAR_enable_force_migration: 'true'
+          TF_VAR_enable_force_migration: ${{ steps.instance.outputs.force_migration }}
           TF_VAR_instance_name: ${{ steps.instance.outputs.instance }}
           TF_VAR_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
           TF_VAR_tenant_id: ${{ secrets.AZURE_TENANT_ID }}
