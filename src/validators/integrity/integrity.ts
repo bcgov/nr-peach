@@ -4,7 +4,7 @@ import type {
   IntegrityDictionary,
   IntegrityError,
   IntegrityValidator,
-  ProcessEventSet,
+  Record as Records, // TODO: Figure out a better name for Record so it doesn't conflict with the global TS Record type
   RecordLinkage
 } from '../../types/index.d.ts';
 
@@ -21,8 +21,8 @@ export const integrityValidators: IntegrityValidator<IntegrityDictionary> = {
    * @param data - The `ProcessEventSet` object to validate.
    * @returns An `IntegrityResult` indicating whether the validation was successful and any errors encountered.
    */
-  processEventSet: (data: ProcessEventSet) => {
-    const errors: IntegrityError[] = [...auditHeader(data), ...auditProcessEvent(data.process_event)];
+  processEventSet: (data: Records) => {
+    const errors: IntegrityError[] = [...auditHeader(data), ...auditProcessEvent(data.process_event_set)];
 
     return { valid: !errors.length, errors: errors.length ? errors : undefined };
   },

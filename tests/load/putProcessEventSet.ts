@@ -1,7 +1,7 @@
 import { check } from 'k6';
 import http from 'k6/http';
 
-import { generateProcessEventSet, options as k6opts } from './helpers/index.ts';
+import { generateRecord, options as k6opts } from './helpers/index.ts';
 
 /**
  * 1. Initialization
@@ -23,7 +23,7 @@ export const options = k6opts;
  * 3. VU Execution
  */
 export default function () {
-  const body = generateProcessEventSet(1111); // Add a number argument to pin the ITSM identifier if needed
+  const body = generateRecord(1111); // Add a number argument to pin the ITSM identifier if needed
   const res = http.put(`${BASE_URL}${API_PROCESS_EVENT}`, JSON.stringify(body), {
     headers: {
       'Content-Type': 'application/json'

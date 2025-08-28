@@ -17,17 +17,13 @@ import {
   TransactionRepository,
   VersionRepository
 } from '../../../src/repositories/index.ts';
-import {
-  findProcessEventSetService,
-  deleteProcessEventSetService,
-  replaceProcessEventSetService
-} from '../../../src/services/processEventSet.ts';
+import { findRecordService, deleteRecordService, replaceRecordService } from '../../../src/services/record.ts';
 
 import type { Selectable } from 'kysely';
 import type { Mock } from 'vitest';
-import type { PiesSystemRecord, ProcessEventSet } from '../../../src/types/index.d.ts';
+import type { PiesSystemRecord, Record } from '../../../src/types/index.d.ts';
 
-describe('processEventSetService', () => {
+describe('recordService', () => {
   const systemRecord = {
     id: 1,
     recordKindId: 2,
@@ -35,7 +31,7 @@ describe('processEventSetService', () => {
     recordId: 'rec-1'
   } as Selectable<PiesSystemRecord>;
 
-  describe('findProcessEventSetService', () => {
+  describe('findRecordService', () => {
     const processEventsRaw = [
       {
         startDate: '2024-01-01',
@@ -71,10 +67,10 @@ describe('processEventSetService', () => {
       executeMock.execute.mockResolvedValue([]);
     });
 
-    it('should return a ProcessEventSet when events are found', async () => {
+    it('should return a Record when events are found', async () => {
       executeMock.execute.mockResolvedValue(processEventsRaw);
 
-      const result = await findProcessEventSetService(systemRecord);
+      const result = await findRecordService(systemRecord);
 
       expect(transactionWrapper).toHaveBeenCalledTimes(1);
       expect(cacheableRead).toHaveBeenNthCalledWith(1, new RecordKindRepository(), systemRecord.recordKindId);
@@ -82,12 +78,13 @@ describe('processEventSetService', () => {
       expect(ProcessEventRepository).toHaveBeenCalledTimes(1);
       expect(ProcessEventRepository).toHaveBeenCalledWith(expect.anything());
       expect(result).toMatchObject({
-        kind: 'ProcessEventSet',
+        kind: 'Record',
         system_id: systemRecord.systemId,
         record_id: systemRecord.recordId,
         record_kind: 'Permit',
         version: 'v1',
-        process_event: [
+        on_hold_event_set: [],
+        process_event_set: [
           {
             event: {
               start_datetime: '2024-01-01T00:00:00Z',
@@ -109,14 +106,14 @@ describe('processEventSetService', () => {
 
     it('should throw Problem 404 if no record kind found', async () => {
       (cacheableRead as Mock).mockRejectedValueOnce(new Error('not found'));
-      await expect(findProcessEventSetService(systemRecord)).rejects.toMatchObject({
+      await expect(findRecordService(systemRecord)).rejects.toMatchObject({
         status: 404,
         detail: 'No process events found.'
       });
     });
 
     it('should throw Problem 404 if no process events found', async () => {
-      await expect(findProcessEventSetService(systemRecord)).rejects.toMatchObject({
+      await expect(findRecordService(systemRecord)).rejects.toMatchObject({
         status: 404,
         detail: 'No process events found.'
       });
@@ -139,20 +136,20 @@ describe('processEventSetService', () => {
           return Promise.reject(new Error('not found'));
         });
 
-      await expect(() => findProcessEventSetService(systemRecord)).rejects.toMatchObject({
+      await expect(() => findRecordService(systemRecord)).rejects.toMatchObject({
         status: 404,
         detail: 'No process events found.'
       });
     });
   });
 
-  describe('deleteProcessEventSetService', () => {
+  describe('deleteRecordService', () => {
     it('should call prune on ProcessEventRepository', async () => {
       executeMock.execute.mockResolvedValue([]);
       const pruneMock = vi.fn().mockImplementation(() => executeMock);
       (ProcessEventRepository as Mock).mockImplementationOnce(() => ({ prune: pruneMock }));
 
-      const result = await deleteProcessEventSetService(systemRecord);
+      const result = await deleteRecordService(systemRecord);
 
       expect(result).toEqual([]);
       expect(transactionWrapper).toHaveBeenCalledTimes(1);
@@ -163,15 +160,16 @@ describe('processEventSetService', () => {
     });
   });
 
-  describe('replaceProcessEventSetService', () => {
-    const processEventSet: ProcessEventSet = {
+  describe('replaceRecordService', () => {
+    const processEventSet: Record = {
       transaction_id: 'uuid-mock',
       version: 'v1',
-      kind: 'ProcessEventSet',
+      kind: 'Record',
       system_id: 'sys-1',
       record_id: 'rec-1',
       record_kind: 'Permit',
-      process_event: [
+      on_hold_event_set: [],
+      process_event_set: [
         {
           event: { start_datetime: '2024-01-01T00:00:00Z', end_datetime: '2024-01-01T01:00:00Z' },
           process: {
@@ -211,7 +209,7 @@ describe('processEventSetService', () => {
     it('should replace process event set and call all repositories', async () => {
       (ProcessEventRepository as Mock).mockImplementationOnce(() => ({ prune: pruneMock }));
 
-      const result = await replaceProcessEventSetService(processEventSet);
+      const result = await replaceRecordService(processEventSet);
 
       expect(result).toEqual([]);
       expect(transactionWrapper).toHaveBeenCalledTimes(1);
@@ -237,8 +235,8 @@ describe('processEventSetService', () => {
         false
       );
       expect(cacheableUpsert).toHaveBeenNthCalledWith(5, new CodingRepository(), {
-        code: processEventSet.process_event[0].process.code,
-        codeSystem: processEventSet.process_event[0].process.code_system,
+        code: processEventSet.process_event_set[0].process.code,
+        codeSystem: processEventSet.process_event_set[0].process.code_system,
         versionId: processEventSet.version
       });
 
@@ -260,10 +258,10 @@ describe('processEventSetService', () => {
     });
 
     it('should handle multiple process events', async () => {
-      const multiEventSet: ProcessEventSet = {
+      const multiEventSet: Record = {
         ...processEventSet,
-        process_event: [
-          ...processEventSet.process_event,
+        process_event_set: [
+          ...processEventSet.process_event_set,
           {
             event: { start_datetime: '2024-01-02T00:00:00Z', end_datetime: '2024-01-02T01:00:00Z' },
             process: {
@@ -281,7 +279,7 @@ describe('processEventSetService', () => {
 
       (ProcessEventRepository as Mock).mockImplementationOnce(() => ({ prune: pruneMock }));
 
-      const result = await replaceProcessEventSetService(multiEventSet);
+      const result = await replaceRecordService(multiEventSet);
 
       expect(result).toEqual([]);
       expect(baseRepositoryMock.create).toHaveBeenNthCalledWith(2, {
