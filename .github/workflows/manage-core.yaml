@@ -26,6 +26,9 @@ on:
 jobs:
   infra:
     name: Core Infra ${{ github.event.inputs.manage_action }}
+    concurrency:
+      group: core-infra-${{ github.event.number || 'latest' }}
+      cancel-in-progress: false # Terraform deployments should not be interrupted
     uses: ./.github/workflows/.core-deployer.yaml
     permissions:
       contents: write # This is required for actions/checkout
