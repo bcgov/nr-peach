@@ -43,7 +43,7 @@ resource "azurerm_container_group" "migration" {
   }
   ip_address_type = "None"
   os_type         = "Linux"
-  restart_policy  = "OnFailure" # DNS resolution is nondeterministic so we need to keep trying until it works
+  restart_policy  = "Never" # Set to `OnFailure` if using DNS resolution as it has nondeterministic behaviour
   tags            = var.common_tags
   lifecycle {
     ignore_changes = [tags, ip_address_type]
