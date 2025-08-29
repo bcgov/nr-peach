@@ -31,6 +31,26 @@ can be used to manage the infrastructure below.
 - [Terraform](https://www.terraform.io/downloads.html)
 - [TFLint](https://github.com/terraform-linters/tflint)
 
+## Repository Setup
+
+Before any of the automated infrastructure CI/CD will run, you will need to run the `initial-azure-setup.sh` script.
+This can be found in the `bcgov/quickstart-azure-containers` repository as
+[initial-azure-setup.sh](https://github.com/bcgov/quickstart-azure-containers/blob/main/initial-azure-setup.sh). Please
+take some time familiarizing yourself with what this script does first prior to running it. Upon execution, it will
+create and manage all of the necessary permissions, secrets and configuration for the pipeline automations to function.
+
+```sh
+# General script help documentation
+curl -sSL https://raw.githubusercontent.com/bcgov/quickstart-azure-containers/refs/heads/main/initial-azure-setup.sh | bash -s -- -help
+
+# Example invocation for test environment
+curl -sSL https://raw.githubusercontent.com/bcgov/quickstart-azure-containers/refs/heads/main/initial-azure-setup.sh | bash -s ---g "123456-test-networking" -n "nr-peach-test-identity" -r "bcgov/nr-peach" -e "test" -
+-create-storage --create-github-secrets
+```
+
+You will also need to manually enter in the `VNET_ADDRESS_SPACE` into the Github environment secrets, as this is not
+done by the script. This can be found by inspecting your subscription in the Azure portal.
+
 ## Azure Login
 
 Remember to change directories between core and instance as needed.
