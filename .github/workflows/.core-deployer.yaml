@@ -26,7 +26,6 @@ env:
 jobs:
   infra:
     name: ${{ inputs.environment }} ${{ inputs.command }}
-    environment: ${{ inputs.environment }}
     permissions:
       contents: write # This is required for actions/checkout
       id-token: write # This is required for requesting the JWT

@@ -26,7 +26,9 @@ env:
 jobs:
   infra:
     name: ${{ inputs.environment }} ${{ inputs.command }}
-    environment: ${{ inputs.environment }}
+    environment:
+      name: ${{ inputs.environment }} # TODO: This should be set to dev or pr when we have our real environments
+      url: ${{ steps.result.outputs.api_app_service_url }} # TODO: Check if this breaks when not populated
     permissions:
       contents: write # This is required for actions/checkout
       id-token: write # This is required for requesting the JWT
@@ -122,6 +124,7 @@ jobs:
         working-directory: infra/instance
         run: terraform validate
       - name: Terraform ${{ inputs.command }}
+        id: result
         working-directory: infra/instance
         env:
           TF_VAR_api_image: ghcr.io/${{ github.repository }}:${{ inputs.tag }}
@@ -149,6 +152,10 @@ jobs:
             args="$args -auto-approve"
           fi
           terraform ${{ inputs.command }} $args
+
+          if [[ "${{ inputs.command }}" == "apply" ]]; then
+            echo "api_app_service_url=$(terraform output -raw api_app_service_url)" >> $GITHUB_OUTPUT
+          fi
 
           if [[ "${{ inputs.command }}" == "destroy" ]]; then
             az storage blob delete --account-name tfstatenrpeach${{ inputs.environment }} --container-name tfstate --name ${{ steps.instance.outputs.key }}
