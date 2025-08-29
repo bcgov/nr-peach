@@ -59,9 +59,6 @@ export interface Header {
 }
 export interface Record2 {
   on_hold_event_set: CodingEvent[];
-  /**
-   * @minItems 1
-   */
   process_event_set: [ProcessEvent, ...ProcessEvent[]];
 }
 /**
