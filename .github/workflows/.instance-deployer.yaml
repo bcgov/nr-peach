@@ -72,7 +72,7 @@ jobs:
           else
             pr_number="${{ github.event.number }}"
             if [[ -z "$pr_number" && "${{ github.event_name }}" != "pull_request" ]]; then
-              sleep 10
+              sleep 20
               pr_number=$(gh pr list --head "${{ github.ref_name }}" --state open --repo "${{ github.repository }}" --json number --jq '.[0].number')
             fi
 
