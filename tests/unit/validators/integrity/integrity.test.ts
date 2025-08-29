@@ -17,9 +17,20 @@ describe('integrityValidators', () => {
 
   describe('processEventSet', () => {
     const mockData: Record = {
-      header: { id: '1', timestamp: '2024-01-01T00:00:00Z' },
-      process_event: [{ code_system: 'sys', code: 'abc' }]
-    } as unknown as Record;
+      version: '1',
+      kind: 'Record',
+      system_id: 'sys',
+      record_id: 'rec-2',
+      record_kind: 'Permit',
+      transaction_id: '2',
+      on_hold_event_set: [],
+      process_event_set: [
+        {
+          event: { start_date: '2024-01-01' },
+          process: { code: 'abc', code_set: ['abc'], code_system: 'sys' }
+        }
+      ]
+    };
 
     it('returns valid: true and no errors if no errors from auditors', () => {
       auditHeaderSpy.mockReturnValue([]);
