@@ -1,31 +1,41 @@
-<!-- Provide a general summary of your changes in the Title above -->
+<!-- Thank you for your contribution! Please fill out the following template to help us review your PR. -->
 
 # Description
 
-<!-- Describe your changes in detail -->
-<!-- Why is this change required? What problem does it solve? -->
-<!-- If it fixes an open issue, please link to the issue here. -->
+<!-- Summarize your changes and the motivation behind them. Reference any related issues. -->
 
-## Types of changes
+## Related Issues/Tickets
 
-<!-- What types of changes does your code introduce? Uncomment all that apply: -->
+<!-- List related issues or discussions, e.g. "Closes #123" or "Related to PADS-456" -->
 
-<!-- Bug fix (non-breaking change which fixes an issue) -->
-<!-- New feature (non-breaking change which adds functionality) -->
-<!-- Documentation (non-breaking change with enhancements to documentation) -->
-<!-- Breaking change (fix or feature that would cause existing functionality to change) -->
+## Type of Change
+
+<!-- Please check all that apply: -->
+
+- [ ] Bug fix (non-breaking change)
+- [ ] New feature (non-breaking change)
+- [ ] Breaking change (fix or feature that changes existing behavior)
+- [ ] Documentation update
 
 ## Checklist
 
-<!-- Go over all the following points, and put an `x` in all the boxes that apply. -->
-<!-- If you're unsure about any of these, don't hesitate to ask. We're here to help! -->
+<!-- Please check all that apply: -->
 
-- [ ] I have read the [CONTRIBUTING](CONTRIBUTING.md) doc
-- [ ] I have checked that the site is buildable with my changes
-- [ ] I have ensured there are no visible errors in the JSON schema (if edited)
-- [ ] I have added necessary documentation (if appropriate)
+- [ ] I have read the [CONTRIBUTING](CONTRIBUTING.md) guidelines
+- [ ] I have tested my changes locally
+- [ ] The code builds and passes all tests
+- [ ] I have updated documentation as needed
 
-## Further comments
+## Instance Deployment
 
-<!-- If this is a relatively large or complex change, kick off the discussion by explaining -->
-<!-- why you chose the solution you did and what alternatives you considered, etc... -->
+<!-- Please check all that apply: -->
+
+- [ ] I require a cloud deployment for testing
+
+> [!NOTE]
+> To request for a cloud deployment for testing purposes, add the `deploy` label to this PR.
+> Deployments will be removed when the PR is closed, merged, or the `deploy` label is removed.
+
+## Additional Notes
+
+<!-- Add any extra context, screenshots, or discussion points here. -->

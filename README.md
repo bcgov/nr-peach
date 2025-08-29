@@ -24,6 +24,8 @@ A microservice focused on permitting exchange, aggregation and collection using 
 .github/                   - GitHub PR and Issue templates
 .vscode/                   - VSCode environment configurations
 infra/                     - Terraform Infrastructure as Code
+├── core/                  - Core Shared Infrastructure
+└── instance/              - Instance Specific Infrastructure
 src/                       - Node.js web application
 ├── controllers/           - Controller Layer
 ├── db/                    - Database Layer
