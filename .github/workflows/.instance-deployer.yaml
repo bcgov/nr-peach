@@ -46,6 +46,8 @@ jobs:
           VNET_RESOURCE_GROUP_NAME: ${{ secrets.VNET_RESOURCE_GROUP_NAME }}
           VNET_NAME: ${{ secrets.VNET_NAME }}
         run: |
+          # Verify that all required secrets are set
+          set -euo pipefail
           missing=0
           for secret in AZURE_CLIENT_ID AZURE_TENANT_ID AZURE_SUBSCRIPTION_ID VNET_RESOURCE_GROUP_NAME VNET_ADDRESS_SPACE VNET_NAME; do
             if [ -z "${!secret}" ]; then
@@ -62,6 +64,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          # Determine instance information
+          set -euo pipefail
           if [[ ${{ github.run_attempt }} -gt 1 ]]; then
             echo "force_migration=true" >> $GITHUB_OUTPUT
           else
@@ -83,7 +87,7 @@ jobs:
               echo "key=pr/pr-$pr_number.instance.tfstate" >> $GITHUB_OUTPUT
             else
               echo "Unable to detect open PR for branch ${{ github.ref_name }}. Failing workflow."
-              # exit 1
+              exit 1
             fi
           fi
       - name: Azure CLI login
@@ -94,10 +98,26 @@ jobs:
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3.1.2
+      - name: Cache Terraform instance
+        uses: actions/cache@v4.2.4
+        id: cache-terraform-instance
+        env:
+          cache-name: cache-terraform-instance
+        with:
+          path: |
+            ~/.terraform.d/plugin-cache
+            ${{ github.workspace }}/infra/core/.terraform
+            ${{ github.workspace }}/infra/instance/.terraform
+          key: ${{ runner.os }}-terraform-${{ env.cache-name }}-${{ hashFiles('**/*.tf') }}
+          restore-keys: |
+            ${{ runner.os }}-terraform-${{ env.cache-name }}-
+            ${{ runner.os }}-terraform-
       - name: Fetch core configurations
         id: core
         working-directory: infra/core
         run: |
+          # Initialize Terraform
+          set -euo pipefail
           terraform init -upgrade \
             -backend-config="resource_group_name=${{ secrets.VNET_RESOURCE_GROUP_NAME }}" \
             -backend-config="storage_account_name=tfstatenrpeach${{ inputs.environment }}" \
@@ -112,6 +132,8 @@ jobs:
       - name: Terraform init
         working-directory: infra/instance
         run: |
+          # Initialize Terraform
+          set -euo pipefail
           terraform init -upgrade \
             -backend-config="resource_group_name=${{ secrets.VNET_RESOURCE_GROUP_NAME }}" \
             -backend-config="storage_account_name=tfstatenrpeach${{ inputs.environment }}" \
@@ -147,6 +169,8 @@ jobs:
           TF_VAR_vnet_name: ${{ secrets.VNET_NAME }}
           TF_VAR_vnet_resource_group_name: ${{ secrets.VNET_RESOURCE_GROUP_NAME }}
         run: |
+          # Run the requested Terraform command
+          set -euo pipefail
           args="-input=false"
           if [[ "${{ inputs.command }}" == "apply" || "${{ inputs.command }}" == "destroy" ]]; then
             args="$args -auto-approve"
