@@ -1,9 +1,3 @@
-variable "api_image" {
-  description = "The Docker image for the api."
-  type        = string
-  nullable    = false
-}
-
 variable "app_env" {
   description = "The deployment environment (e.g., dev, test, prod)."
   type        = string
@@ -38,6 +32,12 @@ variable "common_tags" {
   description = "A map of tags to apply to resources."
   type        = map(string)
   default     = {}
+}
+
+variable "container_image" {
+  description = "The Docker image for the api."
+  type        = string
+  nullable    = false
 }
 
 variable "container_registry_url" {

@@ -149,7 +149,7 @@ jobs:
         id: result
         working-directory: infra/instance
         env:
-          TF_VAR_api_image: ghcr.io/${{ github.repository }}:${{ inputs.tag }}
+          TF_VAR_api_image: ${{ github.repository }}:${{ inputs.tag }}
           TF_VAR_app_env: ${{ inputs.environment }}
           TF_VAR_app_name: nr-peach
           TF_VAR_azure_client_id: ${{ secrets.AZURE_CLIENT_ID }}

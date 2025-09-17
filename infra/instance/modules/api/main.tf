@@ -21,7 +21,7 @@ resource "azurerm_linux_web_app" "api" {
     health_check_path                             = "/ready"
     health_check_eviction_time_in_min             = 2
     application_stack {
-      docker_image_name   = var.api_image
+      docker_image_name   = var.container_image
       docker_registry_url = var.container_registry_url
     }
     ftps_state = "Disabled"

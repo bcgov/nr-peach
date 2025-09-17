@@ -98,7 +98,7 @@ module "migration" {
 module "api" {
   source = "./modules/api"
 
-  api_image                        = var.api_image
+  container_image                  = var.api_image
   app_env                          = var.app_env
   app_service_plan_id              = data.azurerm_service_plan.api.id
   appinsights_connection_string    = data.azurerm_application_insights.main.connection_string
