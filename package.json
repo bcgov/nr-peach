@@ -73,7 +73,7 @@
     "eslint-config-prettier": "10.1.8",
     "eslint-plugin-jsdoc": "61.1.8",
     "eslint-plugin-prettier": "5.5.4",
-    "lefthook": "1.13.6",
+    "lefthook": "2.0.1",
     "prettier": "3.6.2",
     "rimraf": "6.0.1",
     "supertest": "7.1.4",
