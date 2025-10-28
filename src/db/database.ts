@@ -15,7 +15,10 @@ config({ path: ['.env', '.env.default'], quiet: true });
 
 const log = getLogger(import.meta.filename);
 
-/** Handle bigint parsing {@see https://kysely.dev/docs/recipes/data-types#runtime-javascript-types} */
+/**
+ * Handle bigint parsing
+ * @see https://kysely.dev/docs/recipes/data-types#runtime-javascript-types
+ */
 const int8TypeId = 20; // PostgreSQL's bigint type is represented as int8 in Kysely
 types.setTypeParser(int8TypeId, (value: string): number => parseInt(value, 10));
 

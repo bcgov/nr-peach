@@ -67,7 +67,7 @@ export function cacheableUpsert<TB extends keyof DB>(
  * @param callback - The asynchronous callback function to execute if the cache miss occurs.
  * @param args - The arguments to pass to the callback function.
  * @returns A promise that resolves to the cached or freshly computed result.
- * @throws Propagates errors after clearing the cache entry.
+ * @throws {unknown} Propagates errors after clearing the cache entry.
  */
 export async function cacheWrapper<T extends object, A extends unknown[]>(
   cacheKey: `${keyof DB}:${string}`,

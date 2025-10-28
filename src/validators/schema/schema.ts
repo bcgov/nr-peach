@@ -20,7 +20,10 @@ const schemaCache: Record<string, AnySchemaObject> = {};
 export function createAjvInstance(opts?: Options): Ajv {
   const ajv = new Ajv({
     allErrors: true,
-    /** Type Coersion @see https://ajv.js.org/guide/modifying-data.html#coercing-data-types */
+    /**
+     * Type Coersion
+     * @see https://ajv.js.org/guide/modifying-data.html#coercing-data-types
+     */
     coerceTypes: true,
     loadSchema,
     ...opts
@@ -34,7 +37,7 @@ export function createAjvInstance(opts?: Options): Ajv {
  * Loads a JSON schema from a given URI or retrieves it from the cache if already loaded.
  * @param schema The URI of the schema to load.
  * @returns A promise that resolves to the loaded schema object.
- * @throws An error if the schema cannot be fetched or loaded.
+ * @throws {unknown} An error if the schema cannot be fetched or loaded.
  */
 export async function loadSchema(schema: string): Promise<AnySchemaObject> {
   const cached = schema in schemaCache;

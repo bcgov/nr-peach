@@ -5,7 +5,7 @@ import { BaseRepository } from '../../../../src/repositories/base.ts';
 import { findByThenUpsert, transactionWrapper } from '../../../../src/services/helpers/repo.ts';
 
 import type { Kysely, Transaction } from 'kysely';
-import type { Mock } from 'vitest';
+import type { Mock, MockInstance } from 'vitest';
 import type { DB } from '../../../../src/types/index.js';
 
 class MockRepository extends BaseRepository<'pies.version'> {
@@ -74,7 +74,7 @@ describe('transactionWrapper', () => {
   let mockSetAccessMode: Mock;
   let mockSetIsolationLevel: Mock;
   let mockTransaction: Mock;
-  let transactionSpy: ReturnType<typeof vi.spyOn>;
+  let transactionSpy: MockInstance;
 
   beforeEach(() => {
     mockExecute = vi.fn();

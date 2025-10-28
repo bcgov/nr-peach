@@ -18,7 +18,7 @@ import {
 } from '../../../src/db/database.ts';
 
 import type { LogEvent, QueryId, RootOperationNode } from 'kysely';
-import type { Mock } from 'vitest';
+import type { Mock, MockInstance } from 'vitest';
 import type { DB } from '../../../src/types/index.js';
 
 vi.mock('node:fs', () => ({
@@ -102,7 +102,7 @@ describe('checkDatabaseHealth', { shuffle: false }, () => {
 });
 
 describe('checkDatabaseMigrations', () => {
-  let getMigrationsSpy: ReturnType<typeof vi.spyOn>;
+  let getMigrationsSpy: MockInstance;
 
   beforeAll(() => {
     getMigrationsSpy = vi.spyOn(migrator, 'getMigrations');

@@ -16,7 +16,7 @@ const log = getLogger(import.meta.filename);
  * @param repo - The repository instance used to interact with the database.
  * @param data - An object containing both filter criteria and data for insertion.
  * @returns A promise that resolves to the found or newly inserted record.
- * @throws If the upsert operation fails to insert a new record.
+ * @throws {unknown} If the upsert operation fails to insert a new record.
  */
 export async function findByThenUpsert<TB extends keyof DB>(
   repo: BaseRepository<TB>,
@@ -36,7 +36,7 @@ export async function findByThenUpsert<TB extends keyof DB>(
  * @param opts.isolationLevel - The transaction isolation level (default: 'read committed').
  * @param opts.maxRetries - Maximum number of retry attempts (default: 3).
  * @returns A promise that resolves with the operation result.
- * @throws If the operation fails for other reasons or all retries are exhausted.
+ * @throws {unknown} If the operation fails for other reasons or all retries are exhausted.
  */
 export async function transactionWrapper<T>(
   operation: (trx: Transaction<DB>) => Promise<T>,
