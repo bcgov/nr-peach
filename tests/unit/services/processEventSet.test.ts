@@ -150,7 +150,9 @@ describe('processEventSetService', () => {
     it('should call prune on ProcessEventRepository', async () => {
       executeMock.execute.mockResolvedValue([]);
       const pruneMock = vi.fn().mockImplementation(() => executeMock);
-      (ProcessEventRepository as Mock).mockImplementationOnce(() => ({ prune: pruneMock }));
+      (ProcessEventRepository as Mock).mockImplementationOnce(function () {
+        return { prune: pruneMock };
+      });
 
       const result = await deleteProcessEventSetService(systemRecord);
 
@@ -209,7 +211,9 @@ describe('processEventSetService', () => {
     });
 
     it('should replace process event set and call all repositories', async () => {
-      (ProcessEventRepository as Mock).mockImplementationOnce(() => ({ prune: pruneMock }));
+      (ProcessEventRepository as Mock).mockImplementationOnce(function () {
+        return { prune: pruneMock };
+      });
 
       const result = await replaceProcessEventSetService(processEventSet);
 
@@ -279,7 +283,9 @@ describe('processEventSetService', () => {
         ]
       };
 
-      (ProcessEventRepository as Mock).mockImplementationOnce(() => ({ prune: pruneMock }));
+      (ProcessEventRepository as Mock).mockImplementationOnce(function () {
+        return { prune: pruneMock };
+      });
 
       const result = await replaceProcessEventSetService(multiEventSet);
 

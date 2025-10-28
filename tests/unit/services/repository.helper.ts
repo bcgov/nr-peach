@@ -9,7 +9,12 @@ vi.mock('../../../src/repositories/index.ts', async () => {
     Object.fromEntries(
       Object.keys(actual)
         .filter((key) => key !== 'BaseRepository')
-        .map((key) => [key, vi.fn(() => baseRepositoryMock)])
+        .map((key) => [
+          key,
+          vi.fn(function () {
+            return baseRepositoryMock;
+          })
+        ])
     )
   );
 });
