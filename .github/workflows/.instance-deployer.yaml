@@ -21,6 +21,8 @@ on:
 
 env:
   AZURE_REGION: Canada Central
+  INPUT_COMMAND: ${{ inputs.command }}
+  INPUT_ENVIRONMENT: ${{ inputs.environment }}
   TF_LOG: ERROR
 
 jobs:
@@ -128,7 +130,7 @@ jobs:
           set -euo pipefail
           terraform init -upgrade \
             -backend-config="resource_group_name=${{ secrets.VNET_RESOURCE_GROUP_NAME }}" \
-            -backend-config="storage_account_name=tfstatenrpeach${{ inputs.environment }}" \
+            -backend-config="storage_account_name=tfstatenrpeach$INPUT_ENVIRONMENT" \
             -backend-config="subscription_id=${{ secrets.AZURE_SUBSCRIPTION_ID }}" \
             -backend-config="tenant_id=${{ secrets.AZURE_TENANT_ID }}" \
             -backend-config="client_id=${{ secrets.AZURE_CLIENT_ID }}" \
@@ -144,7 +146,7 @@ jobs:
           set -euo pipefail
           terraform init -upgrade \
             -backend-config="resource_group_name=${{ secrets.VNET_RESOURCE_GROUP_NAME }}" \
-            -backend-config="storage_account_name=tfstatenrpeach${{ inputs.environment }}" \
+            -backend-config="storage_account_name=tfstatenrpeach$INPUT_ENVIRONMENT" \
             -backend-config="subscription_id=${{ secrets.AZURE_SUBSCRIPTION_ID }}" \
             -backend-config="tenant_id=${{ secrets.AZURE_TENANT_ID }}" \
             -backend-config="client_id=${{ secrets.AZURE_CLIENT_ID }}" \
@@ -180,15 +182,15 @@ jobs:
           # Run the requested Terraform command
           set -euo pipefail
           args="-input=false"
-          if [[ "${{ inputs.command }}" == "apply" || "${{ inputs.command }}" == "destroy" ]]; then
+          if [[ "$INPUT_COMMAND" == "apply" || "$INPUT_COMMAND" == "destroy" ]]; then
             args="$args -auto-approve"
           fi
-          terraform ${{ inputs.command }} $args
+          terraform $INPUT_COMMAND $args
 
-          if [[ "${{ inputs.command }}" == "apply" ]]; then
+          if [[ "$INPUT_COMMAND" == "apply" ]]; then
             echo "api_app_service_url=$(terraform output -raw api_app_service_url)" >> $GITHUB_OUTPUT
           fi
 
-          if [[ "${{ inputs.command }}" == "destroy" ]]; then
-            az storage blob delete --account-name tfstatenrpeach${{ inputs.environment }} --container-name tfstate --name ${{ steps.instance.outputs.key }}
+          if [[ "$INPUT_COMMAND" == "destroy" ]]; then
+            az storage blob delete --account-name tfstatenrpeach$INPUT_ENVIRONMENT --container-name tfstate --name ${{ steps.instance.outputs.key }}
           fi

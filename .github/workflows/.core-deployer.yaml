@@ -21,6 +21,8 @@ on:
 
 env:
   AZURE_REGION: Canada Central
+  INPUT_COMMAND: ${{ inputs.command }}
+  INPUT_ENVIRONMENT: ${{ inputs.environment }}
   TF_LOG: ERROR
 
 jobs:
@@ -84,7 +86,7 @@ jobs:
           set -euo pipefail
           terraform init -upgrade \
             -backend-config="resource_group_name=${{ secrets.VNET_RESOURCE_GROUP_NAME }}" \
-            -backend-config="storage_account_name=tfstatenrpeach${{ inputs.environment }}" \
+            -backend-config="storage_account_name=tfstatenrpeach$INPUT_ENVIRONMENT" \
             -backend-config="subscription_id=${{ secrets.AZURE_SUBSCRIPTION_ID }}" \
             -backend-config="tenant_id=${{ secrets.AZURE_TENANT_ID }}" \
             -backend-config="client_id=${{ secrets.AZURE_CLIENT_ID }}" \
@@ -111,7 +113,7 @@ jobs:
           # Run the requested Terraform command
           set -euo pipefail
           args="-input=false"
-          if [[ "${{ inputs.command }}" == "apply" || "${{ inputs.command }}" == "destroy" ]]; then
+          if [[ "$INPUT_COMMAND" == "apply" || "$INPUT_COMMAND" == "destroy" ]]; then
             args="$args -auto-approve"
           fi
-          terraform ${{ inputs.command }} $args
+          terraform $INPUT_COMMAND $args
