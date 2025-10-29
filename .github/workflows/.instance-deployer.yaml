@@ -72,12 +72,12 @@ jobs:
             echo "force_migration=false" >> $GITHUB_OUTPUT
           fi
 
-          if [[ "${{ github.ref_name }}" == "main" ]]; then
-            echo "instance=main" >> $GITHUB_OUTPUT
-            echo "key=main.instance.tfstate" >> $GITHUB_OUTPUT
-          else
-            pr_number="${{ github.event.number }}"
-            if [[ -z "$pr_number" && "${{ github.event_name }}" != "pull_request" ]]; then
+          # Detect instance context
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            pr_number="${{ github.event.pull_request.number }}"
+
+            # In some rare cases the PR number may not be present yet, so try to wait and then backfill
+            if [[ -z "$pr_number" ]]; then
               sleep 20
               pr_number=$(gh pr list --head "${{ github.ref_name }}" --state open --repo "${{ github.repository }}" --json number --jq '.[0].number')
             fi
@@ -85,10 +85,18 @@ jobs:
             if [[ -n "$pr_number" ]]; then
               echo "instance=pr-$pr_number" >> $GITHUB_OUTPUT
               echo "key=pr/pr-$pr_number.instance.tfstate" >> $GITHUB_OUTPUT
+              echo "Instance identified as pr-$pr_number"
             else
               echo "Unable to detect open PR for branch ${{ github.ref_name }}. Failing workflow."
               exit 1
             fi
+          elif [[ "${{ github.ref_name }}" == "main" ]]; then
+            echo "instance=main" >> $GITHUB_OUTPUT
+            echo "key=main.instance.tfstate" >> $GITHUB_OUTPUT
+            echo "Instance identified as main"
+          else
+            echo "Unable to determine instance information. Failing workflow."
+            exit 1
           fi
       - name: Azure CLI login
         uses: azure/login@v2.3.0
