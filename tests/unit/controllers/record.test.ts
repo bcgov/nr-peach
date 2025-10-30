@@ -15,9 +15,9 @@ import type { PiesSystemRecord, Record } from '../../../src/types/index.js';
 
 describe('Process Controllers', () => {
   const checkDuplicateTransactionHeaderServiceSpy = vi.spyOn(services, 'checkDuplicateTransactionHeaderService');
-  const deleteRecordServiceSpy = vi.spyOn(services, 'deleteRecordService');
   const findRecordServiceSpy = vi.spyOn(services, 'findRecordService');
   const findSingleSystemRecordServiceSpy = vi.spyOn(services, 'findSingleSystemRecordService');
+  const pruneRecordServiceSpy = vi.spyOn(services, 'pruneRecordService');
   const replaceRecordServiceSpy = vi.spyOn(services, 'replaceRecordService');
 
   const fakeSystemRecord = { id: 1 } as Selectable<PiesSystemRecord>;
@@ -37,12 +37,12 @@ describe('Process Controllers', () => {
   describe('DELETE /process-events', () => {
     it('should call services and respond with 204', async () => {
       findSingleSystemRecordServiceSpy.mockResolvedValue(fakeSystemRecord);
-      deleteRecordServiceSpy.mockResolvedValue([]);
+      pruneRecordServiceSpy.mockResolvedValue([]);
 
       await request(app).delete('/process-events').query({ record_id: 'rec1', system_id: 'sys1' }).expect(204);
 
       expect(findSingleSystemRecordServiceSpy).toHaveBeenCalledWith('rec1', 'sys1');
-      expect(deleteRecordServiceSpy).toHaveBeenCalledWith(fakeSystemRecord);
+      expect(pruneRecordServiceSpy).toHaveBeenCalledWith(fakeSystemRecord);
     });
   });
 
