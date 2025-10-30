@@ -10,6 +10,7 @@ import {
 
 import {
   CodingRepository,
+  OnHoldEventRepository,
   ProcessEventRepository,
   RecordKindRepository,
   SystemRepository,
@@ -17,7 +18,7 @@ import {
   TransactionRepository,
   VersionRepository
 } from '../../../src/repositories/index.ts';
-import { findRecordService, deleteRecordService, replaceRecordService } from '../../../src/services/record.ts';
+import { findRecordService, pruneRecordService, replaceRecordService } from '../../../src/services/record.ts';
 
 import type { Selectable } from 'kysely';
 import type { Mock } from 'vitest';
@@ -143,22 +144,27 @@ describe('recordService', () => {
     });
   });
 
-  describe('deleteRecordService', () => {
-    it('should call prune on ProcessEventRepository', async () => {
+  describe('pruneRecordService', () => {
+    it('should call prune on OnHoldEventRepository and ProcessEventRepository', async () => {
       executeMock.execute.mockResolvedValue([]);
       const pruneMock = vi.fn().mockImplementation(() => executeMock);
+      (OnHoldEventRepository as Mock).mockImplementationOnce(function () {
+        return { prune: pruneMock };
+      });
       (ProcessEventRepository as Mock).mockImplementationOnce(function () {
         return { prune: pruneMock };
       });
 
-      const result = await deleteRecordService(systemRecord);
+      const result = await pruneRecordService(systemRecord);
 
-      expect(result).toEqual([]);
+      expect(result).toEqual([[], []]);
       expect(transactionWrapper).toHaveBeenCalledTimes(1);
+      expect(OnHoldEventRepository).toHaveBeenCalledTimes(1);
+      expect(OnHoldEventRepository).toHaveBeenCalledWith(expect.anything());
       expect(ProcessEventRepository).toHaveBeenCalledTimes(1);
       expect(ProcessEventRepository).toHaveBeenCalledWith(expect.anything());
       expect(pruneMock).toHaveBeenCalledWith(systemRecord.id);
-      expect(executeMock.execute).toHaveBeenCalledTimes(1);
+      expect(executeMock.execute).toHaveBeenCalledTimes(2);
     });
   });
 

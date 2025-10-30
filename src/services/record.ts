@@ -9,6 +9,7 @@ import {
 } from './helpers/index.ts';
 import {
   CodingRepository,
+  OnHoldEventRepository,
   ProcessEventRepository,
   RecordKindRepository,
   SystemRepository,
@@ -30,19 +31,6 @@ import type {
 } from '../types/index.d.ts';
 
 const log = getLogger(import.meta.filename);
-
-/**
- * Deletes the record for the given system record.
- * @param systemRecord - The system record for which to delete the record.
- * @returns A Promise that resolves when the operation is complete.
- */
-export const deleteRecordService = async (
-  systemRecord: Selectable<PiesSystemRecord>
-): Promise<readonly DeleteResult[]> => {
-  return transactionWrapper(async (trx) => {
-    return await new ProcessEventRepository(trx).prune(systemRecord.id).execute();
-  });
-};
 
 /**
  * Retrieves the record for the given system record.
@@ -114,6 +102,22 @@ export const findRecordService = (systemRecord: Selectable<PiesSystemRecord>): P
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export const mergeRecordService = (data: Record): Promise<void> => {
   throw new Error('mergeProcessEventSetService not implemented');
+};
+
+/**
+ * Prunes the record for the given system record.
+ * @param systemRecord - The system record to prune.
+ * @returns A Promise that resolves when the operation is complete.
+ */
+export const pruneRecordService = async (
+  systemRecord: Selectable<PiesSystemRecord>
+): Promise<readonly DeleteResult[][]> => {
+  return transactionWrapper(async (trx) => {
+    return await Promise.all([
+      new OnHoldEventRepository(trx).prune(systemRecord.id).execute(),
+      new ProcessEventRepository(trx).prune(systemRecord.id).execute()
+    ]);
+  });
 };
 
 /**

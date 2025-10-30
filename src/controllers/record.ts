@@ -1,6 +1,6 @@
 import {
   checkDuplicateTransactionHeaderService,
-  deleteRecordService,
+  pruneRecordService,
   findRecordService,
   findSingleSystemRecordService,
   replaceRecordService
@@ -14,7 +14,7 @@ export const deleteRecordController = async (
   res: Response
 ): Promise<void> => {
   const systemRecord = await findSingleSystemRecordService(req.query.record_id, req.query.system_id);
-  await deleteRecordService(systemRecord);
+  await pruneRecordService(systemRecord);
   res.status(204).end();
 };
 
