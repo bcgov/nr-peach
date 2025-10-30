@@ -21,6 +21,21 @@ export interface PiesCoding {
   versionId: string;
 }
 
+export interface PiesOnHoldEvent {
+  codingId: number;
+  createdAt: Generated<Timestamp>;
+  createdBy: Generated<string>;
+  endDate: Timestamp | null;
+  endTime: string | null;
+  id: Generated<number>;
+  startDate: Timestamp;
+  startTime: string | null;
+  systemRecordId: number;
+  transactionId: string;
+  updatedAt: Timestamp | null;
+  updatedBy: string | null;
+}
+
 export interface PiesProcessEvent {
   codingId: number;
   createdAt: Generated<Timestamp>;
@@ -97,6 +112,7 @@ export interface PiesVersion {
 
 export interface DB {
   'pies.coding': PiesCoding;
+  'pies.onHoldEvent': PiesOnHoldEvent;
   'pies.processEvent': PiesProcessEvent;
   'pies.recordKind': PiesRecordKind;
   'pies.recordLinkage': PiesRecordLinkage;

@@ -1,6 +1,7 @@
 export * from './base.ts';
 export * from './coding.ts';
 export * from './recordKind.ts';
+export * from './onHoldEvent.ts';
 export * from './processEvent.ts';
 export * from './recordLinkage.ts';
 export * from './system.ts';
