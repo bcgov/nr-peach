@@ -21,6 +21,7 @@ import { CodingDictionary, getLogger, Problem } from '../utils/index.ts';
 
 import type { DeleteResult, Selectable } from 'kysely';
 import type {
+  Coding,
   CodingEvent,
   Header,
   PiesProcessEvent,
@@ -57,6 +58,34 @@ export const findRecordService = (systemRecord: Selectable<PiesSystemRecord>): P
         throw new Problem(404, { detail: 'No process events found.' });
       }
 
+      const onHoldEventsRaw = await new OnHoldEventRepository(trx)
+        .findBy({ systemRecordId: systemRecord.id })
+        .execute();
+
+      const onHoldEvents: CodingEvent[] = await Promise.all(
+        onHoldEventsRaw.map(async (pe) => {
+          const event = dateTimePartsToEvent({
+            startDate: pe.startDate,
+            startTime: pe.startTime ?? undefined,
+            endDate: pe.endDate ?? undefined,
+            endTime: pe.endTime ?? undefined
+          });
+
+          const codingRaw = await cacheableRead(new CodingRepository(trx), pe.codingId).catch((error) => {
+            log.warn(`No coding found for on hold events, ${error}`);
+            throw new Problem(404, { detail: 'No valid on hold codings found.' });
+          });
+
+          const coding: Coding = {
+            code: codingRaw.code,
+            code_display: CodingDictionary[codingRaw.codeSystem][codingRaw.code].display,
+            code_set: CodingDictionary[codingRaw.codeSystem][codingRaw.code].codeSet,
+            code_system: codingRaw.codeSystem
+          };
+          return { coding, event } satisfies CodingEvent;
+        })
+      );
+
       const processEvents: ProcessEvent[] = await Promise.all(
         processEventsRaw.map(async (pe) => {
           const event = dateTimePartsToEvent({
@@ -68,7 +97,7 @@ export const findRecordService = (systemRecord: Selectable<PiesSystemRecord>): P
 
           const coding = await cacheableRead(new CodingRepository(trx), pe.codingId).catch((error) => {
             log.warn(`No coding found for process events, ${error}`);
-            throw new Problem(404, { detail: 'No process events found.' });
+            throw new Problem(404, { detail: 'No valid process codings found.' });
           });
 
           const process: Process = {
@@ -91,7 +120,7 @@ export const findRecordService = (systemRecord: Selectable<PiesSystemRecord>): P
         system_id: systemRecord.systemId,
         record_id: systemRecord.recordId,
         record_kind: recordKind.kind as Header['record_kind'],
-        on_hold_event_set: [] as CodingEvent[],
+        on_hold_event_set: onHoldEvents,
         process_event_set: processEvents as [ProcessEvent, ...ProcessEvent[]]
       } satisfies Record;
     },
@@ -101,7 +130,7 @@ export const findRecordService = (systemRecord: Selectable<PiesSystemRecord>): P
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export const mergeRecordService = (data: Record): Promise<void> => {
-  throw new Error('mergeProcessEventSetService not implemented');
+  throw new Error('mergeRecordService not implemented');
 };
 
 /**
@@ -148,29 +177,50 @@ export const replaceRecordService = (data: Record): Promise<readonly Selectable<
       false // LRU caching is not very beneficial for this operation
     );
 
-    // Prune existing process events for the system record
-    await new ProcessEventRepository(trx).prune(systemRecord.id).execute();
+    // Prune existing on hold and process events for the system record
+    await Promise.all([
+      new OnHoldEventRepository(trx).prune(systemRecord.id).execute(),
+      new ProcessEventRepository(trx).prune(systemRecord.id).execute()
+    ]);
+
+    // Insert new on hold events
+    await Promise.all(
+      data.on_hold_event_set.map(async (ce) => {
+        const coding = await cacheableUpsert(new CodingRepository(trx), {
+          code: ce.coding.code,
+          codeSystem: ce.coding.code_system,
+          versionId: data.version
+        });
+
+        return await new OnHoldEventRepository(trx)
+          .create({
+            codingId: coding.id,
+            systemRecordId: systemRecord.id,
+            transactionId: data.transaction_id,
+            ...eventToDateTimeParts(ce.event)
+          })
+          .execute();
+      })
+    ).then((ohes) => ohes.flatMap((pe) => pe));
 
     // Insert new process events
     return await Promise.all(
       data.process_event_set.map(async (pe) => {
-        const { event, process } = pe;
-
         const coding = await cacheableUpsert(new CodingRepository(trx), {
-          code: process.code,
-          codeSystem: process.code_system,
+          code: pe.process.code,
+          codeSystem: pe.process.code_system,
           versionId: data.version
         });
 
         return await new ProcessEventRepository(trx)
           .create({
             codingId: coding.id,
-            status: process.status,
-            statusCode: process.status_code,
-            statusDescription: process.status_description,
+            status: pe.process.status,
+            statusCode: pe.process.status_code,
+            statusDescription: pe.process.status_description,
             systemRecordId: systemRecord.id,
             transactionId: data.transaction_id,
-            ...eventToDateTimeParts(event)
+            ...eventToDateTimeParts(pe.event)
           })
           .execute();
       })

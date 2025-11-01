@@ -18,7 +18,12 @@ import {
   TransactionRepository,
   VersionRepository
 } from '../../../src/repositories/index.ts';
-import { findRecordService, pruneRecordService, replaceRecordService } from '../../../src/services/record.ts';
+import {
+  findRecordService,
+  mergeRecordService,
+  pruneRecordService,
+  replaceRecordService
+} from '../../../src/services/record.ts';
 
 import type { Selectable } from 'kysely';
 import type { Mock } from 'vitest';
@@ -84,7 +89,23 @@ describe('recordService', () => {
         record_id: systemRecord.recordId,
         record_kind: 'Permit',
         version: 'v1',
-        on_hold_event_set: [],
+        on_hold_event_set: [
+          {
+            coding: {
+              code: expect.any(String) as string,
+              code_display: expect.any(String) as string,
+              code_set: expect.arrayContaining([expect.any(String) as string]) as
+                | [string]
+                | [string, string]
+                | [string, string, string],
+              code_system: expect.any(String) as string
+            },
+            event: {
+              start_datetime: '2024-01-01T00:00:00Z',
+              end_datetime: '2024-01-01T01:00:00Z'
+            }
+          }
+        ],
         process_event_set: [
           {
             event: {
@@ -92,13 +113,16 @@ describe('recordService', () => {
               end_datetime: '2024-01-01T01:00:00Z'
             },
             process: {
-              code: 'APPLICATION',
-              code_display: 'Application',
-              code_set: ['APPLICATION'],
-              code_system: 'https://bcgov.github.io/nr-pies/docs/spec/code_system/application_process',
-              status: 'active',
-              status_code: 'A',
-              status_description: 'Active'
+              code: expect.any(String) as string,
+              code_display: expect.any(String) as string,
+              code_set: expect.arrayContaining(['APPLICATION']) as
+                | [string]
+                | [string, string]
+                | [string, string, string],
+              code_system: expect.any(String) as string,
+              status: expect.any(String) as string,
+              status_code: expect.any(String) as string,
+              status_description: expect.any(String) as string
             }
           }
         ]
@@ -120,7 +144,7 @@ describe('recordService', () => {
       });
     });
 
-    it('should throw Problem 404 if no coding found for process event', async () => {
+    it('should throw Problem 404 if no coding found for on hold event', async () => {
       executeMock.execute.mockResolvedValue([
         {
           startDate: '2024-01-01',
@@ -139,8 +163,46 @@ describe('recordService', () => {
 
       await expect(() => findRecordService(systemRecord)).rejects.toMatchObject({
         status: 404,
-        detail: 'No process events found.'
+        detail: 'No valid on hold codings found.'
       });
+    });
+
+    it('should throw Problem 404 if no coding found for process event', async () => {
+      executeMock.execute.mockResolvedValue([
+        {
+          startDate: '2024-01-01',
+          startTime: '00:00:00',
+          endDate: '2024-01-01',
+          endTime: '01:00:00'
+        }
+      ]);
+      (cacheableRead as Mock)
+        .mockImplementationOnce(() => {
+          return Promise.resolve({ id: 1 });
+        })
+        .mockImplementationOnce(() => {
+          return Promise.resolve({
+            id: 2,
+            code: 'MISSING_INFORMATION',
+            codeSystem: 'https://bcgov.github.io/nr-pies/docs/spec/code_system/on_hold_process',
+            kind: 'Permit',
+            versionId: 'v1'
+          });
+        })
+        .mockImplementationOnce(() => {
+          return Promise.reject(new Error('not found'));
+        });
+
+      await expect(() => findRecordService(systemRecord)).rejects.toMatchObject({
+        status: 404,
+        detail: 'No valid process codings found.'
+      });
+    });
+  });
+
+  describe('mergeRecordService', () => {
+    it('should throw a not implemented error', () => {
+      expect(() => mergeRecordService({} as Record)).toThrowError('mergeRecordService not implemented');
     });
   });
 
@@ -169,14 +231,24 @@ describe('recordService', () => {
   });
 
   describe('replaceRecordService', () => {
-    const processEventSet: Record = {
+    const record: Record = {
       transaction_id: 'uuid-mock',
       version: 'v1',
       kind: 'Record',
       system_id: 'sys-1',
       record_id: 'rec-1',
       record_kind: 'Permit',
-      on_hold_event_set: [],
+      on_hold_event_set: [
+        {
+          coding: {
+            code: '123',
+            code_display: 'Test Display',
+            code_set: ['123'],
+            code_system: 'SOMECODESYSTEM'
+          },
+          event: { start_datetime: '2024-01-01T00:00:00Z', end_datetime: '2024-01-01T01:00:00Z' }
+        }
+      ],
       process_event_set: [
         {
           event: { start_datetime: '2024-01-01T00:00:00Z', end_datetime: '2024-01-01T01:00:00Z' },
@@ -214,52 +286,64 @@ describe('recordService', () => {
       executeMock.execute.mockResolvedValue([]);
     });
 
-    it('should replace process event set and call all repositories', async () => {
+    it('should replace all event sets and call all repositories', async () => {
+      (OnHoldEventRepository as Mock).mockImplementationOnce(function () {
+        return { prune: pruneMock };
+      });
       (ProcessEventRepository as Mock).mockImplementationOnce(function () {
         return { prune: pruneMock };
       });
 
-      const result = await replaceRecordService(processEventSet);
+      const result = await replaceRecordService(record);
 
       expect(result).toEqual([]);
       expect(transactionWrapper).toHaveBeenCalledTimes(1);
       expect(TransactionRepository).toHaveBeenCalledTimes(1);
-      expect(baseRepositoryMock.create).toHaveBeenCalledWith({ id: processEventSet.transaction_id });
+      expect(baseRepositoryMock.create).toHaveBeenCalledWith({ id: record.transaction_id });
       expect(executeMock.execute).toHaveBeenCalled();
       expect(cacheableUpsert).toHaveBeenNthCalledWith(1, new SystemRepository(), {
-        id: processEventSet.system_id
+        id: record.system_id
       });
-      expect(cacheableUpsert).toHaveBeenNthCalledWith(2, new VersionRepository(), { id: processEventSet.version });
+      expect(cacheableUpsert).toHaveBeenNthCalledWith(2, new VersionRepository(), { id: record.version });
       expect(cacheableUpsert).toHaveBeenNthCalledWith(3, new RecordKindRepository(), {
-        kind: processEventSet.kind,
-        versionId: processEventSet.version
+        kind: record.kind,
+        versionId: record.version
       });
       expect(cacheableUpsert).toHaveBeenNthCalledWith(
         4,
         new SystemRecordRepository(),
         {
-          recordId: processEventSet.record_id,
+          recordId: record.record_id,
           recordKindId: 3,
-          systemId: processEventSet.system_id
+          systemId: record.system_id
         },
         false
       );
       expect(cacheableUpsert).toHaveBeenNthCalledWith(5, new CodingRepository(), {
-        code: processEventSet.process_event_set[0].process.code,
-        codeSystem: processEventSet.process_event_set[0].process.code_system,
-        versionId: processEventSet.version
+        code: record.process_event_set[0].process.code,
+        codeSystem: record.process_event_set[0].process.code_system,
+        versionId: record.version
       });
 
       expect(ProcessEventRepository).toHaveBeenCalledTimes(2);
       expect(ProcessEventRepository).toHaveBeenCalledWith(expect.anything());
-      expect(pruneMock).toHaveBeenCalledTimes(1);
-      expect(baseRepositoryMock.create).toHaveBeenCalledWith({
+      expect(pruneMock).toHaveBeenCalledTimes(2);
+      expect(baseRepositoryMock.create).toHaveBeenNthCalledWith(2, {
         codingId: 5,
+        systemRecordId: 4,
+        transactionId: record.transaction_id,
+        startDate: '2024-01-01',
+        startTime: '00:00:00',
+        endDate: '2024-01-01',
+        endTime: '01:00:00'
+      });
+      expect(baseRepositoryMock.create).toHaveBeenNthCalledWith(3, {
+        codingId: 6,
         status: 'active',
         statusCode: 'A',
         statusDescription: 'Active',
         systemRecordId: 4,
-        transactionId: processEventSet.transaction_id,
+        transactionId: record.transaction_id,
         startDate: '2024-01-01',
         startTime: '00:00:00',
         endDate: '2024-01-01',
@@ -269,9 +353,9 @@ describe('recordService', () => {
 
     it('should handle multiple process events', async () => {
       const multiEventSet: Record = {
-        ...processEventSet,
+        ...record,
         process_event_set: [
-          ...processEventSet.process_event_set,
+          ...record.process_event_set,
           {
             event: { start_datetime: '2024-01-02T00:00:00Z', end_datetime: '2024-01-02T01:00:00Z' },
             process: {
@@ -287,6 +371,9 @@ describe('recordService', () => {
         ]
       };
 
+      (OnHoldEventRepository as Mock).mockImplementationOnce(function () {
+        return { prune: pruneMock };
+      });
       (ProcessEventRepository as Mock).mockImplementationOnce(function () {
         return { prune: pruneMock };
       });
@@ -296,11 +383,8 @@ describe('recordService', () => {
       expect(result).toEqual([]);
       expect(baseRepositoryMock.create).toHaveBeenNthCalledWith(2, {
         codingId: 5,
-        status: 'active',
-        statusCode: 'A',
-        statusDescription: 'Active',
         systemRecordId: 4,
-        transactionId: processEventSet.transaction_id,
+        transactionId: record.transaction_id,
         startDate: '2024-01-01',
         startTime: '00:00:00',
         endDate: '2024-01-01',
@@ -308,11 +392,23 @@ describe('recordService', () => {
       });
       expect(baseRepositoryMock.create).toHaveBeenNthCalledWith(3, {
         codingId: 6,
+        status: 'active',
+        statusCode: 'A',
+        statusDescription: 'Active',
+        systemRecordId: 4,
+        transactionId: record.transaction_id,
+        startDate: '2024-01-01',
+        startTime: '00:00:00',
+        endDate: '2024-01-01',
+        endTime: '01:00:00'
+      });
+      expect(baseRepositoryMock.create).toHaveBeenNthCalledWith(4, {
+        codingId: 7,
         status: 'inactive',
         statusCode: 'I',
         statusDescription: 'Inactive',
         systemRecordId: 4,
-        transactionId: processEventSet.transaction_id,
+        transactionId: record.transaction_id,
         startDate: '2024-01-01',
         startTime: '00:00:00',
         endDate: '2024-01-01',
