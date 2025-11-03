@@ -58,7 +58,7 @@ This section outlines how to quickly set up and run the app locally.
 
 You will need the following installed on your machine before you can proceed:
 
-- Install [Node.js 22 LTS](https://nodejs.org) or higher
+- Install [Node.js 24 LTS](https://nodejs.org) or higher
 - Install [VSCode](https://code.visualstudio.com)
 - Install VSCode [Recommended Extensions](https://code.visualstudio.com/docs/editor/extension-marketplace#_workspace-recommended-extensions)
   - This can be done by searching `@recommended` in the Extensions tab, and then

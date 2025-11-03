@@ -12,7 +12,7 @@ This section outlines how to quickly set up and run k6 locally.
 
 You will need the following installed on your machine before you can proceed:
 
-- Install [Node.js 22 LTS](https://nodejs.org) or higher
+- Install [Node.js 24 LTS](https://nodejs.org) or higher
 - Install [Grafana k6](https://grafana.com/docs/k6/latest/set-up/install-k6/)
 
 ### Dependencies
