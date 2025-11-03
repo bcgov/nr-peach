@@ -4,14 +4,6 @@ import { validateRequestIntegrity, validateRequestSchema } from '../middlewares/
 
 import type { RequestHandler } from 'express';
 
-export const deleteRecordSchemaValidator: RequestHandler = validateRequestSchema({
-  query: {
-    type: 'object',
-    properties: { record_id, system_id },
-    required: ['record_id']
-  }
-});
-
 export const getRecordSchemaValidator: RequestHandler = validateRequestSchema({
   query: {
     type: 'object',
@@ -26,6 +18,14 @@ export const postRecordIntegrityValidator: RequestHandler = validateRequestInteg
 
 export const postRecordSchemaValidator: RequestHandler = validateRequestSchema({
   body: getPiesSchemaUri(pies.spec.message.record)
+});
+
+export const pruneRecordSchemaValidator: RequestHandler = validateRequestSchema({
+  query: {
+    type: 'object',
+    properties: { record_id, system_id },
+    required: ['record_id']
+  }
 });
 
 export const putRecordIntegrityValidator: RequestHandler = validateRequestIntegrity({

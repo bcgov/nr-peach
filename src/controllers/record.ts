@@ -9,15 +9,6 @@ import {
 import type { Request, Response } from 'express';
 import type { Record, SystemRecordQuery } from '../types/index.d.ts';
 
-export const deleteRecordController = async (
-  req: Request<never, never, never, SystemRecordQuery>,
-  res: Response
-): Promise<void> => {
-  const systemRecord = await findSingleSystemRecordService(req.query.record_id, req.query.system_id);
-  await pruneRecordService(systemRecord);
-  res.status(204).end();
-};
-
 export const getRecordController = async (
   req: Request<never, never, never, SystemRecordQuery>,
   res: Response<Record>
@@ -31,6 +22,15 @@ export const postRecordController = async (req: Request<never, never, Record>, r
   await checkDuplicateTransactionHeaderService(req.body.transaction_id);
   await replaceRecordService(req.body);
   res.status(202).end();
+};
+
+export const pruneRecordController = async (
+  req: Request<never, never, never, SystemRecordQuery>,
+  res: Response
+): Promise<void> => {
+  const systemRecord = await findSingleSystemRecordService(req.query.record_id, req.query.system_id);
+  await pruneRecordService(systemRecord);
+  res.status(204).end();
 };
 
 export const putRecordController = async (req: Request<never, never, Record>, res: Response): Promise<void> => {

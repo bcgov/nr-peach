@@ -2,16 +2,16 @@ import express from 'express';
 import request from 'supertest';
 
 import {
-  deleteRecordController,
   getRecordController,
   postRecordController,
+  pruneRecordController,
   putRecordController
 } from '../../../../src/controllers/index.ts';
 import {
-  deleteRecordSchemaValidator,
   getRecordSchemaValidator,
   postRecordIntegrityValidator,
   postRecordSchemaValidator,
+  pruneRecordSchemaValidator,
   putRecordIntegrityValidator,
   putRecordSchemaValidator
 } from '../../../../src/validators/index.ts';
@@ -24,9 +24,9 @@ const app = express();
 app.use(router);
 
 vi.mock('../../../../src/controllers/record.ts', () => ({
-  deleteRecordController: vi.fn((_req, _res, next: NextFunction): void => next()),
   getRecordController: vi.fn((_req, _res, next: NextFunction): void => next()),
   postRecordController: vi.fn((_req, _res, next: NextFunction): void => next()),
+  pruneRecordController: vi.fn((_req, _res, next: NextFunction): void => next()),
   putRecordController: vi.fn((_req, _res, next: NextFunction): void => next())
 }));
 
@@ -39,8 +39,8 @@ describe('Process Routes', () => {
   describe('DELETE /records', () => {
     it('should call the schema validator and controller', async () => {
       await request(app).delete('/records');
-      expect(deleteRecordSchemaValidator).toHaveBeenCalled();
-      expect(deleteRecordController).toHaveBeenCalled();
+      expect(pruneRecordSchemaValidator).toHaveBeenCalled();
+      expect(pruneRecordController).toHaveBeenCalled();
     });
   });
 

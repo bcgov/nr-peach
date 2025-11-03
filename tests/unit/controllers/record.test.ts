@@ -2,7 +2,7 @@ import express from 'express';
 import request from 'supertest';
 
 import {
-  deleteRecordController,
+  pruneRecordController,
   getRecordController,
   postRecordController,
   putRecordController
@@ -28,7 +28,7 @@ describe('Process Controllers', () => {
   beforeEach(() => {
     app = express();
     app.use(express.json());
-    app.delete('/process-events', deleteRecordController);
+    app.delete('/process-events', pruneRecordController);
     app.get('/process-events', getRecordController);
     app.post('/process-events', postRecordController);
     app.put('/process-events', putRecordController);

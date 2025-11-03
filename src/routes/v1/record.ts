@@ -1,16 +1,16 @@
 import { Router } from 'express';
 
 import {
-  deleteRecordController,
   getRecordController,
   postRecordController,
+  pruneRecordController,
   putRecordController
 } from '../../controllers/index.ts';
 import {
-  deleteRecordSchemaValidator,
   getRecordSchemaValidator,
   postRecordIntegrityValidator,
   postRecordSchemaValidator,
+  pruneRecordSchemaValidator,
   putRecordIntegrityValidator,
   putRecordSchemaValidator
 } from '../../validators/index.ts';
@@ -23,10 +23,10 @@ router.get('/records', getRecordSchemaValidator, getRecordController);
 /** Post Process Events */
 router.post('/records', postRecordSchemaValidator, postRecordIntegrityValidator, postRecordController);
 
+/** Prune Process Events */
+router.delete('/records', pruneRecordSchemaValidator, pruneRecordController);
+
 /** Put Process Events */
 router.put('/records', putRecordSchemaValidator, putRecordIntegrityValidator, putRecordController);
-
-/** Delete Process Events */
-router.delete('/records', deleteRecordSchemaValidator, deleteRecordController);
 
 export default router;
