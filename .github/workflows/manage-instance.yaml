@@ -27,8 +27,8 @@ jobs:
   infra:
     name: Instance Infra ${{ github.event.inputs.manage_action }}
     concurrency:
-      group: instance-infra-${{ github.event.number || 'latest' }}
-      cancel-in-progress: false # Terraform deployments should not be interrupted
+      group: instance-infra-${{ github.workflow }}-${{ github.ref_name }}
+      cancel-in-progress: false # Do not interrupt terraform deployments
     uses: ./.github/workflows/.instance-deployer.yaml
     permissions:
       contents: write # This is required for actions/checkout

@@ -17,8 +17,8 @@ jobs:
     name: Deploy Instance
     if: github.event.pull_request.state == 'open' && contains(github.event.pull_request.labels.*.name, 'deploy')
     concurrency:
-      group: deploy-pr-${{ github.event.number || 'latest' }}
-      cancel-in-progress: false # Terraform deployments should not be interrupted
+      group: deploy-pr-${{ github.workflow }}-${{ github.ref_name }}
+      cancel-in-progress: false # Do not interrupt terraform deployments
     uses: ./.github/workflows/.instance-deployer.yaml
     permissions:
       contents: write # This is required for actions/checkout
@@ -33,8 +33,8 @@ jobs:
     name: Destroy Instance
     if: github.event.pull_request.state == 'closed' || github.event.action == 'unlabeled' && github.event.label.name == 'deploy'
     concurrency:
-      group: deploy-pr-${{ github.event.number || 'latest' }}
-      cancel-in-progress: false # Terraform deployments should not be interrupted
+      group: deploy-pr-${{ github.workflow }}-${{ github.ref_name }}
+      cancel-in-progress: false # Do not interrupt terraform deployments
     uses: ./.github/workflows/.instance-deployer.yaml
     permissions:
       contents: write # This is required for actions/checkout
