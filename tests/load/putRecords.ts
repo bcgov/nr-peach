@@ -6,7 +6,7 @@ import { generateRecord, options as k6opts } from './helpers/index.ts';
 /**
  * 1. Initialization
  */
-const API_PROCESS_EVENT = '/api/v1/process-events';
+const API_PROCESS_EVENT = '/api/v1/records';
 const BASE_URL = 'http://localhost:3000';
 
 export const options = k6opts;
@@ -23,7 +23,7 @@ export const options = k6opts;
  * 3. VU Execution
  */
 export default function () {
-  const body = generateRecord(1111); // Add a number argument to pin the ITSM identifier if needed
+  const body = generateRecord(5917); // Add a number argument to pin the ITSM identifier if needed
   const res = http.put(`${BASE_URL}${API_PROCESS_EVENT}`, JSON.stringify(body), {
     headers: {
       'Content-Type': 'application/json'

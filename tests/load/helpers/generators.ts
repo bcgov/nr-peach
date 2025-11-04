@@ -1,7 +1,22 @@
 import { randomIntBetween, randomItem, uniqByKeepFirst, uuidv7 } from './utils.ts';
 import { CodingDictionary } from '../../../src/utils/coding.ts';
 
-import type { Event, Process, ProcessEvent, Record } from '../../../src/types/elements.d.ts';
+import type { Coding, CodingEvent, Event, Process, ProcessEvent, Record } from '../../../src/types/elements.d.ts';
+
+/**
+ * Generates a mock `Coding` object with sample data.
+ * @returns A populated `Coding` containing example coding data.
+ */
+export function generateCoding(): Coding {
+  const codeSystem = 'https://bcgov.github.io/nr-pies/docs/spec/code_system/on_hold_process';
+  const code = randomItem(Object.entries(CodingDictionary[codeSystem]));
+  return {
+    code: code[0],
+    code_display: code[1].display,
+    code_set: code[1].codeSet,
+    code_system: codeSystem
+  };
+}
 
 /**
  * Generates a mock `Event` object with sample data.
@@ -24,6 +39,17 @@ export function generateEvent(): Event {
   }
 
   return event;
+}
+
+/**
+ * Generates a mock `OnHoldEvent` object for testing purposes.
+ * @returns A populated `OnHoldEvent` mock on-hold event object.
+ */
+export function generateOnHoldEvent(): CodingEvent {
+  return {
+    coding: generateCoding(),
+    event: generateEvent()
+  };
 }
 
 /**
@@ -58,6 +84,10 @@ export function generateProcessEvent(): ProcessEvent {
  * @returns A populated `Record` containing example process events for testing or development purposes.
  */
 export function generateRecord(itsm?: number): Record {
+  const onHoldEvents: CodingEvent[] = [];
+  for (let count = 0; count < randomIntBetween(1, 3); count++) {
+    onHoldEvents.push(generateOnHoldEvent());
+  }
   const processEvents: ProcessEvent[] = [];
   for (let count = 0; count < randomIntBetween(1, 5); count++) {
     processEvents.push(generateProcessEvent());
@@ -70,7 +100,7 @@ export function generateRecord(itsm?: number): Record {
     system_id: `ITSM-${itsm ? itsm.toString() : randomIntBetween(1000, 99999).toString()}`,
     record_id: uuidv7(),
     record_kind: 'Permit',
-    on_hold_event_set: [],
+    on_hold_event_set: uniqByKeepFirst(onHoldEvents, (item) => item.coding.code),
     process_event_set: uniqByKeepFirst(processEvents, (item) => item.process.code) as [ProcessEvent, ...ProcessEvent[]]
   };
 }
