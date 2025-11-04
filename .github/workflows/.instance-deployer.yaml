@@ -144,7 +144,7 @@ jobs:
         run: |
           # Initialize Terraform
           set -euo pipefail
-          terraform init -upgrade \
+          terraform init -upgrade -reconfigure \
             -backend-config="resource_group_name=${{ secrets.VNET_RESOURCE_GROUP_NAME }}" \
             -backend-config="storage_account_name=tfstatenrpeach$INPUT_ENVIRONMENT" \
             -backend-config="subscription_id=${{ secrets.AZURE_SUBSCRIPTION_ID }}" \
