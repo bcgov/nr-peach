@@ -9,6 +9,7 @@ import {
 } from './helpers/index.ts';
 import {
   CodingRepository,
+  OnHoldEventRepository,
   ProcessEventRepository,
   RecordKindRepository,
   SystemRepository,
@@ -20,36 +21,25 @@ import { CodingDictionary, getLogger, Problem } from '../utils/index.ts';
 
 import type { DeleteResult, Selectable } from 'kysely';
 import type {
+  Coding,
+  CodingEvent,
   Header,
   PiesProcessEvent,
   PiesSystemRecord,
   Process,
   ProcessEvent,
-  ProcessEventSet
+  Record
 } from '../types/index.d.ts';
 
 const log = getLogger(import.meta.filename);
 
 /**
- * Deletes the process event set for the given system record.
- * @param systemRecord - The system record for which to delete the process event set.
- * @returns A Promise that resolves when the operation is complete.
- */
-export const deleteProcessEventSetService = async (
-  systemRecord: Selectable<PiesSystemRecord>
-): Promise<readonly DeleteResult[]> => {
-  return transactionWrapper(async (trx) => {
-    return await new ProcessEventRepository(trx).prune(systemRecord.id).execute();
-  });
-};
-
-/**
- * Retrieves the process event set for the given system record.
- * @param systemRecord - The system record for which to retrieve the process event set.
- * @returns A Promise that resolves to the process event set for the given system record.
+ * Retrieves the record for the given system record.
+ * @param systemRecord - The system record for which to retrieve the record.
+ * @returns A Promise that resolves to the record for the given system record.
  * @throws {Problem} 404 if no process events are found.
  */
-export const findProcessEventSetService = (systemRecord: Selectable<PiesSystemRecord>): Promise<ProcessEventSet> => {
+export const findRecordService = (systemRecord: Selectable<PiesSystemRecord>): Promise<Record> => {
   return transactionWrapper(
     async (trx) => {
       const recordKind = await cacheableRead(new RecordKindRepository(trx), systemRecord.recordKindId).catch(
@@ -68,6 +58,34 @@ export const findProcessEventSetService = (systemRecord: Selectable<PiesSystemRe
         throw new Problem(404, { detail: 'No process events found.' });
       }
 
+      const onHoldEventsRaw = await new OnHoldEventRepository(trx)
+        .findBy({ systemRecordId: systemRecord.id })
+        .execute();
+
+      const onHoldEvents: CodingEvent[] = await Promise.all(
+        onHoldEventsRaw.map(async (pe) => {
+          const event = dateTimePartsToEvent({
+            startDate: pe.startDate,
+            startTime: pe.startTime ?? undefined,
+            endDate: pe.endDate ?? undefined,
+            endTime: pe.endTime ?? undefined
+          });
+
+          const codingRaw = await cacheableRead(new CodingRepository(trx), pe.codingId).catch((error) => {
+            log.warn(`No coding found for on hold events, ${error}`);
+            throw new Problem(404, { detail: 'No valid on hold codings found.' });
+          });
+
+          const coding: Coding = {
+            code: codingRaw.code,
+            code_display: CodingDictionary[codingRaw.codeSystem][codingRaw.code].display,
+            code_set: CodingDictionary[codingRaw.codeSystem][codingRaw.code].codeSet,
+            code_system: codingRaw.codeSystem
+          };
+          return { coding, event } satisfies CodingEvent;
+        })
+      );
+
       const processEvents: ProcessEvent[] = await Promise.all(
         processEventsRaw.map(async (pe) => {
           const event = dateTimePartsToEvent({
@@ -79,7 +97,7 @@ export const findProcessEventSetService = (systemRecord: Selectable<PiesSystemRe
 
           const coding = await cacheableRead(new CodingRepository(trx), pe.codingId).catch((error) => {
             log.warn(`No coding found for process events, ${error}`);
-            throw new Problem(404, { detail: 'No process events found.' });
+            throw new Problem(404, { detail: 'No valid process codings found.' });
           });
 
           const process: Process = {
@@ -98,30 +116,45 @@ export const findProcessEventSetService = (systemRecord: Selectable<PiesSystemRe
       return {
         transaction_id: uuidv7(),
         version: recordKind.versionId,
-        kind: 'ProcessEventSet',
+        kind: 'Record',
         system_id: systemRecord.systemId,
         record_id: systemRecord.recordId,
         record_kind: recordKind.kind as Header['record_kind'],
-        process_event: processEvents as [ProcessEvent, ...ProcessEvent[]]
-      } satisfies ProcessEventSet;
+        on_hold_event_set: onHoldEvents,
+        process_event_set: processEvents as [ProcessEvent, ...ProcessEvent[]]
+      } satisfies Record;
     },
     { accessMode: 'read only' }
   );
 };
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-export const mergeProcessEventSetService = (data: ProcessEventSet): Promise<void> => {
-  throw new Error('mergeProcessEventSetService not implemented');
+export const mergeRecordService = (data: Record): Promise<void> => {
+  throw new Error('mergeRecordService not implemented');
 };
 
 /**
- * Replaces the process event set for the given system record.
- * @param data - The process event set to replace.
+ * Prunes the record for the given system record.
+ * @param systemRecord - The system record to prune.
+ * @returns A Promise that resolves when the operation is complete.
+ */
+export const pruneRecordService = async (
+  systemRecord: Selectable<PiesSystemRecord>
+): Promise<readonly DeleteResult[][]> => {
+  return transactionWrapper(async (trx) => {
+    return await Promise.all([
+      new OnHoldEventRepository(trx).prune(systemRecord.id).execute(),
+      new ProcessEventRepository(trx).prune(systemRecord.id).execute()
+    ]);
+  });
+};
+
+/**
+ * Replaces the record for the given system record.
+ * @param data - The record to replace.
  * @returns A promise that resolves when the operation is complete.
  */
-export const replaceProcessEventSetService = (
-  data: ProcessEventSet
-): Promise<readonly Selectable<PiesProcessEvent>[]> => {
+export const replaceRecordService = (data: Record): Promise<readonly Selectable<PiesProcessEvent>[]> => {
   return transactionWrapper(async (trx) => {
     // Update atomic fact tables
     await Promise.all([
@@ -144,29 +177,50 @@ export const replaceProcessEventSetService = (
       false // LRU caching is not very beneficial for this operation
     );
 
-    // Prune existing process events for the system record
-    await new ProcessEventRepository(trx).prune(systemRecord.id).execute();
+    // Prune existing on hold and process events for the system record
+    await Promise.all([
+      new OnHoldEventRepository(trx).prune(systemRecord.id).execute(),
+      new ProcessEventRepository(trx).prune(systemRecord.id).execute()
+    ]);
+
+    // Insert new on hold events
+    await Promise.all(
+      data.on_hold_event_set.map(async (ce) => {
+        const coding = await cacheableUpsert(new CodingRepository(trx), {
+          code: ce.coding.code,
+          codeSystem: ce.coding.code_system,
+          versionId: data.version
+        });
+
+        return await new OnHoldEventRepository(trx)
+          .create({
+            codingId: coding.id,
+            systemRecordId: systemRecord.id,
+            transactionId: data.transaction_id,
+            ...eventToDateTimeParts(ce.event)
+          })
+          .execute();
+      })
+    ).then((ohes) => ohes.flatMap((pe) => pe));
 
     // Insert new process events
     return await Promise.all(
-      data.process_event.map(async (pe) => {
-        const { event, process } = pe;
-
+      data.process_event_set.map(async (pe) => {
         const coding = await cacheableUpsert(new CodingRepository(trx), {
-          code: process.code,
-          codeSystem: process.code_system,
+          code: pe.process.code,
+          codeSystem: pe.process.code_system,
           versionId: data.version
         });
 
         return await new ProcessEventRepository(trx)
           .create({
             codingId: coding.id,
-            status: process.status,
-            statusCode: process.status_code,
-            statusDescription: process.status_description,
+            status: pe.process.status,
+            statusCode: pe.process.status_code,
+            statusDescription: pe.process.status_description,
             systemRecordId: systemRecord.id,
             transactionId: data.transaction_id,
-            ...eventToDateTimeParts(event)
+            ...eventToDateTimeParts(pe.event)
           })
           .execute();
       })

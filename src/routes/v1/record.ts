@@ -1,29 +1,32 @@
 import { Router } from 'express';
 
-import { Problem } from '../../utils/index.ts';
 import {
-  deleteRecordLinkagesSchemaValidator,
-  getRecordLinkagesSchemaValidator,
-  putRecordLinkagesSchemaValidator
+  getRecordController,
+  postRecordController,
+  pruneRecordController,
+  putRecordController
+} from '../../controllers/index.ts';
+import {
+  getRecordSchemaValidator,
+  postRecordIntegrityValidator,
+  postRecordSchemaValidator,
+  pruneRecordSchemaValidator,
+  putRecordIntegrityValidator,
+  putRecordSchemaValidator
 } from '../../validators/index.ts';
-
-import type { Request, Response } from 'express';
 
 const router = Router();
 
-/** Get Record Linkages */
-router.get('/record-linkages', getRecordLinkagesSchemaValidator, (req: Request, res: Response): void => {
-  new Problem(501).send(req, res);
-});
+/** Get Process Events */
+router.get('/records', getRecordSchemaValidator, getRecordController);
 
-/** Put Record Linkages */
-router.put('/record-linkages', putRecordLinkagesSchemaValidator, (req: Request, res: Response): void => {
-  new Problem(501).send(req, res);
-});
+/** Post Process Events */
+router.post('/records', postRecordSchemaValidator, postRecordIntegrityValidator, postRecordController);
 
-/** Delete Record Linkages */
-router.delete('/record-linkages', deleteRecordLinkagesSchemaValidator, (req: Request, res: Response): void => {
-  new Problem(501).send(req, res);
-});
+/** Prune Process Events */
+router.delete('/records', pruneRecordSchemaValidator, pruneRecordController);
+
+/** Put Process Events */
+router.put('/records', putRecordSchemaValidator, putRecordIntegrityValidator, putRecordController);
 
 export default router;

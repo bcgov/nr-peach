@@ -4,8 +4,8 @@ import type {
   IntegrityDictionary,
   IntegrityError,
   IntegrityValidator,
-  ProcessEventSet,
-  RecordLinkage
+  Record as PiesRecord,
+  RecordLinkage as PiesRecordLinkage
 } from '../../types/index.d.ts';
 
 /** Defines immutable, idempotent integrity definitions mapping keys to values in `IntegrityDictionary`. */
@@ -21,8 +21,8 @@ export const integrityValidators: IntegrityValidator<IntegrityDictionary> = {
    * @param data - The `ProcessEventSet` object to validate.
    * @returns An `IntegrityResult` indicating whether the validation was successful and any errors encountered.
    */
-  processEventSet: (data: ProcessEventSet) => {
-    const errors: IntegrityError[] = [...auditHeader(data), ...auditProcessEvent(data.process_event)];
+  processEventSet: (data: PiesRecord) => {
+    const errors: IntegrityError[] = [...auditHeader(data), ...auditProcessEvent(data.process_event_set)];
 
     return { valid: !errors.length, errors: errors.length ? errors : undefined };
   },
@@ -32,7 +32,7 @@ export const integrityValidators: IntegrityValidator<IntegrityDictionary> = {
    * @param data - The `RecordLinkage` object to validate.
    * @returns An `IntegrityResult` indicating whether the validation was successful and any errors encountered.
    */
-  recordLinkage: (data: RecordLinkage) => {
+  recordLinkage: (data: PiesRecordLinkage) => {
     const errors: IntegrityError[] = [...auditHeader(data)];
 
     return { valid: !errors.length, errors: errors.length ? errors : undefined };

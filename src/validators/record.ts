@@ -1,36 +1,37 @@
+import { IntegrityDefinitions } from './integrity/index.ts';
 import { getPiesSchemaUri, pies, record_id, system_id } from './schema/index.ts';
-import { validateRequestSchema } from '../middlewares/index.ts';
+import { validateRequestIntegrity, validateRequestSchema } from '../middlewares/index.ts';
 
 import type { RequestHandler } from 'express';
 
-export const deleteRecordLinkagesSchemaValidator: RequestHandler = validateRequestSchema({
+export const getRecordSchemaValidator: RequestHandler = validateRequestSchema({
   query: {
     type: 'object',
-    properties: {
-      record_id,
-      system_id,
-      linked_record_id: record_id,
-      linked_system_id: system_id
-    },
-    required: ['record_id', 'linked_record_id']
-  }
-});
-
-export const getRecordLinkagesSchemaValidator: RequestHandler = validateRequestSchema({
-  query: {
-    type: 'object',
-    properties: {
-      record_id,
-      system_id,
-      depth: {
-        type: 'integer',
-        minimum: -1
-      }
-    },
+    properties: { record_id, system_id },
     required: ['record_id']
   }
 });
 
-export const putRecordLinkagesSchemaValidator: RequestHandler = validateRequestSchema({
-  body: getPiesSchemaUri(pies.spec.message.recordLinkage)
+export const postRecordIntegrityValidator: RequestHandler = validateRequestIntegrity({
+  body: IntegrityDefinitions.processEventSet
+});
+
+export const postRecordSchemaValidator: RequestHandler = validateRequestSchema({
+  body: getPiesSchemaUri(pies.spec.message.record)
+});
+
+export const pruneRecordSchemaValidator: RequestHandler = validateRequestSchema({
+  query: {
+    type: 'object',
+    properties: { record_id, system_id },
+    required: ['record_id']
+  }
+});
+
+export const putRecordIntegrityValidator: RequestHandler = validateRequestIntegrity({
+  body: IntegrityDefinitions.processEventSet
+});
+
+export const putRecordSchemaValidator: RequestHandler = validateRequestSchema({
+  body: getPiesSchemaUri(pies.spec.message.record)
 });

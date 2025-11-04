@@ -183,6 +183,30 @@ export async function up(db: Kysely<unknown>): Promise<void> {
   await createUpdatedAtTrigger(db, 'pies', 'system_record');
   await createAuditLogTrigger(db, 'pies', 'system_record');
 
+  // pies.on_hold_event
+  await db.schema
+    .withSchema('pies')
+    .createTable('on_hold_event')
+    .addColumn('id', 'integer', (col) => col.primaryKey().generatedAlwaysAsIdentity())
+    .addColumn('transaction_id', 'uuid', (col) =>
+      col.notNull().references('transaction.id').onUpdate('cascade').onDelete('cascade')
+    )
+    .addColumn('system_record_id', 'integer', (col) =>
+      col.notNull().references('system_record.id').onUpdate('cascade').onDelete('cascade')
+    )
+    .addColumn('start_date', 'date', (col) => col.notNull())
+    .addColumn('start_time', 'timetz')
+    .addColumn('end_date', 'date')
+    .addColumn('end_time', 'timetz')
+    .addColumn('coding_id', 'integer', (col) =>
+      col.notNull().references('coding.id').onUpdate('cascade').onDelete('cascade')
+    )
+    .$call(withTimestamps)
+    .execute();
+  await createIndex(db, 'pies', 'on_hold_event', ['system_record_id']);
+  await createUpdatedAtTrigger(db, 'pies', 'on_hold_event');
+  await createAuditLogTrigger(db, 'pies', 'on_hold_event');
+
   // pies.process_event
   await db.schema
     .withSchema('pies')
@@ -255,6 +279,12 @@ export async function down(db: Kysely<unknown>): Promise<void> {
   await dropUpdatedAtTrigger(db, 'pies', 'process_event');
   await dropIndex(db, 'pies', 'process_event', ['system_record_id']);
   await db.schema.withSchema('pies').dropTable('process_event').execute();
+
+  // pies.on_hold_event
+  await dropAuditLogTrigger(db, 'pies', 'on_hold_event');
+  await dropUpdatedAtTrigger(db, 'pies', 'on_hold_event');
+  await dropIndex(db, 'pies', 'on_hold_event', ['system_record_id']);
+  await db.schema.withSchema('pies').dropTable('on_hold_event').execute();
 
   // pies.system_record
   await dropAuditLogTrigger(db, 'pies', 'system_record');

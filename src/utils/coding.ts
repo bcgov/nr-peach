@@ -98,5 +98,23 @@ export const CodingDictionary: Record<
       codeSet: ['APPLICATION', 'WITHDRAWN'],
       display: 'Withdrawn'
     }
+  },
+  'https://bcgov.github.io/nr-pies/docs/spec/code_system/on_hold_process': {
+    CLIENT_REQUEST: {
+      codeSet: ['CLIENT_REQUEST'],
+      display: 'Client Request'
+    },
+    LEGAL_ACTION: {
+      codeSet: ['LEGAL_ACTION'],
+      display: 'Legal Action'
+    },
+    MISSING_INFORMATION: {
+      codeSet: ['MISSING_INFORMATION'],
+      display: 'Missing Information'
+    },
+    PENDING_EXTERNAL_DECISION: {
+      codeSet: ['PENDING_EXTERNAL_DECISION'],
+      display: 'Pending External Decision'
+    }
   }
 });

@@ -16,12 +16,12 @@ security:
   - BearerAuth: []
     OpenID: []
 tags:
-  - name: Processes
-    description: Operations for managing Process Events.
+  - name: Linkages
+    description: Operations for managing Record Linkages.
     externalDocs:
-      url: https://github.com/bcgov/nr-peach/wiki/Endpoint-Notes#processes
+      url: https://github.com/bcgov/nr-peach/wiki/Endpoint-Notes#linkages
   - name: Records
-    description: Operations for managing Records and Record Linkages.
+    description: Operations for managing Records.
     externalDocs:
       url: https://github.com/bcgov/nr-peach/wiki/Endpoint-Notes#records
   - name: Systems
@@ -29,13 +29,13 @@ tags:
     externalDocs:
       url: https://github.com/bcgov/nr-peach/wiki/Endpoint-Notes#systems
 paths:
-  /process-events:
+  /records:
     get:
-      summary: List ProcessEvents for a specific system record
-      description: Retrieves a set of all known ProcessEvents associated with a record.
-      operationId: getProcessEvents
+      summary: List Events for a specific system record
+      description: Retrieves a set of all known Events associated with a record.
+      operationId: getRecords
       tags:
-        - Processes
+        - Records
       parameters:
         - $ref: '#/components/parameters/Query-RecordId-Required'
         - $ref: '#/components/parameters/Query-SystemId'
@@ -46,7 +46,7 @@ paths:
             application/json:
               schema:
                 $ref: >-
-                  https://raw.githubusercontent.com/bcgov/nr-pies/refs/heads/main/docs/spec/element/message/process_event_set.schema.json
+                  https://raw.githubusercontent.com/bcgov/nr-pies/refs/heads/main/docs/spec/element/message/record.schema.json
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
@@ -60,18 +60,18 @@ paths:
         default:
           $ref: '#/components/responses/Error'
     post:
-      summary: Add and merge ProcessEvents for a specific system record
-      description: Adds and merges all known ProcessEvents associated with a record.
-      operationId: postProcessEvents
+      summary: Add and merge Events for a specific system record
+      description: Adds and merges all known Events associated with a record.
+      operationId: postRecords
       tags:
-        - Processes
+        - Records
       requestBody:
         required: true
         content:
           application/json:
             schema:
               $ref: >-
-                https://raw.githubusercontent.com/bcgov/nr-pies/refs/heads/main/docs/spec/element/message/process_event_set.schema.json
+                https://raw.githubusercontent.com/bcgov/nr-pies/refs/heads/main/docs/spec/element/message/record.schema.json
       responses:
         '202':
           description: >-
@@ -90,18 +90,18 @@ paths:
         default:
           $ref: '#/components/responses/Error'
     put:
-      summary: Assert ProcessEvents for a specific system record
-      description: Replaces all known ProcessEvents associated with a record.
-      operationId: putProcessEvents
+      summary: Assert Events for a specific system record
+      description: Replaces all known Events associated with a record.
+      operationId: putRecords
       tags:
-        - Processes
+        - Records
       requestBody:
         required: true
         content:
           application/json:
             schema:
               $ref: >-
-                https://raw.githubusercontent.com/bcgov/nr-pies/refs/heads/main/docs/spec/element/message/process_event_set.schema.json
+                https://raw.githubusercontent.com/bcgov/nr-pies/refs/heads/main/docs/spec/element/message/record.schema.json
       responses:
         '201':
           description: Created - Added a new Record with the associated ProcessEvents
@@ -118,11 +118,11 @@ paths:
         default:
           $ref: '#/components/responses/Error'
     delete:
-      summary: Delete all ProcessEvents for a specific system record
-      description: Deletes all known ProcessEvents associated with a record.
-      operationId: deleteProcessEvents
+      summary: Prune all Events for a specific system record
+      description: Deletes all known Events associated with a record.
+      operationId: pruneRecords
       tags:
-        - Processes
+        - Records
       parameters:
         - $ref: '#/components/parameters/Query-RecordId-Required'
         - $ref: '#/components/parameters/Query-SystemId'
@@ -149,7 +149,7 @@ paths:
         record.
       operationId: getRecordLinkages
       tags:
-        - Records
+        - Linkages
       parameters:
         - $ref: '#/components/parameters/Query-RecordId-Required'
         - $ref: '#/components/parameters/Query-SystemId'
@@ -181,7 +181,7 @@ paths:
       description: Adds RecordLinkages associated with a record.
       operationId: putRecordLinkages
       tags:
-        - Records
+        - Linkages
       requestBody:
         required: true
         content:
@@ -209,7 +209,7 @@ paths:
       description: Deletes a specific RecordLinkage associated with a record.
       operationId: deleteRecordLinkages
       tags:
-        - Records
+        - Linkages
       parameters:
         - $ref: '#/components/parameters/Query-RecordId-Required'
         - $ref: '#/components/parameters/Query-SystemId'

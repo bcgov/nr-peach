@@ -67,11 +67,11 @@ The following tests are currently available:
 > The following commands assume your current terminal directory is at this folder (`/tests/load`).
 
 ```sh
-k6 run getProcessEventSet.ts
+k6 run getRecords.ts
 ```
 
 ```sh
-k6 run putProcessEventSet.ts
+k6 run putRecords.ts
 ```
 
 The tests will automatically connect to the local instance of the app.
