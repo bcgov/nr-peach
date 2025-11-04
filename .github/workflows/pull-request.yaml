@@ -27,7 +27,7 @@ jobs:
     with:
       command: apply
       environment: test # TODO: Set default to dev when we have our real environments
-      tag: ${{ github.sha }}
+      tag: ${{ github.event.pull_request.head.sha }}
 
   destroy:
     name: Destroy Instance
