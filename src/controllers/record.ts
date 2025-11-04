@@ -1,8 +1,8 @@
 import {
   checkDuplicateTransactionHeaderService,
-  pruneRecordService,
   findRecordService,
   findSingleSystemRecordService,
+  pruneRecordService,
   replaceRecordService
 } from '../services/index.ts';
 

@@ -2,9 +2,9 @@ import express from 'express';
 import request from 'supertest';
 
 import {
-  pruneRecordController,
   getRecordController,
   postRecordController,
+  pruneRecordController,
   putRecordController
 } from '../../../src/controllers/record.ts';
 import * as services from '../../../src/services/index.ts';
