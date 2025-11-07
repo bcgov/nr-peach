@@ -1,6 +1,6 @@
 # Infrastructure
 
-This readme outlines the general cloud infrastructure as code used by nr-peach. It is mainly structured for the Azure
+This readme outlines the general cloud infrastructure as code used by nr-peach. It is primarily structured for the Azure
 Cloud environment.
 
 ## Overview
@@ -27,32 +27,16 @@ can be used to manage the infrastructure below.
 
 ## Prerequisites
 
+The following tools are required to install and maintain the cloud infrastructure:
+
 - [Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli)
+- [GitHub CLI](https://cli.github.com)
 - [Terraform](https://www.terraform.io/downloads.html)
 - [TFLint](https://github.com/terraform-linters/tflint)
 
-## Repository Setup
+## CLI Tool Login
 
-Before any of the automated infrastructure CI/CD will run, you will need to run the `initial-azure-setup.sh` script.
-This can be found in the `bcgov/quickstart-azure-containers` repository as
-[initial-azure-setup.sh](https://github.com/bcgov/quickstart-azure-containers/blob/main/initial-azure-setup.sh). Please
-take some time familiarizing yourself with what this script does first prior to running it. Upon execution, it will
-create and manage all of the necessary permissions, secrets and configuration for the pipeline automations to function.
-
-```sh
-# General script help documentation
-curl -sSL https://raw.githubusercontent.com/bcgov/quickstart-azure-containers/refs/heads/main/initial-azure-setup.sh | bash -s -- -help
-
-# Example invocation for test environment
-curl -sSL https://raw.githubusercontent.com/bcgov/quickstart-azure-containers/refs/heads/main/initial-azure-setup.sh | bash -s ---g "123456-test-networking" -n "nr-peach-test-identity" -r "bcgov/nr-peach" -e "test" -
--create-storage --create-github-secrets
-```
-
-You will also need to manually enter in the `VNET_ADDRESS_SPACE` into the Github environment secrets, as this is not
-done by the script. This can be found by inspecting your subscription in the Azure portal.
-
-## Azure Login
-
+First login to your Azure subscription. You can choose the subscription you will be interacting with interactively.
 Remember to change directories between core and instance as needed.
 
 ```sh
@@ -60,6 +44,67 @@ az login
 az account set --subscription "<existing-subscription-id>"
 export ARM_SUBSCRIPTION_ID=$(az account show --query id -o tsv)
 ```
+
+Then proceed with logging into your GitHub account with the following interactive command:
+
+```sh
+gh auth login
+```
+
+## Repository Environment Setup
+
+Before any of the automated infrastructure CI/CD will run, you will need to run the `initial-azure-setup.sh` script.
+This can be found in the `bcgov/quickstart-azure-containers` repository as
+[initial-azure-setup.sh](https://github.com/bcgov/quickstart-azure-containers/blob/main/initial-azure-setup.sh). Please
+take some time familiarizing yourself with what this script does first prior to running it. Upon execution, it will
+create and manage all of the necessary permissions, secrets and configuration for the pipeline automations to function.
+
+> [!NOTE]
+> It is strongly recommended that you have group ownership permissions on the `DO_PuC_Azure_Live_*` security groups for
+> your subscription set. While it is possible to set up without them, you will need to perform extra manual steps with
+> the help of your product owner or technical lead in order to properly allocate and assign permissions to the newly
+> generated service account.
+
+```sh
+# General script help documentation
+curl -sSL https://raw.githubusercontent.com/bcgov/quickstart-azure-containers/refs/heads/main/initial-azure-setup.sh | bash -s -- -help
+
+# Example invocation for test environment
+curl -sSL https://raw.githubusercontent.com/bcgov/quickstart-azure-containers/refs/heads/main/initial-azure-setup.sh | bash -s -- -g "123456-test-networking" -n "nr-peach-test-identity" -r "bcgov/nr-peach" -e "test" --create-storage --create-github-secrets
+```
+
+You will also need to manually enter in the `VNET_ADDRESS_SPACE` into the Github environment secrets, as this is not
+done by the script. The address space value can be found by inspecting your subscription in the Azure portal, or with
+the following command:
+
+```sh
+# Example invocation for test environment network
+az network vnet show --name 123456-test-vwan-spoke --resource-group 123456-test-networking --query "addressSpace.addressPrefixes" -o tsv
+```
+
+You should see some kind of IPv4 address with a `/24` postfixed to it in the output.
+
+Once you have completed these steps, check your new GitHub environment and make sure the following have been populated
+under environment secrets:
+
+- `AZURE_CLIENT_ID`
+- `AZURE_SUBSCRIPTION_ID`
+- `AZURE_TENANT_ID`
+- `VNET_ADDRESS_SPACE`
+- `VNET_NAME`
+- `VNET_RESOURCE_GROUP_NAME`
+
+Also check to make sure that the environment variables below have been populated:
+
+- `STORAGE_ACCOUNT_NAME`
+
+## GitHub Actions Management
+
+Under the GitHub Actions tab on the nr-peach repository, you should see two pinned workflows: `Manage Core Infra` and
+`Manage Instance Infra`. These workflows allow you and your team to manually invoke Terraform operations to manage the
+infrastructure. Most of the time, you will not need to do this as the general pipelines should take care of things.
+However, there will be situations where you will need to manually facilitate a deployment, which can be done via these
+actions.
 
 ## Terraform Linting
 
