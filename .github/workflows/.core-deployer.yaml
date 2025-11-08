@@ -22,12 +22,13 @@ on:
 env:
   AZURE_REGION: Canada Central
   INPUT_COMMAND: ${{ inputs.command }}
-  INPUT_ENVIRONMENT: ${{ inputs.environment }}
   TF_LOG: ERROR
 
 jobs:
   infra:
     name: ${{ inputs.environment }} ${{ inputs.command }}
+    environment:
+      name: ${{ inputs.environment }}
     permissions:
       contents: write # This is required for actions/checkout
       id-token: write # This is required for requesting the JWT
@@ -86,7 +87,7 @@ jobs:
           set -euo pipefail
           terraform init -upgrade \
             -backend-config="resource_group_name=${{ secrets.VNET_RESOURCE_GROUP_NAME }}" \
-            -backend-config="storage_account_name=tfstatenrpeach$INPUT_ENVIRONMENT" \
+            -backend-config="storage_account_name=${{ vars.STORAGE_ACCOUNT_NAME }}" \
             -backend-config="subscription_id=${{ secrets.AZURE_SUBSCRIPTION_ID }}" \
             -backend-config="tenant_id=${{ secrets.AZURE_TENANT_ID }}" \
             -backend-config="client_id=${{ secrets.AZURE_CLIENT_ID }}" \

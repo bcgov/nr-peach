@@ -6,12 +6,12 @@ on:
       environment:
         description: 'The environment (dev, test, prod) to act on. BE CAREFUL HERE!'
         required: true
-        default: test # TODO: Set default to dev when we have our real environments
+        default: dev
         type: choice
         options:
-          # - dev # TODO: Uncomment when we have our real environments
+          - dev
           - test
-          # - prod # TODO: Uncomment when we have our real environments
+          # - prod # TODO: Uncomment when we have prod provisioned
       manage_action:
         description: 'The management action to perform on the core infrastructure.'
         required: true

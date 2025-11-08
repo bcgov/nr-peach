@@ -26,7 +26,7 @@ jobs:
     secrets: inherit
     with:
       command: apply
-      environment: test # TODO: Set default to dev when we have our real environments
+      environment: dev
       tag: ${{ github.event.pull_request.head.sha }}
 
   destroy:
@@ -42,5 +42,5 @@ jobs:
     secrets: inherit
     with:
       command: destroy
-      environment: test # TODO: Set default to dev when we have our real environments
+      environment: dev
       tag: ${{ github.sha }}

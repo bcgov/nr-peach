@@ -12,7 +12,7 @@ on:
         description: 'The name of the environment to deploy to'
         required: false
         type: string
-        default: test # TODO: Set default to dev when we have our real environments
+        default: dev
       tag:
         description: 'The tag of the containers to deploy'
         required: false
@@ -22,15 +22,14 @@ on:
 env:
   AZURE_REGION: Canada Central
   INPUT_COMMAND: ${{ inputs.command }}
-  INPUT_ENVIRONMENT: ${{ inputs.environment }}
   TF_LOG: ERROR
 
 jobs:
   infra:
     name: ${{ inputs.environment }} ${{ inputs.command }}
     environment:
-      name: ${{ inputs.environment }} # TODO: This should be set to dev or pr when we have our real environments
-      url: ${{ steps.result.outputs.api_app_service_url }} # TODO: Check if this breaks when not populated
+      name: ${{ inputs.environment }}
+      url: ${{ steps.result.outputs.api_app_service_url }}
     permissions:
       contents: write # This is required for actions/checkout
       id-token: write # This is required for requesting the JWT
@@ -130,7 +129,7 @@ jobs:
           set -euo pipefail
           terraform init -upgrade \
             -backend-config="resource_group_name=${{ secrets.VNET_RESOURCE_GROUP_NAME }}" \
-            -backend-config="storage_account_name=tfstatenrpeach$INPUT_ENVIRONMENT" \
+            -backend-config="storage_account_name=${{ vars.STORAGE_ACCOUNT_NAME }}" \
             -backend-config="subscription_id=${{ secrets.AZURE_SUBSCRIPTION_ID }}" \
             -backend-config="tenant_id=${{ secrets.AZURE_TENANT_ID }}" \
             -backend-config="client_id=${{ secrets.AZURE_CLIENT_ID }}" \
@@ -146,7 +145,7 @@ jobs:
           set -euo pipefail
           terraform init -upgrade -reconfigure \
             -backend-config="resource_group_name=${{ secrets.VNET_RESOURCE_GROUP_NAME }}" \
-            -backend-config="storage_account_name=tfstatenrpeach$INPUT_ENVIRONMENT" \
+            -backend-config="storage_account_name=${{ vars.STORAGE_ACCOUNT_NAME }}" \
             -backend-config="subscription_id=${{ secrets.AZURE_SUBSCRIPTION_ID }}" \
             -backend-config="tenant_id=${{ secrets.AZURE_TENANT_ID }}" \
             -backend-config="client_id=${{ secrets.AZURE_CLIENT_ID }}" \
@@ -192,5 +191,5 @@ jobs:
           fi
 
           if [[ "$INPUT_COMMAND" == "destroy" ]]; then
-            az storage blob delete --account-name tfstatenrpeach$INPUT_ENVIRONMENT --container-name tfstate --name ${{ steps.instance.outputs.key }}
+            az storage blob delete --account-name ${{ vars.STORAGE_ACCOUNT_NAME }} --container-name tfstate --name ${{ steps.instance.outputs.key }}
           fi
