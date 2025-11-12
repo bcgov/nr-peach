@@ -8,6 +8,12 @@ variable "app_name" {
   nullable    = false
 }
 
+variable "app_env" {
+  description = "Application environment (dev, test, prod)"
+  type        = string
+  nullable    = false
+}
+
 variable "app_service_sku_name" {
   description = "SKU name for the App Service Plan"
   type        = string

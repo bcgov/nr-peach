@@ -69,6 +69,7 @@ module "postgresql" {
   source = "./modules/postgresql"
 
   app_name                    = var.app_name
+  app_env                     = var.app_env
   enable_auto_grow            = var.enable_postgres_auto_grow
   backup_retention_period     = var.postgres_backup_retention_period
   common_tags                 = var.common_tags

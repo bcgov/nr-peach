@@ -55,7 +55,7 @@ data "azurerm_log_analytics_workspace" "main" {
 
 # Core Postgresql
 data "azurerm_postgresql_flexible_server" "postgresql" {
-  name                = "${var.app_name}-postgresql"
+  name                = "${var.app_name}-${var.app_env}-postgresql"
   resource_group_name = "${var.resource_group_name}-core-rg"
 }
 

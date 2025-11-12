@@ -4,6 +4,12 @@ variable "app_name" {
   nullable    = false
 }
 
+variable "app_env" {
+  description = "Application environment (dev, test, prod)"
+  type        = string
+  nullable    = false
+}
+
 variable "enable_auto_grow" {
   description = "Enable auto-grow for storage"
   type        = bool

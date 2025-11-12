@@ -9,7 +9,7 @@ resource "random_password" "postgres_master_password" {
 
 # PostgreSQL Flexible Server
 resource "azurerm_postgresql_flexible_server" "postgresql" {
-  name                = "${var.app_name}-${var.module_name}"
+  name                = "${var.app_name}-${var.app_env}-${var.module_name}"
   resource_group_name = var.resource_group_name
   location            = var.location
   tags                = var.common_tags
