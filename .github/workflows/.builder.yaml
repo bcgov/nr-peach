@@ -26,7 +26,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Prepare Container Metadata tags
         id: meta
-        uses: docker/metadata-action@v5.8.0
+        uses: docker/metadata-action@v5.9.0
         # env:
         #   # Ref: https://github.com/orgs/community/discussions/45969#discussioncomment-13352049
         #   DOCKER_METADATA_ANNOTATIONS_LEVELS: manifest,index
