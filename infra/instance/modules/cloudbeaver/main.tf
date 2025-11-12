@@ -28,7 +28,7 @@ resource "azurerm_resource_group" "main" {
 
 # CloudBeaver Storage Account (optional)
 resource "azurerm_storage_account" "cloudbeaver" {
-  name                            = "${replace(var.app_name, "-", "")}cbstorage"
+  name                            = "cbstorage${replace(var.app_name, "-", "")}${var.app_env}"
   resource_group_name             = azurerm_resource_group.main.name
   location                        = var.location
   account_tier                    = "Standard"
