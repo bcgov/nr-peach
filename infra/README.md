@@ -60,10 +60,8 @@ take some time familiarizing yourself with what this script does first prior to 
 create and manage all of the necessary permissions, secrets and configuration for the pipeline automations to function.
 
 > [!NOTE]
-> It is strongly recommended that you have group ownership permissions on the `DO_PuC_Azure_Live_*` security groups for
-> your subscription set. While it is possible to set up without them, you will need to perform extra manual steps with
-> the help of your product owner or technical lead in order to properly allocate and assign permissions to the newly
-> generated service account.
+> It is strongly recommended that you have group ownership permissions on the three `DO_PuC_Azure_Live_*` security
+> groups for your subscription set. Check the [Azure Security Groups](#azure-security-groups) section for details.
 
 ```sh
 # General script help documentation
@@ -98,6 +96,36 @@ Also check to make sure that the environment variables below have been populated
 
 - `STORAGE_ACCOUNT_NAME`
 
+### Azure Security Groups
+
+While it is possible to set up without explicitly being an owner of those security groups, you will need to perform
+extra manual steps with the help of your product owner or technical lead in order to properly allocate and assign
+permissions to the newly generated service account. As you run the script, watch the logs for any warnings that look
+similar to the following:
+
+```sh
+[WARNING] Current user is not an owner of security group 'DO_PuC_Azure_Live_123456_Contributor'
+[WARNING] Skipping security group assignment due to insufficient permissions or missing group
+[WARNING] Manual action required: Add managed identity 'nr-peach-env-identity' to security group
+'DO_PuC_Azure_Live_123456_Contributor' in Azure Portal
+```
+
+To resolve these warnings, you will need to work with your product owner on the Azure Portal. Have them login to the
+Azure Portal and losely do the following:
+
+- In the top searchbar, search for `DO_PuC_Azure_Live_123456`, where 123456 represents your subscription badge.
+  - They should see three distinct groups with the Owner, Contributor and Reader suffixes.
+- To add the service account binding, visit the Contributor group, and then click on "View group members"
+  - Click "+ Add members", and have them search for something similar to `nr-peach-env-identity`.
+  - In the event there are multiple search hits, double check the script generation log to make sure the uuid values
+  match up.
+- If adding a user as an owner, for each of these three groups, visit them, then click "View group owners"
+  - Click "+ Add owners", and have them search for you and add to the owners list
+
+> [!NOTE]
+> Group ownership may be inconsistent in the Landing Zone as it is possible for automation periodically drop manually
+> added users.
+
 ## GitHub Actions Management
 
 Under the GitHub Actions tab on the nr-peach repository, you should see two pinned workflows: `Manage Core Infra` and
@@ -109,8 +137,13 @@ actions.
 ## Terraform Linting
 
 ```sh
+# Initialize dependencies
 tflint init
+
+# Reports linting report in one-line format
 tflint --recursive -f compact
+
+# Auto-fixes simple linting issues
 tflint --fix
 ```
 
@@ -119,14 +152,22 @@ tflint --fix
 ### Common Commands
 
 ```sh
+# Initialize dependencies
 terraform init
 
+# Formats all code within the directoroy
 terraform fmt -recursive
+
+# Ensures there are no syntax errors in your Terraform files
 terraform validate
 
+# Generate a plan to see what changes will be made
 terraform plan
+
+# Applies changes to the infrastructure based on the plan
 terraform apply
 
+# Destroys all resources and removes them from the state
 terraform destroy
 ```
 
@@ -172,7 +213,7 @@ For the core infrastructure, a direct init and apply should suffice as it is a d
 use the following commands (change the angle bracket values to their appropriate values):
 
 ```sh
-terraform init -upgrade \
+terraform init -upgrade -reconfigure \
   -backend-config="resource_group_name=<123456-env-networking>" \
   -backend-config="storage_account_name=<tfstatenrpeachenv>"
 
@@ -267,3 +308,27 @@ approach should be used with caution, as it can lead to inconsistencies if not d
 - Visit your backend storage account via Azure Portal and navigate to the `tfstate` container.
 - Locate the lock file (e.g., `main.instance.tfstate`) and break the lease on it.
 - Remove the `Terraformlockid` metadata on the same tfstate lock file.
+
+### Divergent States
+
+There may be rare scenarios where the terraform state suddenly hard diverges from what is deployed. One possible
+scenario is when one of the assigned private endpoints gets a different assigned subnet_id, which causes a cascade of
+all deployed resources to need to be destroyed and rebuilt. You can recognize this situation if you see something
+similar to the following:
+
+```sh
+  # module.postgresql.azurerm_private_endpoint.postgresql must be replaced
+-/+ resource "azurerm_private_endpoint" "postgresql" {
+      ~ subnet_id                     = (sensitive value) # forces replacement
+    }
+```
+
+In these situations, unfortunately the only known mitigation is to perform the following steps:
+
+- `terraform destroy` all instances
+- `terraform destroy` core
+- Wait ~5 minutes, then `terraform apply` core again
+- Wait ~5 minutes after the above, and then `terraform apply` the instances
+
+A full rebuild of the infrastructure is needed, as any future apply operations collides against the divergent subnet_id.
+As of 2025-11-14, we still do not know what is the root cause of this potential divergence scenario.
