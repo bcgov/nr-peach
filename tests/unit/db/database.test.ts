@@ -11,6 +11,7 @@ import {
   checkDatabaseMigrations,
   db,
   getMigrations,
+  getSeeds,
   migrator,
   onLogEvent,
   onPoolError,
@@ -160,6 +161,32 @@ describe('getMigrations', () => {
   it('ignores non-ts files', async () => {
     (readdirSync as Mock).mockReturnValue(['not_a_migration.txt', 'another.js', 'README.md']);
     const migrations = await getMigrations();
+    expect(migrations).toEqual({});
+  });
+});
+
+describe('getSeeds', () => {
+  it('loads all .ts migration files except .d.ts', async () => {
+    (readdirSync as Mock).mockReturnValue(['1749226922436_pies-v0.1.0.ts', '002_ignore.d.ts']);
+    const migrations = await getSeeds();
+    expect(migrations).toHaveProperty('1749226922436_pies-v0.1.0');
+    expect(migrations).not.toHaveProperty('002_ignore');
+    expect(migrations['1749226922436_pies-v0.1.0']).toEqual(
+      expect.objectContaining({
+        seed: expect.any(Function) as () => unknown
+      })
+    );
+  });
+
+  it('returns an empty object if no seed files are found', async () => {
+    (readdirSync as Mock).mockReturnValue([]);
+    const migrations = await getSeeds();
+    expect(migrations).toEqual({});
+  });
+
+  it('ignores non-ts files', async () => {
+    (readdirSync as Mock).mockReturnValue(['not_a_migration.txt', 'another.js', 'README.md']);
+    const migrations = await getSeeds();
     expect(migrations).toEqual({});
   });
 });

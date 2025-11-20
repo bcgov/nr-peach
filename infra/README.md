@@ -118,7 +118,7 @@ Azure Portal and losely do the following:
 - To add the service account binding, visit the Contributor group, and then click on "View group members"
   - Click "+ Add members", and have them search for something similar to `nr-peach-env-identity`.
   - In the event there are multiple search hits, double check the script generation log to make sure the uuid values
-  match up.
+    match up.
 - If adding a user as an owner, for each of these three groups, visit them, then click "View group owners"
   - Click "+ Add owners", and have them search for you and add to the owners list
 

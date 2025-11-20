@@ -8,6 +8,7 @@ import { state } from '../state.ts';
 import { getLogger } from '../utils/index.ts';
 
 import type { LogEvent, Migration } from 'kysely';
+import type { Seed } from 'kysely-ctl';
 import type { DB } from '../types/index.d.ts';
 
 // Load environment variables, prioritizing .env over .env.default
@@ -133,6 +134,24 @@ export async function getMigrations(): Promise<Record<string, Migration>> {
     }
   }
   return migrations;
+}
+
+/**
+ * Loads all seed modules from the 'src/db/seeds' directory.
+ * This function reads all TypeScript seed files (excluding .d.ts files),
+ * dynamically imports each seed, and returns them as a record keyed by filename.
+ * @returns A promise that resolves to a record of seed modules.
+ */
+export async function getSeeds(): Promise<Record<string, Seed>> {
+  const seeds: Record<string, Seed> = {};
+  const files = readdirSync('src/db/seeds');
+  for (const fileName of files) {
+    if (fileName.endsWith('.ts') && !fileName.endsWith('.d.ts')) {
+      const seedKey = fileName.substring(0, fileName.lastIndexOf('.'));
+      seeds[seedKey] = (await import(`./seeds/${seedKey}.ts`)) as Seed;
+    }
+  }
+  return seeds;
 }
 
 /**
