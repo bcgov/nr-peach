@@ -1,3 +1,10 @@
+variable "app_automigrate" {
+  description = "The deployment environment (e.g., dev, test, prod)."
+  type        = string
+  nullable    = true
+  default     = "true"
+}
+
 variable "app_env" {
   description = "The deployment environment (e.g., dev, test, prod)."
   type        = string

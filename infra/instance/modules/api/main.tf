@@ -38,6 +38,7 @@ resource "azurerm_linux_web_app" "api" {
     # }
   }
   app_settings = {
+    APP_AUTOMIGRATE                       = var.app_automigrate
     APPINSIGHTS_INSTRUMENTATIONKEY        = var.appinsights_instrumentation_key
     APPLICATIONINSIGHTS_CONNECTION_STRING = var.appinsights_connection_string
     DOCKER_ENABLE_CI                      = "true"

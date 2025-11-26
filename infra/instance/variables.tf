@@ -41,13 +41,6 @@ variable "common_tags" {
   default     = {}
 }
 
-variable "container_instance_subnet_name" {
-  description = "Name of the subnet for container instances"
-  type        = string
-  default     = "container-instance-subnet"
-  nullable    = false
-}
-
 variable "database_admin_username" {
   description = "Administrator username for PostgreSQL server"
   type        = string
@@ -79,13 +72,6 @@ variable "enable_cloudbeaver" {
   type        = bool
   default     = false
   nullable    = false
-}
-
-variable "enable_force_migration" {
-  description = "Whether to enable forced rerun of database migration"
-  type        = bool
-  default     = false
-  nullable    = true
 }
 
 variable "instance_name" {

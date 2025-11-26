@@ -30,12 +30,6 @@ data "azapi_resource" "app_service_subnet" {
   parent_id = data.azurerm_virtual_network.main.id
 }
 
-data "azapi_resource" "container_instance_subnet" {
-  type      = "Microsoft.Network/virtualNetworks/subnets@2024-07-01"
-  name      = var.container_instance_subnet_name
-  parent_id = data.azurerm_virtual_network.main.id
-}
-
 data "azapi_resource" "privateendpoints_subnet" {
   type      = "Microsoft.Network/virtualNetworks/subnets@2024-07-01"
   name      = var.private_endpoints_subnet_name
@@ -45,11 +39,6 @@ data "azapi_resource" "privateendpoints_subnet" {
 # Core Monitoring
 data "azurerm_application_insights" "main" {
   name                = "${var.app_name}-appinsights"
-  resource_group_name = data.azurerm_resource_group.core.name
-}
-
-data "azurerm_log_analytics_workspace" "main" {
-  name                = "${var.app_name}-log-analytics-workspace"
   resource_group_name = data.azurerm_resource_group.core.name
 }
 
@@ -71,30 +60,20 @@ resource "azurerm_resource_group" "main" {
   }
 }
 
+# Create database
+resource "azurerm_postgresql_flexible_server_database" "postgres_database" {
+  name      = local.database_name
+  server_id = data.azurerm_postgresql_flexible_server.postgresql.id
+  collation = "en_US.utf8"
+  charset   = "utf8"
+  lifecycle {
+    prevent_destroy = false
+  }
+}
+
 # -----------------------------
 # Modules based on Dependencies
 # -----------------------------
-module "migration" {
-  source   = "./modules/migration"
-  app_name = var.app_name
-
-  container_image              = var.api_image
-  container_instance_subnet_id = data.azapi_resource.container_instance_subnet.output.id
-  database_admin_password      = var.database_admin_password
-  database_admin_username      = var.database_admin_username
-  database_host                = local.database_host
-  database_id                  = data.azurerm_postgresql_flexible_server.postgresql.id
-  database_name                = local.database_name
-  dns_servers                  = data.azurerm_virtual_network.main.dns_servers
-  enable_force_migration       = var.enable_force_migration
-  location                     = var.location
-  log_analytics_workspace_id   = data.azurerm_log_analytics_workspace.main.workspace_id
-  log_analytics_workspace_key  = data.azurerm_log_analytics_workspace.main.primary_shared_key
-  resource_group_name          = azurerm_resource_group.main.name
-
-  depends_on = [azurerm_resource_group.main]
-}
-
 module "api" {
   source = "./modules/api"
 
@@ -116,7 +95,7 @@ module "api" {
   user_assigned_identity_client_id = data.azurerm_user_assigned_identity.app_service_identity.client_id
   user_assigned_identity_id        = data.azurerm_user_assigned_identity.app_service_identity.id
 
-  depends_on = [module.migration]
+  depends_on = [azurerm_postgresql_flexible_server_database.postgres_database]
 }
 
 module "cloudbeaver" {
@@ -140,4 +119,6 @@ module "cloudbeaver" {
   resource_group_name              = var.resource_group_name
   user_assigned_identity_client_id = data.azurerm_user_assigned_identity.app_service_identity.client_id
   user_assigned_identity_id        = data.azurerm_user_assigned_identity.app_service_identity.id
+
+  depends_on = [azurerm_postgresql_flexible_server_database.postgres_database]
 }
