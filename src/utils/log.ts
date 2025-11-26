@@ -13,6 +13,7 @@ import type { TransportStreamOptions } from 'winston-transport';
 config({ path: ['.env', '.env.default'], quiet: true });
 
 const DEFAULT_LOG_LEVEL = 'http';
+const USER_AGENTS = ['AlwaysOn', 'HealthCheck', 'kube-probe', 'ReadyForRequest'];
 
 /**
  * Class representing a winston transport writing to null
@@ -110,7 +111,7 @@ export const httpLogger: RequestHandler = logger({
   metaField: null, // Set to null for all attributes to be at top level object
   requestWhitelist: [], // Suppress default value output
   responseWhitelist: [], // Suppress default value output
-  // Skip logging kube-probe requests
-  skip: (req) => !!req.get('user-agent')?.includes('kube-probe'),
+  // Skip logging health check requests
+  skip: (req) => USER_AGENTS.some((el) => req.get('user-agent')?.includes(el)),
   winstonInstance: log
 });
