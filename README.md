@@ -82,7 +82,11 @@ cp .env.default .env
 If you do not have a `.env` file in the root directory, create a copy of the
 `.env.default` and modify as necessary.
 
-### Run Local Development
+#### Database Setup
+
+> [!NOTE]
+> You may skip the following section if the `APP_AUTOMIGRATE` environment variable is set to `true`, as the application
+> will automatically migrate and seed the database when it starts.
 
 ```sh
 npm run migrate:latest
@@ -95,6 +99,8 @@ npm run seed:run
 ```
 
 This command pre-populates your database with common data entries non-destructively.
+
+### Run Local Development
 
 ```sh
 npm run dev

@@ -1,13 +1,15 @@
 import { config } from 'dotenv';
+import { CamelCasePlugin, Kysely, Migrator, PostgresDialect, sql } from 'kysely';
+import { Seeder } from 'kysely-ctl';
 import { promises as dns } from 'node:dns';
 import { readdirSync } from 'node:fs';
-import { CamelCasePlugin, Kysely, Migrator, PostgresDialect, sql } from 'kysely';
 import { Pool, types } from 'pg';
 
 import { state } from '../state.ts';
 import { getLogger } from '../utils/index.ts';
 
 import type { LogEvent, Migration } from 'kysely';
+import type { Seed } from 'kysely-ctl';
 import type { DB } from '../types/index.d.ts';
 
 // Load environment variables, prioritizing .env over .env.default
@@ -55,10 +57,10 @@ export const db = new Kysely<DB>({
 });
 
 /** The Kysely migrator instance for managing database migrations. */
-export const migrator = new Migrator({
-  db: db,
-  provider: { getMigrations }
-});
+export const migrator = new Migrator({ db: db, provider: { getMigrations } });
+
+/** The Kysely seeder instance for managing seeding */
+export const seeder = new Seeder({ db: db, provider: { getSeeds } });
 
 /**
  * Checks the health status of the database by executing a simple query.
@@ -136,6 +138,24 @@ export async function getMigrations(): Promise<Record<string, Migration>> {
 }
 
 /**
+ * Loads all seed modules from the 'src/db/seeds' directory.
+ * This function reads all TypeScript seed files (excluding .d.ts files),
+ * dynamically imports each seed, and returns them as a record keyed by filename.
+ * @returns A promise that resolves to a record of seed modules.
+ */
+export async function getSeeds(): Promise<Record<string, Seed>> {
+  const seeds: Record<string, Seed> = {};
+  const files = readdirSync('src/db/seeds');
+  for (const fileName of files) {
+    if (fileName.endsWith('.ts') && !fileName.endsWith('.d.ts')) {
+      const seedKey = fileName.substring(0, fileName.lastIndexOf('.'));
+      seeds[seedKey] = (await import(`./seeds/${seedKey}.ts`)) as Seed;
+    }
+  }
+  return seeds;
+}
+
+/**
  * Handles logging of database query events based on their severity level.
  * @param event - The log event containing details about the database query.
  * @param event.level - The severity level of the event ('error' or other levels).
@@ -164,11 +184,49 @@ export function onLogEvent(event: LogEvent): void {
 /**
  * Handles errors emitted by the database connection pool.
  * Server assumes the worst and forces a database check on next database request.
- * @param err - The error object emitted by the pool.
+ * @param err The error object emitted by the pool.
  */
 export function onPoolError(err: Error): void {
   log.error(`Database has errored: ${err.message}`, { clientCount: pool.totalCount });
   state.ready = false;
+}
+
+/**
+ * Runs all missing database migrations
+ * @returns A promise that resolves to true if migrations succeeded, or false if they failed
+ */
+export async function runMigrations() {
+  const { error: migrateError, results: migrateResults } = await migrator.migrateToLatest();
+
+  migrateResults?.forEach((it) => {
+    if (it.status === 'Success') {
+      log.info(`Migration "${it.migrationName}" completed`, { migration: `${it.migrationName}.ts` });
+    } else if (it.status === 'Error') {
+      log.error(`Failed to execute migration "${it.migrationName}"`);
+    }
+  });
+
+  if (migrateError) log.error(migrateError);
+  return !migrateError;
+}
+
+/**
+ * Runs all missing seed operations
+ * @returns A promise that resolves to true if seeding succeeded, or false if they failed
+ */
+export async function runSeeds() {
+  const { error: seedError, results: seedResults } = await seeder.run();
+
+  seedResults?.forEach((it) => {
+    if (it.status === 'Success') {
+      log.info(`Seed "${it.seedName}" completed`, { seed: `${it.seedName}.ts` });
+    } else if (it.status === 'Error') {
+      log.error(`failed to execute seed "${it.seedName}"`);
+    }
+  });
+
+  if (seedError) log.error(seedError);
+  return !seedError;
 }
 
 /**

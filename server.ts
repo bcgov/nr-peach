@@ -6,11 +6,18 @@ import { isMainThread } from 'node:worker_threads';
 
 import { app } from './src/app.ts';
 import { state } from './src/state.ts';
-import { checkDatabaseHealth, checkDatabaseMigrations, shutdownDatabase } from './src/db/index.ts';
+import {
+  checkDatabaseHealth,
+  checkDatabaseMigrations,
+  runMigrations,
+  runSeeds,
+  shutdownDatabase
+} from './src/db/index.ts';
 import { getLogger } from './src/utils/index.ts';
 
 // Load environment variables, prioritizing .env over .env.default
 config({ path: ['.env', '.env.default'], quiet: true });
+const automigrate = process.env.APP_AUTOMIGRATE?.toLowerCase() === 'true';
 const log = getLogger(import.meta.filename);
 const port = normalizePort(process.env.APP_PORT ?? '3000');
 
@@ -106,12 +113,17 @@ function shutdown(signal: NodeJS.Signals): void {
 }
 
 /**
- * Initializes the server by performing database health and migration checks.
+ * Initializes the server by checking database health and migration maintenance
  */
 async function startup(): Promise<void> {
   try {
     if (!(await checkDatabaseHealth())) throw new Error('Health check failed');
-    if (!(await checkDatabaseMigrations())) throw new Error('Migration check failed');
+    if (!(await checkDatabaseMigrations())) {
+      if (automigrate) {
+        if (!(await runMigrations())) throw new Error('Auto-migrations failed');
+        else if (!(await runSeeds())) throw new Error('Auto-seeding failed');
+      } else throw new Error('Migration check failed');
+    }
     state.ready = true;
   } catch (error) {
     log.error('Error during startup:', error);

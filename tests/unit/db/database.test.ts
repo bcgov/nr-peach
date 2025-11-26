@@ -2,6 +2,7 @@ import './kysely.helper.ts'; // Must be imported before everything else
 import { mockSqlExecuteReturn } from './kysely.helper.ts';
 
 import { Kysely, Migrator, sql } from 'kysely';
+import { Seeder } from 'kysely-ctl';
 import { readdirSync } from 'node:fs';
 
 import { testSystemTime } from '../vitest.setup.ts';
@@ -11,7 +12,9 @@ import {
   checkDatabaseMigrations,
   db,
   getMigrations,
+  getSeeds,
   migrator,
+  seeder,
   onLogEvent,
   onPoolError,
   shutdownDatabase
@@ -36,6 +39,13 @@ describe('migrator', () => {
   it('should yield a migrator', () => {
     expect(migrator).toBeDefined();
     expect(migrator).toBeInstanceOf(Migrator);
+  });
+});
+
+describe('seeder', () => {
+  it('should yield a seeder', () => {
+    expect(seeder).toBeDefined();
+    expect(seeder).toBeInstanceOf(Seeder);
   });
 });
 
@@ -164,6 +174,32 @@ describe('getMigrations', () => {
   });
 });
 
+describe('getSeeds', () => {
+  it('loads all .ts migration files except .d.ts', async () => {
+    (readdirSync as Mock).mockReturnValue(['1749226922436_pies-v0.1.0.ts', '002_ignore.d.ts']);
+    const migrations = await getSeeds();
+    expect(migrations).toHaveProperty('1749226922436_pies-v0.1.0');
+    expect(migrations).not.toHaveProperty('002_ignore');
+    expect(migrations['1749226922436_pies-v0.1.0']).toEqual(
+      expect.objectContaining({
+        seed: expect.any(Function) as () => unknown
+      })
+    );
+  });
+
+  it('returns an empty object if no seed files are found', async () => {
+    (readdirSync as Mock).mockReturnValue([]);
+    const migrations = await getSeeds();
+    expect(migrations).toEqual({});
+  });
+
+  it('ignores non-ts files', async () => {
+    (readdirSync as Mock).mockReturnValue(['not_a_migration.txt', 'another.js', 'README.md']);
+    const migrations = await getSeeds();
+    expect(migrations).toEqual({});
+  });
+});
+
 describe('onLogEvent', () => {
   it('should log an error when event level is "error"', () => {
     const event: LogEvent = {
@@ -214,6 +250,109 @@ describe('onPoolError', () => {
   it('should log an error and set state.ready to false', () => {
     onPoolError(new Error('Pool connection failed'));
     expect(state.ready).toBe(false);
+  });
+});
+describe('runMigrations', () => {
+  let migrateSpy: MockInstance;
+
+  beforeEach(() => {
+    migrateSpy = vi.spyOn(migrator, 'migrateToLatest');
+  });
+
+  afterEach(() => {
+    migrateSpy.mockRestore();
+  });
+
+  it('returns true when migrateToLatest succeeds with all Success results', async () => {
+    migrateSpy.mockResolvedValue({
+      error: undefined,
+      results: [{ migrationName: '001_init', status: 'Success' }]
+    });
+    const { runMigrations } = await import('../../../src/db/database.ts');
+    const result = await runMigrations();
+    expect(migrateSpy).toHaveBeenCalledTimes(1);
+    expect(result).toBe(true);
+  });
+
+  it('returns true when some results have status "Error" but no migrate error is returned', async () => {
+    migrateSpy.mockResolvedValue({
+      error: undefined,
+      results: [
+        { migrationName: '001_init', status: 'Error' },
+        { migrationName: '002_add_table', status: 'Success' }
+      ]
+    });
+    const { runMigrations } = await import('../../../src/db/database.ts');
+    const result = await runMigrations();
+    expect(result).toBe(true);
+  });
+
+  it('returns false when migrateToLatest returns an error object', async () => {
+    migrateSpy.mockResolvedValue({
+      error: new Error('migration failure'),
+      results: [{ migrationName: '001_init', status: 'Error' }]
+    });
+    const { runMigrations } = await import('../../../src/db/database.ts');
+    const result = await runMigrations();
+    expect(result).toBe(false);
+  });
+
+  it('propagates if migrateToLatest throws', async () => {
+    migrateSpy.mockRejectedValue(new Error('boom'));
+    const { runMigrations } = await import('../../../src/db/database.ts');
+    await expect(runMigrations()).rejects.toThrow('boom');
+  });
+});
+
+describe('runSeeds', () => {
+  let seedSpy: MockInstance;
+
+  beforeEach(() => {
+    seedSpy = vi.spyOn(seeder, 'run');
+  });
+
+  afterEach(() => {
+    seedSpy.mockRestore();
+  });
+
+  it('returns true when run succeeds with all Success results', async () => {
+    seedSpy.mockResolvedValue({
+      error: undefined,
+      results: [{ migrationName: '001_init', status: 'Success' }]
+    });
+    const { runSeeds } = await import('../../../src/db/database.ts');
+    const result = await runSeeds();
+    expect(seedSpy).toHaveBeenCalledTimes(1);
+    expect(result).toBe(true);
+  });
+
+  it('returns true when some results have status "Error" but no migrate error is returned', async () => {
+    seedSpy.mockResolvedValue({
+      error: undefined,
+      results: [
+        { migrationName: '001_init', status: 'Error' },
+        { migrationName: '002_add_table', status: 'Success' }
+      ]
+    });
+    const { runSeeds } = await import('../../../src/db/database.ts');
+    const result = await runSeeds();
+    expect(result).toBe(true);
+  });
+
+  it('returns false when run returns an error object', async () => {
+    seedSpy.mockResolvedValue({
+      error: new Error('seed failure'),
+      results: [{ migrationName: '001_init', status: 'Error' }]
+    });
+    const { runSeeds } = await import('../../../src/db/database.ts');
+    const result = await runSeeds();
+    expect(result).toBe(false);
+  });
+
+  it('propagates if run throws', async () => {
+    seedSpy.mockRejectedValue(new Error('boom'));
+    const { runSeeds } = await import('../../../src/db/database.ts');
+    await expect(runSeeds()).rejects.toThrow('boom');
   });
 });
 
