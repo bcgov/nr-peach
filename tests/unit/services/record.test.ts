@@ -1,5 +1,5 @@
 // Always import repository.helper.ts and helpers/index.ts first to ensure mocks are set up
-import { baseRepositoryMock, executeMock } from './repository.helper.ts';
+import { executeMock } from './repository.helper.ts';
 import {
   cacheableRead,
   cacheableUpsert,
@@ -231,8 +231,8 @@ describe('recordService', () => {
   });
 
   describe('replaceRecordService', () => {
-    const record: Record = {
-      transaction_id: 'uuid-mock',
+    const recordData: Record = {
+      transaction_id: 'txn-1',
       version: 'v1',
       kind: 'Record',
       system_id: 'sys-1',
@@ -241,22 +241,26 @@ describe('recordService', () => {
       on_hold_event_set: [
         {
           coding: {
-            code: '123',
-            code_display: 'Test Display',
-            code_set: ['123'],
-            code_system: 'SOMECODESYSTEM'
+            code: 'ON_HOLD',
+            code_set: ['ON_HOLD'],
+            code_system: 'https://example.com/codesystem/on_hold'
           },
-          event: { start_datetime: '2024-01-01T00:00:00Z', end_datetime: '2024-01-01T01:00:00Z' }
+          event: {
+            start_datetime: '2024-01-01T00:00:00Z',
+            end_datetime: '2024-01-01T01:00:00Z'
+          }
         }
       ],
       process_event_set: [
         {
-          event: { start_datetime: '2024-01-01T00:00:00Z', end_datetime: '2024-01-01T01:00:00Z' },
+          event: {
+            start_datetime: '2024-01-01T00:00:00Z',
+            end_datetime: '2024-01-01T01:00:00Z'
+          },
           process: {
-            code: '123',
-            code_display: 'Test Display',
-            code_set: ['123'],
-            code_system: 'SOMECODESYSTEM',
+            code: 'PROCESS_CODE',
+            code_set: ['PROCESS_CODE'],
+            code_system: 'https://example.com/codesystem/process',
             status: 'active',
             status_code: 'A',
             status_description: 'Active'
@@ -265,155 +269,248 @@ describe('recordService', () => {
       ]
     };
 
-    const pruneMock = vi.fn();
-
     beforeEach(() => {
-      // Use a mock that returns the call count as the returned id
-      let upsertCallCount = 0;
-      (cacheableUpsert as Mock).mockImplementation(() => {
-        upsertCallCount += 1;
-        return Promise.resolve({ id: upsertCallCount });
+      executeMock.execute.mockResolvedValue([]);
+      (cacheableUpsert as Mock).mockResolvedValue({ id: 1 });
+      (dateTimePartsToEvent as Mock).mockReturnValue({
+        start_datetime: '2024-01-01T00:00:00Z',
+        end_datetime: '2024-01-01T01:00:00Z'
       });
-
       (eventToDateTimeParts as Mock).mockReturnValue({
         startDate: '2024-01-01',
         startTime: '00:00:00',
         endDate: '2024-01-01',
         endTime: '01:00:00'
       });
-
-      pruneMock.mockImplementation(() => executeMock);
-      executeMock.execute.mockResolvedValue([]);
     });
 
-    it('should replace all event sets and call all repositories', async () => {
-      (OnHoldEventRepository as Mock).mockImplementationOnce(function () {
-        return { prune: pruneMock };
+    it('should replace the record successfully', async () => {
+      const createMock = vi.fn().mockImplementation(() => executeMock);
+      const findByMock = vi.fn().mockImplementation(() => executeMock);
+      const createManyMock = vi.fn().mockImplementation(() => executeMock);
+      const deleteManyMock = vi.fn().mockImplementation(() => executeMock);
+
+      (TransactionRepository as Mock).mockImplementation(function () {
+        return { create: createMock };
       });
-      (ProcessEventRepository as Mock).mockImplementationOnce(function () {
-        return { prune: pruneMock };
+      (SystemRepository as Mock).mockImplementation(function () {
+        return { upsert: cacheableUpsert };
+      });
+      (VersionRepository as Mock).mockImplementation(function () {
+        return { upsert: cacheableUpsert };
+      });
+      (RecordKindRepository as Mock).mockImplementation(function () {
+        return { upsert: cacheableUpsert };
+      });
+      (SystemRecordRepository as Mock).mockImplementation(function () {
+        return { upsert: cacheableUpsert };
+      });
+      (OnHoldEventRepository as Mock).mockImplementation(function () {
+        return {
+          findBy: findByMock,
+          createMany: createManyMock,
+          deleteMany: deleteManyMock
+        };
+      });
+      (ProcessEventRepository as Mock).mockImplementation(function () {
+        return {
+          findBy: findByMock,
+          createMany: createManyMock,
+          deleteMany: deleteManyMock
+        };
       });
 
-      const result = await replaceRecordService(record);
+      await replaceRecordService(recordData);
 
-      expect(result).toEqual([]);
       expect(transactionWrapper).toHaveBeenCalledTimes(1);
-      expect(TransactionRepository).toHaveBeenCalledTimes(1);
-      expect(baseRepositoryMock.create).toHaveBeenCalledWith({ id: record.transaction_id });
-      expect(executeMock.execute).toHaveBeenCalled();
-      expect(cacheableUpsert).toHaveBeenNthCalledWith(1, new SystemRepository(), {
-        id: record.system_id
-      });
-      expect(cacheableUpsert).toHaveBeenNthCalledWith(2, new VersionRepository(), { id: record.version });
-      expect(cacheableUpsert).toHaveBeenNthCalledWith(3, new RecordKindRepository(), {
-        kind: record.kind,
-        versionId: record.version
-      });
-      expect(cacheableUpsert).toHaveBeenNthCalledWith(
-        4,
-        new SystemRecordRepository(),
-        {
-          recordId: record.record_id,
-          recordKindId: 3,
-          systemId: record.system_id
-        },
-        false
-      );
-      expect(cacheableUpsert).toHaveBeenNthCalledWith(5, new CodingRepository(), {
-        code: record.process_event_set[0].process.code,
-        codeSystem: record.process_event_set[0].process.code_system,
-        versionId: record.version
-      });
-
-      expect(ProcessEventRepository).toHaveBeenCalledTimes(2);
-      expect(ProcessEventRepository).toHaveBeenCalledWith(expect.anything());
-      expect(pruneMock).toHaveBeenCalledTimes(2);
-      expect(baseRepositoryMock.create).toHaveBeenNthCalledWith(2, {
-        codingId: 5,
-        systemRecordId: 4,
-        transactionId: record.transaction_id,
-        startDate: '2024-01-01',
-        startTime: '00:00:00',
-        endDate: '2024-01-01',
-        endTime: '01:00:00'
-      });
-      expect(baseRepositoryMock.create).toHaveBeenNthCalledWith(3, {
-        codingId: 6,
-        status: 'active',
-        statusCode: 'A',
-        statusDescription: 'Active',
-        systemRecordId: 4,
-        transactionId: record.transaction_id,
-        startDate: '2024-01-01',
-        startTime: '00:00:00',
-        endDate: '2024-01-01',
-        endTime: '01:00:00'
-      });
+      expect(cacheableUpsert).toHaveBeenCalledTimes(6);
+      expect(createMock).toHaveBeenCalledWith({ id: recordData.transaction_id });
+      expect(findByMock).toHaveBeenCalledTimes(2);
+      expect(createManyMock).toHaveBeenCalledTimes(2);
+      expect(deleteManyMock).toHaveBeenCalledTimes(0);
     });
 
-    it('should handle multiple process events', async () => {
-      const multiEventSet: Record = {
-        ...record,
-        process_event_set: [
-          ...record.process_event_set,
+    it('should handle adding new on hold events', async () => {
+      const findByMock = vi.fn().mockImplementation(() => executeMock);
+      const createManyMock = vi.fn().mockImplementation(() => executeMock);
+
+      (OnHoldEventRepository as Mock).mockImplementation(function () {
+        return {
+          findBy: findByMock,
+          createMany: createManyMock
+        };
+      });
+
+      await replaceRecordService(recordData);
+
+      expect(findByMock).toHaveBeenCalledWith({ systemRecordId: 1 });
+      expect(createManyMock).toHaveBeenCalledWith([
+        {
+          codingId: 1,
+          systemRecordId: 1,
+          transactionId: recordData.transaction_id,
+          startDate: '2024-01-01',
+          startTime: '00:00:00',
+          endDate: '2024-01-01',
+          endTime: '01:00:00'
+        }
+      ]);
+    });
+
+    it('should handle deleting unmatched on hold events', async () => {
+      const findByMock = vi.fn().mockImplementation(() => ({
+        execute: vi.fn().mockResolvedValue([
           {
-            event: { start_datetime: '2024-01-02T00:00:00Z', end_datetime: '2024-01-02T01:00:00Z' },
-            process: {
-              code: '123',
-              code_display: 'Test Display',
-              code_set: ['123'],
-              code_system: 'SOMECODESYSTEM',
-              status: 'inactive',
-              status_code: 'I',
-              status_description: 'Inactive'
-            }
+            id: 2,
+            codingId: 2,
+            startDate: '2024-01-01',
+            startTime: '00:00:00',
+            endDate: '2024-01-01',
+            endTime: '01:00:00'
           }
-        ]
-      };
+        ])
+      }));
+      const createManyMock = vi.fn().mockImplementation(() => executeMock);
+      const deleteManyMock = vi.fn().mockImplementation(() => executeMock);
 
-      (OnHoldEventRepository as Mock).mockImplementationOnce(function () {
-        return { prune: pruneMock };
-      });
-      (ProcessEventRepository as Mock).mockImplementationOnce(function () {
-        return { prune: pruneMock };
+      (OnHoldEventRepository as Mock).mockImplementation(function () {
+        return {
+          findBy: findByMock,
+          createMany: createManyMock,
+          deleteMany: deleteManyMock
+        };
       });
 
-      const result = await replaceRecordService(multiEventSet);
+      await replaceRecordService(recordData);
 
-      expect(result).toEqual([]);
-      expect(baseRepositoryMock.create).toHaveBeenNthCalledWith(2, {
-        codingId: 5,
-        systemRecordId: 4,
-        transactionId: record.transaction_id,
-        startDate: '2024-01-01',
-        startTime: '00:00:00',
-        endDate: '2024-01-01',
-        endTime: '01:00:00'
+      expect(findByMock).toHaveBeenCalledWith({ systemRecordId: 1 });
+      expect(deleteManyMock).toHaveBeenCalledWith([2]);
+    });
+
+    it('should skip over matched on hold events', async () => {
+      const findByMock = vi.fn().mockImplementation(() => ({
+        execute: vi.fn().mockResolvedValue([
+          {
+            id: 1,
+            codingId: 1,
+            startDate: '2024-01-01',
+            startTime: '00:00:00',
+            endDate: '2024-01-01',
+            endTime: '01:00:00'
+          }
+        ])
+      }));
+      const createManyMock = vi.fn().mockImplementation(() => executeMock);
+      const deleteManyMock = vi.fn().mockImplementation(() => executeMock);
+
+      (OnHoldEventRepository as Mock).mockImplementation(function () {
+        return {
+          findBy: findByMock,
+          createMany: createManyMock,
+          deleteMany: deleteManyMock
+        };
       });
-      expect(baseRepositoryMock.create).toHaveBeenNthCalledWith(3, {
-        codingId: 6,
-        status: 'active',
-        statusCode: 'A',
-        statusDescription: 'Active',
-        systemRecordId: 4,
-        transactionId: record.transaction_id,
-        startDate: '2024-01-01',
-        startTime: '00:00:00',
-        endDate: '2024-01-01',
-        endTime: '01:00:00'
+
+      await replaceRecordService(recordData);
+
+      expect(findByMock).toHaveBeenCalledWith({ systemRecordId: 1 });
+      expect(deleteManyMock).toHaveBeenCalledTimes(0);
+    });
+
+    it('should handle adding new process events', async () => {
+      const findByMock = vi.fn().mockImplementation(() => executeMock);
+      const createManyMock = vi.fn().mockImplementation(() => executeMock);
+
+      (ProcessEventRepository as Mock).mockImplementation(function () {
+        return {
+          findBy: findByMock,
+          createMany: createManyMock
+        };
       });
-      expect(baseRepositoryMock.create).toHaveBeenNthCalledWith(4, {
-        codingId: 7,
-        status: 'inactive',
-        statusCode: 'I',
-        statusDescription: 'Inactive',
-        systemRecordId: 4,
-        transactionId: record.transaction_id,
-        startDate: '2024-01-01',
-        startTime: '00:00:00',
-        endDate: '2024-01-01',
-        endTime: '01:00:00'
+
+      await replaceRecordService(recordData);
+
+      expect(findByMock).toHaveBeenCalledWith({ systemRecordId: 1 });
+      expect(createManyMock).toHaveBeenCalledWith([
+        {
+          codingId: 1,
+          status: 'active',
+          statusCode: 'A',
+          statusDescription: 'Active',
+          systemRecordId: 1,
+          transactionId: recordData.transaction_id,
+          startDate: '2024-01-01',
+          startTime: '00:00:00',
+          endDate: '2024-01-01',
+          endTime: '01:00:00'
+        }
+      ]);
+    });
+
+    it('should handle deleting unmatched process events', async () => {
+      const findByMock = vi.fn().mockImplementation(() => ({
+        execute: vi.fn().mockResolvedValue([
+          {
+            id: 2,
+            codingId: 2,
+            status: 'inactive',
+            statusCode: 'I',
+            statusDescription: 'Inactive',
+            startDate: '2024-01-01',
+            startTime: '00:00:00',
+            endDate: '2024-01-01',
+            endTime: '01:00:00'
+          }
+        ])
+      }));
+      const createManyMock = vi.fn().mockImplementation(() => executeMock);
+      const deleteManyMock = vi.fn().mockImplementation(() => executeMock);
+
+      (ProcessEventRepository as Mock).mockImplementation(function () {
+        return {
+          findBy: findByMock,
+          createMany: createManyMock,
+          deleteMany: deleteManyMock
+        };
       });
+
+      await replaceRecordService(recordData);
+
+      expect(findByMock).toHaveBeenCalledWith({ systemRecordId: 1 });
+      expect(deleteManyMock).toHaveBeenCalledWith([2]);
+    });
+
+    it('should skip over matched process events', async () => {
+      const findByMock = vi.fn().mockImplementation(() => ({
+        execute: vi.fn().mockResolvedValue([
+          {
+            id: 1,
+            codingId: 1,
+            status: 'active',
+            statusCode: 'A',
+            statusDescription: 'Active',
+            startDate: '2024-01-01',
+            startTime: '00:00:00',
+            endDate: '2024-01-01',
+            endTime: '01:00:00'
+          }
+        ])
+      }));
+      const createManyMock = vi.fn().mockImplementation(() => executeMock);
+      const deleteManyMock = vi.fn().mockImplementation(() => executeMock);
+
+      (ProcessEventRepository as Mock).mockImplementation(function () {
+        return {
+          findBy: findByMock,
+          createMany: createManyMock,
+          deleteMany: deleteManyMock
+        };
+      });
+
+      await replaceRecordService(recordData);
+
+      expect(findByMock).toHaveBeenCalledWith({ systemRecordId: 1 });
+      expect(deleteManyMock).toHaveBeenCalledTimes(0);
     });
   });
 });

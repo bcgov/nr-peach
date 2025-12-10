@@ -62,7 +62,7 @@ describe('Process Controllers', () => {
   describe('POST /process-events', () => {
     it('should check for duplicate and replace, respond with 202', async () => {
       checkDuplicateTransactionHeaderServiceSpy.mockResolvedValue([]);
-      replaceRecordServiceSpy.mockResolvedValue([]);
+      replaceRecordServiceSpy.mockResolvedValue();
 
       await request(app).post('/process-events').send({ transaction_id: 'tx1', data: 'abc' }).expect(202);
 
@@ -75,7 +75,7 @@ describe('Process Controllers', () => {
       checkDuplicateTransactionHeaderServiceSpy.mockImplementation(() => {
         throw new Problem(409, { detail: 'Transaction already exists' }, { transaction_id: 'tx1' });
       });
-      replaceRecordServiceSpy.mockResolvedValue([]);
+      replaceRecordServiceSpy.mockResolvedValue();
 
       await request(app).post('/process-events').send({ transaction_id: 'tx1', data: 'abc' }).expect(409);
 
@@ -88,7 +88,7 @@ describe('Process Controllers', () => {
   describe('PUT /process-events', () => {
     it('should check for duplicate and merge, respond with 201', async () => {
       checkDuplicateTransactionHeaderServiceSpy.mockResolvedValue([]);
-      replaceRecordServiceSpy.mockResolvedValue([]);
+      replaceRecordServiceSpy.mockResolvedValue();
 
       await request(app).put('/process-events').send({ transaction_id: 'tx2', data: 'xyz' }).expect(201);
 
@@ -100,7 +100,7 @@ describe('Process Controllers', () => {
       checkDuplicateTransactionHeaderServiceSpy.mockImplementation(() => {
         throw new Problem(409, { detail: 'Transaction already exists' }, { transaction_id: 'tx1' });
       });
-      replaceRecordServiceSpy.mockResolvedValue([]);
+      replaceRecordServiceSpy.mockResolvedValue();
 
       await request(app).post('/process-events').send({ transaction_id: 'tx1', data: 'abc' }).expect(409);
 
