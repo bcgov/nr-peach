@@ -17,7 +17,7 @@ import {
   TransactionRepository,
   VersionRepository
 } from '../repositories/index.ts';
-import { CodingDictionary, getLogger, Problem } from '../utils/index.ts';
+import { CodingDictionary, compareObject, getLogger, Problem } from '../utils/index.ts';
 
 import type { DeleteResult, Selectable } from 'kysely';
 import type { Coding, CodingEvent, Header, PiesSystemRecord, Process, ProcessEvent, Record } from '../types/index.d.ts';
@@ -193,8 +193,7 @@ export const replaceRecordService = (data: Record): Promise<void> => {
           });
           const ceNew = { codingId, ...ce.event };
 
-          // @ts-expect-error ts(7053)
-          const matched = oheOld.find((ceOld) => Object.keys(ceNew).every((key) => ceNew[key] == ceOld[key]));
+          const matched = oheOld.find((ceOld) => compareObject(ceOld, ceNew));
           if (matched) {
             oheMatched.add(matched.id);
             return null;
@@ -248,8 +247,7 @@ export const replaceRecordService = (data: Record): Promise<void> => {
             ...pe.event
           };
 
-          // @ts-expect-error ts(7053)
-          const matched = peOld.find((peOld) => Object.keys(peNew).every((key) => peNew[key] == peOld[key]));
+          const matched = peOld.find((peOld) => compareObject(peOld, peNew));
           if (matched) {
             peMatched.add(matched.id);
             return null;

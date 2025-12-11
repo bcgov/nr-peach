@@ -11,6 +11,16 @@ config({ path: ['.env', '.env.default'], quiet: true });
 const log = getLogger(import.meta.filename);
 
 /**
+ * Compares two objects to check if all keys and values in the second object exist in the first object.
+ * @param lhs - The object to compare against.
+ * @param rhs - The object containing keys and values to check.
+ * @returns True if all keys and values in rhs exist in lhs, otherwise false.
+ */
+export function compareObject(lhs: Record<string, unknown>, rhs: Record<string, unknown>): boolean {
+  return Object.keys(rhs).every((key) => rhs[key] == lhs[key]);
+}
+
+/**
  * Gets the current Git commit hash, or undefined if not found.
  * @see https://stackoverflow.com/a/34518749
  * @returns The git revision hash, or undefined
