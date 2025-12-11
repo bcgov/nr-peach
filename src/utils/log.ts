@@ -52,10 +52,10 @@ const log = createLogger({
   level: process.env.APP_LOGLEVEL ?? DEFAULT_LOG_LEVEL
 });
 
-if (process.env.NODE_ENV !== 'test') {
-  log.add(new transports.Console({ handleExceptions: true }));
-} else {
+if (process.env.NODE_ENV === 'test') {
   log.add(new NullTransport({}));
+} else {
+  log.add(new transports.Console({ handleExceptions: true }));
 }
 
 if (process.env.APP_LOGFILE) {

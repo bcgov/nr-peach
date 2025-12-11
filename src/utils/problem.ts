@@ -63,9 +63,7 @@ export default class Problem extends Error {
     }
 
     let title = opts?.title;
-    if (!opts?.title && Object.prototype.hasOwnProperty.call(STATUS_CODES, status)) {
-      title = STATUS_CODES[status];
-    }
+    if (!opts?.title && Object.hasOwn(STATUS_CODES, status)) title = STATUS_CODES[status];
     if (!title) throw new Error(ERR_TITLE);
 
     super(`[${status}] ${title} (${type})`);
