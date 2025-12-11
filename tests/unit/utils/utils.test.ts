@@ -1,7 +1,7 @@
 import { existsSync, readFileSync, statSync } from 'node:fs';
 
 import { testSystemTime } from '../vitest.setup.ts';
-import { getUUIDv7Timestamp, getGitRevision, sortObject } from '../../../src/utils/utils.ts';
+import { compareObject, getGitRevision, getUUIDv7Timestamp, sortObject } from '../../../src/utils/utils.ts';
 
 import type { Mock } from 'vitest';
 
@@ -10,6 +10,57 @@ vi.mock('node:fs', () => ({
   readFileSync: vi.fn(),
   statSync: vi.fn()
 }));
+
+describe('compareObject', () => {
+  it('should return true if all keys and values in rhs exist in lhs', () => {
+    const lhs = { a: 1, b: 2, c: 3 };
+    const rhs = { a: 1, b: 2 };
+
+    expect(compareObject(lhs, rhs)).toBe(true);
+  });
+
+  it('should return false if any key in rhs does not exist in lhs', () => {
+    const lhs = { a: 1, b: 2, c: 3 };
+    const rhs = { a: 1, d: 4 };
+
+    expect(compareObject(lhs, rhs)).toBe(false);
+  });
+
+  it('should return false if any value in rhs does not match the value in lhs', () => {
+    const lhs = { a: 1, b: 2, c: 3 };
+    const rhs = { a: 1, b: 3 };
+
+    expect(compareObject(lhs, rhs)).toBe(false);
+  });
+
+  it('should return true if rhs is an empty object', () => {
+    const lhs = { a: 1, b: 2, c: 3 };
+    const rhs = {};
+
+    expect(compareObject(lhs, rhs)).toBe(true);
+  });
+
+  it('should return false if lhs is empty and rhs is not', () => {
+    const lhs = {};
+    const rhs = { a: 1 };
+
+    expect(compareObject(lhs, rhs)).toBe(false);
+  });
+
+  it('should handle nested objects correctly', () => {
+    const lhs = { a: { x: 1, y: 2 }, b: 2 };
+    const rhs = { a: { x: 1 } };
+
+    expect(compareObject(lhs, rhs)).toBe(false); // Shallow comparison, not deep
+  });
+
+  it('should return true if both lhs and rhs are empty objects', () => {
+    const lhs = {};
+    const rhs = {};
+
+    expect(compareObject(lhs, rhs)).toBe(true);
+  });
+});
 
 describe('getGitRevision', () => {
   const mockStat = (isFile: boolean) => ({

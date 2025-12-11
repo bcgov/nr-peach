@@ -91,6 +91,16 @@ export abstract class BaseRepository<TB extends keyof DB> {
   }
 
   /**
+   * Delete multiple entities from the table by its identifiers.
+   * @param id - The array of primary key values of the records to delete.
+   * @returns A query builder instance configured to delete the specified records.
+   */
+  deleteMany(id: readonly OperandValueExpression<DB, TB, DB[TB]>[]): DeleteQueryBuilder<DB, TB, DB[TB]> {
+    const builder = this.db.deleteFrom(this.tableName) as unknown as DeleteQueryBuilder<DB, TB, DB[TB]>;
+    return builder.where(sql.ref(this.idColumn), 'in', id);
+  }
+
+  /**
    * Finds entities in the table matching all of the provided data.
    * This performs a logical AND operation across all provided fields.
    * @param data - The data to find.

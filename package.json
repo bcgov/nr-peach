@@ -11,7 +11,7 @@
     "codegen": "kysely-codegen --url $(node dburl.helper.ts)",
     "clean": "rimraf coverage",
     "debug": "node --inspect server.ts",
-    "dev": "node --watch server.ts",
+    "dev": "node --watch-path=./src server.ts",
     "format": "prettier --write \"**/*.{js,json,md,ts,yaml}\"",
     "lint": "eslint",
     "lint:fix": "eslint --fix",

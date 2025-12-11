@@ -63,6 +63,18 @@ describe('BaseRepository', () => {
     });
   });
 
+  describe('deleteMany', () => {
+    it('should build a delete query for the specified ids', () => {
+      const data = [1, 2];
+      const compiled = repository.deleteMany(data).compile();
+
+      expect(getDefinedOperations(compiled.query)).toEqual(['kind', 'from', 'where']);
+      expect(compiled.query.kind).toBe('DeleteQueryNode');
+      expect(compiled.sql).toBe('delete from "schema"."test_table" where "id" in ($1, $2)');
+      expect(compiled.parameters).toEqual(data);
+    });
+  });
+
   describe('findById', () => {
     it('should build a select query by filtering', () => {
       const filter = { foo: 'Test' };
