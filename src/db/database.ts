@@ -22,7 +22,7 @@ const log = getLogger(import.meta.filename);
  * @see https://kysely.dev/docs/recipes/data-types#runtime-javascript-types
  */
 const int8TypeId = 20; // PostgreSQL's bigint type is represented as int8 in Kysely
-types.setTypeParser(int8TypeId, (value: string): number => parseInt(value, 10));
+types.setTypeParser(int8TypeId, (value: string): number => Number.parseInt(value, 10));
 
 const pool = new Pool({
   host: (await dns.lookup(process.env.PGHOST ?? '', { family: 4 })).address,

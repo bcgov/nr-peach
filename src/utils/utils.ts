@@ -85,7 +85,7 @@ export function getUUIDv7Timestamp(uuid: string): number | undefined {
   if (!validate(uuid) || version(uuid) !== 7) return undefined;
 
   const hexTimestamp = uuid.replaceAll('-', '').slice(0, 12);
-  return parseInt(hexTimestamp, 16);
+  return Number.parseInt(hexTimestamp, 16);
 }
 
 /**

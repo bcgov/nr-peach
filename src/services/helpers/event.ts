@@ -77,10 +77,10 @@ export function mergeDateAndTimeToISOString(date: Date, time: string): string {
   const minute = Number(timeParts[1]);
   const [second, ms = 0] = timeParts[2]?.split('.') || ['0', '0'];
   if (
-    isNaN(hour) ||
-    isNaN(minute) ||
-    isNaN(Number(second)) ||
-    (ms && isNaN(Number(ms))) ||
+    Number.isNaN(hour) ||
+    Number.isNaN(minute) ||
+    Number.isNaN(Number(second)) ||
+    (ms && Number.isNaN(Number(ms))) ||
     hour < 0 ||
     hour > 23 ||
     minute < 0 ||
