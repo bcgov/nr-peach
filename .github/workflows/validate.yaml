@@ -59,7 +59,7 @@ jobs:
       - name: Setup TFLint
         uses: terraform-linters/setup-tflint@v6.2.1
       - name: Cache TFLint plugins
-        uses: actions/cache@v4.3.0
+        uses: actions/cache@v5.0.1
         id: cache-tflint
         with:
           path: ~/.tflint.d/plugins
@@ -90,7 +90,7 @@ jobs:
         with:
           node-version: 24
       - name: Cache Node modules
-        uses: actions/cache@v4.3.0
+        uses: actions/cache@v5.0.1
         id: cache-app
         env:
           cache-name: cache-node-modules
@@ -126,7 +126,7 @@ jobs:
         with:
           node-version: 24
       - name: Cache Node modules
-        uses: actions/cache@v4.3.0
+        uses: actions/cache@v5.0.1
         id: cache-app
         env:
           cache-name: cache-node-modules
@@ -144,7 +144,7 @@ jobs:
           CI: true
         run: npm run test
       - name: Save Coverage Results
-        uses: actions/upload-artifact@v5.0.0
+        uses: actions/upload-artifact@v6.0.0
         with:
           name: coverage-app
           path: ${{ github.workspace }}/coverage
@@ -175,7 +175,7 @@ jobs:
         with:
           fetch-depth: 0
       - name: Cache Node modules
-        uses: actions/cache@v4.3.0
+        uses: actions/cache@v5.0.1
         id: cache-app
         env:
           cache-name: cache-node-modules
@@ -187,11 +187,11 @@ jobs:
             ${{ runner.os }}-app-
             ${{ runner.os }}-
       - name: Restore Coverage Results
-        uses: actions/download-artifact@v6.0.0
+        uses: actions/download-artifact@v7.0.0
         with:
           name: coverage-app
           path: ${{ github.workspace }}/coverage
       - name: SonarCloud Scan
-        uses: SonarSource/sonarqube-scan-action@fd88b7d7ccbaefd23d8f36f73b59db7a3d246602 # v6.0.0
+        uses: SonarSource/sonarqube-scan-action@a31c9398be7ace6bbfaf30c0bd5d415f843d45e9 # v7.0.0
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
