@@ -16,6 +16,7 @@
         "hashicorp.terraform",
         "ms-azuretools.vscode-containers",
         "ryanluker.vscode-coverage-gutters",
+        "sonarsource.sonarlint-vscode",
         "unifiedjs.vscode-mdx",
         "usernamehw.errorlens",
         "vitest.explorer"

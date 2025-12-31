@@ -46,5 +46,9 @@
   "editor.rulers": [80, 120],
   "eslint.format.enable": true,
   "eslint.useFlatConfig": true,
-  "files.insertFinalNewline": true
+  "files.insertFinalNewline": true,
+  "sonarlint.connectedMode.project": {
+    "connectionId": "bcgov-sonarcloud",
+    "projectKey": "bcgov_nr-peach"
+  }
 }
