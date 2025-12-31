@@ -43,12 +43,12 @@ function run(cmd: string, ...args: string[]) {
  */
 function main() {
   const branch = getCurrentBranch();
-  if (!validBranchRegex.test(branch)) {
+  if (validBranchRegex.test(branch)) {
+    console.info(`Branch name '${branch}' is valid.`); // eslint-disable-line no-console
+  } else {
     // eslint-disable-next-line no-console
     console.error(`Invalid branch name '${branch}'. Branches must match: ${validBranchRegex}. Rename to proceed.`);
     process.exit(1);
-  } else {
-    console.info(`Branch name '${branch}' is valid.`); // eslint-disable-line no-console
   }
 
   // Run any subsequent commands
