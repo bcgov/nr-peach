@@ -52,14 +52,14 @@ export async function transactionWrapper<T>(
   for (let attempt = 0; attempt < maxRetries - 1; attempt++) {
     try {
       return db.transaction().setAccessMode(accessMode).setIsolationLevel(isolationLevel).execute(operation);
-    } catch (err) {
+    } catch (error) {
       // Rethrow immediately if error is not a serialization_failure (40001) or deadlock_detected (40P01)
-      if (!(err instanceof DatabaseError && (err.code === '40001' || err.code === '40P01'))) throw err;
+      if (!(error instanceof DatabaseError && (error.code === '40001' || error.code === '40P01'))) throw error;
 
       const delay = initialDelay * 2 ** attempt;
       log.warn(`Transaction failed, retrying in ${delay}ms...`, {
         attempt: attempt + 1,
-        error: err,
+        error: error,
         function: 'transactionWrapper'
       });
       await new Promise((res) => setTimeout(res, delay));
