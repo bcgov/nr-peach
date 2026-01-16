@@ -7,7 +7,7 @@ import {
 } from '../services/index.ts';
 
 import type { Request, Response } from 'express';
-import type { Record, SystemRecordQuery } from '../types/index.d.ts';
+import type { LocalContext, Record, SystemRecordQuery } from '../types/index.d.ts';
 
 export const getRecordController = async (
   req: Request<never, never, never, SystemRecordQuery>,
@@ -18,9 +18,12 @@ export const getRecordController = async (
   res.status(200).json(result);
 };
 
-export const postRecordController = async (req: Request<never, never, Record>, res: Response): Promise<void> => {
+export const postRecordController = async (
+  req: Request<never, never, Record>,
+  res: Response<never, LocalContext>
+): Promise<void> => {
   await checkDuplicateTransactionHeaderService(req.body.transaction_id);
-  await replaceRecordService(req.body);
+  await replaceRecordService(req.body, res.locals.claims?.sub);
   res.status(202).end();
 };
 
@@ -33,8 +36,11 @@ export const pruneRecordController = async (
   res.status(204).end();
 };
 
-export const putRecordController = async (req: Request<never, never, Record>, res: Response): Promise<void> => {
+export const putRecordController = async (
+  req: Request<never, never, Record>,
+  res: Response<never, LocalContext>
+): Promise<void> => {
   await checkDuplicateTransactionHeaderService(req.body.transaction_id);
-  await replaceRecordService(req.body);
+  await replaceRecordService(req.body, res.locals.claims?.sub);
   res.status(201).end();
 };
