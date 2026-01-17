@@ -6,6 +6,7 @@ import {
   pruneRecordController,
   putRecordController
 } from '../../controllers/index.ts';
+import { authz } from '../../middlewares/index.ts';
 import {
   getRecordSchemaValidator,
   postRecordIntegrityValidator,
@@ -21,12 +22,12 @@ const router = Router();
 router.get('/records', getRecordSchemaValidator, getRecordController);
 
 /** Post Process Events */
-router.post('/records', postRecordSchemaValidator, postRecordIntegrityValidator, postRecordController);
+router.post('/records', postRecordSchemaValidator, postRecordIntegrityValidator, authz('body'), postRecordController);
 
 /** Prune Process Events */
-router.delete('/records', pruneRecordSchemaValidator, pruneRecordController);
+router.delete('/records', pruneRecordSchemaValidator, authz('query'), pruneRecordController);
 
 /** Put Process Events */
-router.put('/records', putRecordSchemaValidator, putRecordIntegrityValidator, putRecordController);
+router.put('/records', putRecordSchemaValidator, putRecordIntegrityValidator, authz('body'), putRecordController);
 
 export default router;
