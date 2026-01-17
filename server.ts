@@ -23,7 +23,11 @@ const port = normalizePort(process.env.APP_PORT ?? '3000');
 
 // Create HTTP server and listen on provided port, on all network interfaces.
 const server = createServer(app);
-server.listen(port, () => log.info(`Server running on http://localhost:${port}`));
+server.listen(port, () => {
+  const authModeMap = { none: 'no authentication', authn: 'authentication only', authz: 'scoped authorization' };
+  log.info(`Server running on http://localhost:${port}`);
+  log.info(`Server running in ${authModeMap[state.authMode]} mode`);
+});
 server.on('error', onError);
 
 if (isMainThread) {
