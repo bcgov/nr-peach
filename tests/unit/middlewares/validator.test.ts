@@ -7,6 +7,11 @@ import { IntegrityDefinitions } from '../../../src/validators/integrity/integrit
 
 import type { Application, Request, RequestHandler, Response } from 'express';
 
+interface BadValidationResponse {
+  body: { detail: string; errors: Record<string, unknown> };
+  status: number;
+}
+
 describe('validateRequestIntegrity', () => {
   const mockHandler = vi.fn((_req: Request, res: Response) => res.status(200).send('Success'));
   const validateIntegritySpy = vi.spyOn(validators, 'validateIntegrity');
@@ -69,12 +74,10 @@ describe('validateRequestIntegrity', () => {
       mockHandler as unknown as RequestHandler
     );
 
-    const response = await request(app).post('/test').send({});
+    const response = (await request(app).post('/test').send({})) as BadValidationResponse;
 
     expect(response.status).toBe(422);
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     expect(response.body.detail).toContain('body');
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     expect(response.body.errors.body).toBeTruthy();
     expect(mockHandler).toHaveBeenCalledTimes(0);
     expect(validateIntegritySpy).toHaveBeenCalledWith(IntegrityDefinitions.processEventSet, {});
@@ -100,19 +103,14 @@ describe('validateRequestIntegrity', () => {
       mockHandler as unknown as RequestHandler
     );
 
-    const response = await request(app).post('/test').query({}).send({});
+    const response = (await request(app).post('/test').query({}).send({})) as BadValidationResponse;
 
     expect(response.status).toBe(422);
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     expect(response.body.detail).toContain('body');
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     expect(response.body.detail).toContain('query');
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     expect(response.body.errors.body).toBeTruthy();
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     expect(response.body.errors.query).toBeTruthy();
     expect(mockHandler).toHaveBeenCalledTimes(0);
-    // expect(sendSpy).toHaveBeenCalledTimes(1); // TODO: Figure out why this is not called
     expect(validateIntegritySpy).toHaveBeenNthCalledWith(1, IntegrityDefinitions.processEventSet, {});
     expect(validateIntegritySpy).toHaveBeenNthCalledWith(2, IntegrityDefinitions.recordLinkage, {});
   });
@@ -213,12 +211,10 @@ describe('validateRequestSchema', () => {
       mockHandler as unknown as RequestHandler
     );
 
-    const response = await request(app).post('/test').send({});
+    const response = (await request(app).post('/test').send({})) as BadValidationResponse;
 
     expect(response.status).toBe(422);
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     expect(response.body.detail).toContain('body');
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     expect(response.body.errors.body).toBeTruthy();
     expect(mockHandler).toHaveBeenCalledTimes(0);
     expect(validateSchemaSpy).toHaveBeenCalledWith(
@@ -275,16 +271,12 @@ describe('validateRequestSchema', () => {
       mockHandler as unknown as RequestHandler
     );
 
-    const response = await request(app).post('/test').query({}).send({});
+    const response = (await request(app).post('/test').query({}).send({})) as BadValidationResponse;
 
     expect(response.status).toBe(422);
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     expect(response.body.detail).toContain('body');
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     expect(response.body.detail).toContain('query');
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     expect(response.body.errors.body).toBeTruthy();
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     expect(response.body.errors.query).toBeTruthy();
     expect(mockHandler).toHaveBeenCalledTimes(0);
     expect(validateSchemaSpy).toHaveBeenNthCalledWith(

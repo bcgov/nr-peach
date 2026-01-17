@@ -1,11 +1,12 @@
 import { config } from 'dotenv';
 import jwt from 'jsonwebtoken';
 
-import { getAuthMode, getBearerToken, jwksClient, setAuthHeader } from './helpers/index.ts';
+import { getAuthMode, getBearerToken, jwksClient, normalizeScopes, setAuthHeader } from './helpers/index.ts';
 import { Problem } from '../utils/index.ts';
 
-import type { RequestHandler, Response } from 'express';
-import type { AuthErrorAttributes, LocalContext } from '../types/index.d.ts';
+import type { Request, RequestHandler, Response } from 'express';
+import type { JwtPayload } from 'jsonwebtoken';
+import type { AuthErrorAttributes, LocalContext, SystemSource } from '../types/index.d.ts';
 
 // Load environment variables, prioritizing .env over .env.default
 config({ path: ['.env', '.env.default'], quiet: true });
@@ -45,6 +46,46 @@ export function authn(): RequestHandler {
         error_description: msg
       };
       new Problem(401, { detail: msg }, { realm: attributes.realm }).send(req, setAuthHeader(res, attributes));
+    }
+  };
+}
+
+/**
+ * Middleware for authorization. Ensures the JWT token contains the required scope.
+ * @see https://datatracker.ietf.org/doc/html/rfc6750
+ * @param source - The source of the `system_id` (either 'body' or 'query').
+ * @returns An Express `RequestHandler` for authorization.
+ */
+export function authz(source: SystemSource): RequestHandler {
+  return function (
+    req: Request<Record<string, string>, unknown, { system_id?: string }, { system_id?: string }>,
+    res: Response<unknown, LocalContext>,
+    next
+  ): void {
+    if (getAuthMode() !== 'authz') return next();
+
+    const attributes: AuthErrorAttributes = { realm: process.env.AUTH_AUDIENCE ?? 'nr-peach', error: 'invalid_token' };
+    const system_id = req[source].system_id;
+    try {
+      if (!system_id) throw new Error('Unable to determine required scope');
+
+      attributes.scope = system_id;
+      const claims = res.locals.claims;
+      if (!claims) throw new Error('Missing or invalid access token');
+
+      attributes.error = 'insufficient_scope';
+      const scopes = normalizeScopes((claims as JwtPayload & { scope?: string | string[] }).scope);
+      if (!scopes.includes(system_id)) throw new Error('Access token lacks required scope');
+
+      next();
+    } catch (error) {
+      const status = attributes.error === 'invalid_token' ? 401 : 403;
+      const msg = error instanceof Error ? error.message : String(error);
+      attributes.error_description = msg;
+      new Problem(status, { detail: msg }, { realm: attributes.realm, scope: attributes.scope }).send(
+        req,
+        setAuthHeader(res, attributes)
+      );
     }
   };
 }
