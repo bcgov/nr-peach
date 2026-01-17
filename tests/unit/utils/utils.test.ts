@@ -94,13 +94,13 @@ describe('getGitRevision', () => {
         path.endsWith('.git') ||
         path.endsWith('HEAD') ||
         path.endsWith('refs/heads/main') ||
-        path.endsWith('refs\\heads\\main')
+        path.endsWith(String.raw`refs\heads\main`)
       );
     });
     (statSync as Mock).mockReturnValue(mockStat(false)); // .git is a directory
     (readFileSync as Mock).mockImplementation((path: string) => {
       if (path.endsWith('HEAD')) return 'ref: refs/heads/main\n';
-      if (path.endsWith('refs/heads/main') || path.endsWith('refs\\heads\\main')) return '1234567890abcdef\n';
+      if (path.endsWith('refs/heads/main') || path.endsWith(String.raw`refs\heads\main`)) return '1234567890abcdef\n';
       return '';
     });
 
@@ -157,7 +157,7 @@ describe('getGitRevision', () => {
         path.endsWith('.git') ||
         path.endsWith('HEAD') ||
         path.endsWith('refs/heads/feature') ||
-        path.endsWith('refs\\heads\\feature')
+        path.endsWith(String.raw`refs\heads\feature`)
       );
     });
     (statSync as Mock).mockImplementation((path: string) => {
@@ -167,7 +167,8 @@ describe('getGitRevision', () => {
     (readFileSync as Mock).mockImplementation((path: string) => {
       if (path.endsWith('.git')) return 'gitdir: .git/worktrees/feature\n';
       if (path.endsWith('HEAD')) return 'ref: refs/heads/feature\n';
-      if (path.endsWith('refs/heads/feature') || path.endsWith('refs\\heads\\feature')) return 'cafebabe12345678\n';
+      if (path.endsWith('refs/heads/feature') || path.endsWith(String.raw`refs\heads\feature`))
+        return 'cafebabe12345678\n';
       return '';
     });
 

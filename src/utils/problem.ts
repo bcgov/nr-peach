@@ -12,7 +12,7 @@ const STATUS_CODES_WEB = 'https://developer.mozilla.org/en-US/docs/Web/HTTP/Stat
 /**
  * A Problem Details object error generator which extends the `Error` class.
  * This class is used to model HTTP problem details as per RFC9457.
- * @see https://tools.ietf.org/html/rfc9457
+ * @see https://datatracker.ietf.org/doc/html/rfc9457
  */
 export default class Problem extends Error {
   /** The type of the problem, typically a URI reference identifying the problem type. */

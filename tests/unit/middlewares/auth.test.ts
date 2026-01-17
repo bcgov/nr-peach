@@ -1,0 +1,203 @@
+import express from 'express';
+import jwt from 'jsonwebtoken';
+import request from 'supertest';
+
+import { authn, authz } from '../../../src/middlewares/auth.ts';
+import * as helpers from '../../../src/middlewares/helpers/index.ts';
+
+import type { Application, Request, RequestHandler, Response } from 'express';
+
+interface BadAuthResponse {
+  body: Record<string, unknown>;
+  headers: Record<string, string>;
+  status: number;
+}
+
+describe('authn', () => {
+  const mockHandler = vi.fn((_req: Request, res: Response) => res.status(200).send('Success'));
+  const decodeSpy = vi.spyOn(jwt, 'decode');
+  const getAuthModeSpy = vi.spyOn(helpers, 'getAuthMode');
+  const getBearerTokenSpy = vi.spyOn(helpers, 'getBearerToken');
+  const getSigningKeySpy = vi.spyOn(helpers.jwksClient, 'getSigningKey');
+  const verifySpy = vi.spyOn(jwt, 'verify');
+
+  let app: Application;
+
+  beforeEach(() => {
+    app = express();
+    app.use(express.json());
+  });
+
+  it('should call next if auth mode is "none"', async () => {
+    getAuthModeSpy.mockReturnValue('none');
+
+    app.get('/test', authn(), mockHandler as unknown as RequestHandler);
+
+    const response = await request(app).get('/test').send();
+
+    expect(response.status).toBe(200);
+    expect(mockHandler).toHaveBeenCalledTimes(1);
+  });
+
+  it('should return 401 if token is missing', async () => {
+    getAuthModeSpy.mockReturnValue('authn');
+    getBearerTokenSpy.mockReturnValue(null);
+
+    app.get('/test', authn(), mockHandler as unknown as RequestHandler);
+
+    const response = (await request(app).get('/test').send()) as BadAuthResponse;
+
+    expect(response.status).toBe(401);
+    expect(response.body.detail).toBe('Missing or malformed bearer token');
+    expect(response.body.realm).toBe('nr-peach');
+    expect(response.headers).toHaveProperty(
+      'www-authenticate',
+      'Bearer realm="nr-peach", error="invalid_token", error_description="Missing or malformed bearer token"'
+    );
+    expect(mockHandler).toHaveBeenCalledTimes(0);
+  });
+
+  it('should return 401 if token is invalid', async () => {
+    getAuthModeSpy.mockReturnValue('authn');
+    getBearerTokenSpy.mockReturnValue('invalid-token');
+    decodeSpy.mockReturnValue(null);
+
+    app.get('/test', authn(), mockHandler as unknown as RequestHandler);
+
+    const response = (await request(app).get('/test').send()) as BadAuthResponse;
+
+    expect(response.status).toBe(401);
+    expect(response.body.detail).toBe('Unable to decode access token');
+    expect(response.body.realm).toBe('nr-peach');
+    expect(response.headers).toHaveProperty(
+      'www-authenticate',
+      'Bearer realm="nr-peach", error="invalid_token", error_description="Unable to decode access token"'
+    );
+    expect(mockHandler).toHaveBeenCalledTimes(0);
+  });
+
+  it('should call next if token is valid', async () => {
+    getAuthModeSpy.mockReturnValue('authn');
+    getBearerTokenSpy.mockReturnValue('valid-token');
+    decodeSpy.mockReturnValue({ header: { kid: 'key-id' } });
+    // @ts-expect-error ts(2345)
+    getSigningKeySpy.mockResolvedValue({ getPublicKey: vi.fn().mockReturnValue('public-key') });
+    // @ts-expect-error ts(2345)
+    verifySpy.mockReturnValue({ sub: 'user-id' });
+
+    app.get('/test', authn(), (_req: Request, res: Response) => res.status(200).json(res.locals));
+
+    const response = await request(app).get('/test').send();
+
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual({ claims: { sub: 'user-id' }, token: 'valid-token' });
+  });
+});
+
+describe('authz', () => {
+  const mockHandler = vi.fn((_req: Request, res: Response) => res.status(200).send('Success'));
+  const getAuthModeSpy = vi.spyOn(helpers, 'getAuthMode');
+
+  let app: Application;
+
+  beforeEach(() => {
+    app = express();
+    app.use(express.json());
+  });
+
+  it('should call next if auth mode is not "authz"', async () => {
+    getAuthModeSpy.mockReturnValue('none');
+
+    app.get('/test', authz('query'), mockHandler as unknown as RequestHandler);
+
+    const response = await request(app).get('/test').send();
+
+    expect(response.status).toBe(200);
+    expect(mockHandler).toHaveBeenCalledTimes(1);
+  });
+
+  it('should return 401 if system_id is missing', async () => {
+    getAuthModeSpy.mockReturnValue('authz');
+
+    app.get('/test', authz('query'), mockHandler as unknown as RequestHandler);
+
+    const response = (await request(app).get('/test').send()) as BadAuthResponse;
+
+    expect(response.status).toBe(401);
+    expect(response.body.detail).toBe('Unable to determine required scope');
+    expect(response.body.realm).toBe('nr-peach');
+    expect(response.headers).toHaveProperty(
+      'www-authenticate',
+      'Bearer realm="nr-peach", error="invalid_token", error_description="Unable to determine required scope"'
+    );
+    expect(mockHandler).toHaveBeenCalledTimes(0);
+  });
+
+  it('should return 401 if claims are missing', async () => {
+    getAuthModeSpy.mockReturnValue('authz');
+
+    app.get('/test', authz('query'), mockHandler as unknown as RequestHandler);
+
+    const response = (await request(app).get('/test').query({ system_id: 'some-scope' }).send()) as BadAuthResponse;
+
+    expect(response.status).toBe(401);
+    expect(response.body.detail).toBe('Missing or invalid access token');
+    expect(response.body.realm).toBe('nr-peach');
+    expect(response.body.scope).toBe('some-scope');
+    expect(response.headers).toHaveProperty(
+      'www-authenticate',
+      'Bearer realm="nr-peach", error="invalid_token", scope="some-scope", ' +
+        'error_description="Missing or invalid access token"'
+    );
+    expect(mockHandler).toHaveBeenCalledTimes(0);
+  });
+
+  it('should return 403 if token lacks required scope', async () => {
+    getAuthModeSpy.mockReturnValue('authz');
+
+    app.get(
+      '/test',
+      (_req, res, next) => {
+        res.locals.claims = { scope: 'other-scope' };
+        next();
+      },
+      authz('query'),
+      mockHandler as unknown as RequestHandler
+    );
+
+    const response = (await request(app).get('/test').query({ system_id: 'required-scope' }).send()) as BadAuthResponse;
+
+    expect(response.status).toBe(403);
+    expect(response.body.detail).toBe('Access token lacks required scope');
+    expect(response.body.realm).toBe('nr-peach');
+    expect(response.body.scope).toBe('required-scope');
+    expect(response.headers).toHaveProperty(
+      'www-authenticate',
+      'Bearer realm="nr-peach", error="insufficient_scope", scope="required-scope", ' +
+        'error_description="Access token lacks required scope"'
+    );
+    expect(mockHandler).toHaveBeenCalledTimes(0);
+  });
+
+  it('should call next if token has required scope', async () => {
+    getAuthModeSpy.mockReturnValue('authz');
+
+    app.get(
+      '/test',
+      (_req, res, next) => {
+        res.locals.claims = { scope: 'required-scope' };
+        next();
+      },
+      authz('query'),
+      mockHandler as unknown as RequestHandler
+    );
+
+    const response = (await request(app).get('/test').query({ system_id: 'required-scope' }).send()) as {
+      body: Record<string, unknown>;
+      status: number;
+    };
+
+    expect(response.status).toBe(200);
+    expect(mockHandler).toHaveBeenCalledTimes(1);
+  });
+});

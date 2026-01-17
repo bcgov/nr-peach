@@ -68,7 +68,10 @@ describe('Process Controllers', () => {
 
       expect(checkDuplicateTransactionHeaderServiceSpy).toHaveBeenCalledWith('tx1');
       // TODO: Swap to mergeRecordService when implemented
-      expect(replaceRecordServiceSpy).toHaveBeenCalledWith({ transaction_id: 'tx1', data: 'abc' });
+      expect(replaceRecordServiceSpy).toHaveBeenCalledWith(
+        { transaction_id: 'tx1', data: 'abc' },
+        expect.toSatisfy((v) => v === undefined || typeof v === 'string')
+      );
     });
 
     it('should check for duplicate and halt, respond with 409', async () => {
@@ -93,7 +96,10 @@ describe('Process Controllers', () => {
       await request(app).put('/process-events').send({ transaction_id: 'tx2', data: 'xyz' }).expect(201);
 
       expect(checkDuplicateTransactionHeaderServiceSpy).toHaveBeenCalledWith('tx2');
-      expect(replaceRecordServiceSpy).toHaveBeenCalledWith({ transaction_id: 'tx2', data: 'xyz' });
+      expect(replaceRecordServiceSpy).toHaveBeenCalledWith(
+        { transaction_id: 'tx2', data: 'xyz' },
+        expect.toSatisfy((v) => v === undefined || typeof v === 'string')
+      );
     });
 
     it('should check for duplicate and halt, respond with 409', async () => {
