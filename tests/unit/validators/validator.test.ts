@@ -3,6 +3,7 @@ import * as integrity from '../../../src/validators/integrity/index.ts';
 import { preCachePiesSchema, validateIntegrity, validateSchema } from '../../../src/validators/validator.ts';
 
 describe('preCachePiesSchema', () => {
+  // TODO: Determine why this intermittently fails with shuffled tests
   it('should call validateSchema for each pies.spec.message kind and log info', async () => {
     const result = await preCachePiesSchema();
 

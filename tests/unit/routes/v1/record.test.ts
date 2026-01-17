@@ -18,21 +18,25 @@ import {
 
 import router from '../../../../src/routes/v1/record.ts';
 
-import type { NextFunction } from 'express';
+import type { RequestHandler } from 'express';
 
 const app = express();
 app.use(router);
 
 vi.mock('../../../../src/controllers/record.ts', () => ({
-  getRecordController: vi.fn((_req, _res, next: NextFunction): void => next()),
-  postRecordController: vi.fn((_req, _res, next: NextFunction): void => next()),
-  pruneRecordController: vi.fn((_req, _res, next: NextFunction): void => next()),
-  putRecordController: vi.fn((_req, _res, next: NextFunction): void => next())
+  getRecordController: vi.fn<RequestHandler>((_req, _res, next) => next()),
+  postRecordController: vi.fn<RequestHandler>((_req, _res, next) => next()),
+  pruneRecordController: vi.fn<RequestHandler>((_req, _res, next) => next()),
+  putRecordController: vi.fn<RequestHandler>((_req, _res, next) => next())
+}));
+
+vi.mock('../../../../src/middlewares/auth.ts', () => ({
+  authz: () => vi.fn<RequestHandler>((_req, _res, next) => next())
 }));
 
 vi.mock('../../../../src/middlewares/validator.ts', () => ({
-  validateRequestIntegrity: () => vi.fn((_req, _res, next: NextFunction): void => next()),
-  validateRequestSchema: () => vi.fn((_req, _res, next: NextFunction): void => next())
+  validateRequestIntegrity: () => vi.fn<RequestHandler>((_req, _res, next) => next()),
+  validateRequestSchema: () => vi.fn<RequestHandler>((_req, _res, next) => next())
 }));
 
 describe('Process Routes', () => {
