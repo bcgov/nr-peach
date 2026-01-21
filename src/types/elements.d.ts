@@ -5,8 +5,9 @@
  * - Drop duplicate interface definitions such as header
  * - Drop all "[k: string]: unknown" attributes to enforce strict typing
  * - Ensure that ProcessEvent.event has "Event" type, not "Event2"
- * @see https://transform.tools/json-schema-to-typescript (Use this tool)
+ * @see https://transform.tools/json-schema-to-typescript (Reference only)
  * @see https://github.com/bcherny/json-schema-to-typescript (Reference only)
+ * @see https://bcherny.github.io/json-schema-to-typescript-browser/ (Use this tool)
  * @see https://bcgov.github.io/nr-pies/docs/category/message-types (The schema sources)
  * @todo Consider using the json2ts CLI tool to convert from JSON Schema to TypeScript interfaces.
  */
@@ -58,13 +59,13 @@ export interface Header {
    */
   record_id: string;
   /**
-   * The kind of record the source system stores this record as (i.e. Permit, Project, Submission or Tracking).
+   * The kind of record the source system stores this record as (i.e. Anchor, Permit, Project, Submission or Tracking).
    */
-  record_kind: 'Permit' | 'Project' | 'Submission' | 'Tracking';
+  record_kind: 'Anchor' | 'Permit' | 'Project' | 'Submission' | 'Tracking';
 }
 export interface Record2 {
-  on_hold_event_set: CodingEvent[];
-  process_event_set: [ProcessEvent, ...ProcessEvent[]];
+  on_hold_event_set?: CodingEvent[];
+  process_event_set?: ProcessEvent[];
 }
 /**
  * Represents a coding concept at a specific event in time.
@@ -83,8 +84,8 @@ export interface Coding {
    */
   code_display?: string;
   /**
-   * An ordered set of code symbols, where the last element must match the code attribute. The set must contain at least
-   * one symbol, preserve order, and not include duplicates.
+   * An ordered set of code symbols, where the last element must match the code attribute. The set must contain at
+   * least one symbol, preserve order, and not include duplicates.
    */
   code_set: [Code] | [Code, Code] | [Code, Code, Code];
   /**
@@ -113,8 +114,8 @@ export interface Event1 {
   end_datetime?: string;
 }
 /**
- * This schema is used when the event starts with a date (`start_date`), and optionally, an end date (`end_date`) can be
- * specified. Mixing a start date with a datetime is not allowed.
+ * This schema is used when the event starts with a date (`start_date`), and optionally, an end date (`end_date`) can
+ * be specified. Mixing a start date with a datetime is not allowed.
  */
 export interface Date {
   start_date: string;
@@ -160,8 +161,8 @@ export type RecordLinkage1 = Header;
 
 export interface RecordLinkage2 {
   /**
-   * A valid NRIDS IT Service Management code which identifies the source system,
-   * service or asset that the linked data originates from.
+   * A valid NRIDS IT Service Management code which identifies the source system, service or asset that the linked data
+   * originates from.
    */
   linked_system_id: string;
   /**
@@ -169,7 +170,8 @@ export interface RecordLinkage2 {
    */
   linked_record_id: string;
   /**
-   * The kind of record the source system stores this linked record as (i.e. Permit, Project, Submission or Tracking).
+   * The kind of record the source system stores this linked record as (i.e. Anchor, Permit, Project, Submission or
+   * Tracking).
    */
-  linked_record_kind: 'Permit' | 'Project' | 'Submission' | 'Tracking';
+  linked_record_kind: 'Anchor' | 'Permit' | 'Project' | 'Submission' | 'Tracking';
 }

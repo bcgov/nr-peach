@@ -133,14 +133,7 @@ describe('recordService', () => {
       (cacheableRead as Mock).mockRejectedValueOnce(new Error('not found'));
       await expect(findRecordService(systemRecord)).rejects.toMatchObject({
         status: 404,
-        detail: 'No process events found.'
-      });
-    });
-
-    it('should throw Problem 404 if no process events found', async () => {
-      await expect(findRecordService(systemRecord)).rejects.toMatchObject({
-        status: 404,
-        detail: 'No process events found.'
+        detail: 'No record kind found.'
       });
     });
 

@@ -35,8 +35,8 @@ export const findRecordService = (systemRecord: Selectable<PiesSystemRecord>): P
     async (trx) => {
       const recordKind = await cacheableRead(new RecordKindRepository(trx), systemRecord.recordKindId).catch(
         (error) => {
-          log.warn(`No record kind found for process events, ${error}`);
-          throw new Problem(404, { detail: 'No process events found.' });
+          log.warn(`No record kind found, ${error}`);
+          throw new Problem(404, { detail: 'No record kind found.' });
         }
       );
 
@@ -44,65 +44,66 @@ export const findRecordService = (systemRecord: Selectable<PiesSystemRecord>): P
         .findBy({ systemRecordId: systemRecord.id })
         .execute();
 
-      if (!processEventsRaw.length) {
-        log.warn('No coding found for process events');
-        throw new Problem(404, { detail: 'No process events found.' });
-      }
-
       const onHoldEventsRaw = await new OnHoldEventRepository(trx)
         .findBy({ systemRecordId: systemRecord.id })
         .execute();
 
-      const onHoldEvents: CodingEvent[] = await Promise.all(
-        onHoldEventsRaw.map(async (pe) => {
-          const event = dateTimePartsToEvent({
-            startDate: pe.startDate,
-            startTime: pe.startTime ?? undefined,
-            endDate: pe.endDate ?? undefined,
-            endTime: pe.endTime ?? undefined
-          });
+      let onHoldEvents: CodingEvent[] | undefined;
+      if (onHoldEventsRaw.length) {
+        onHoldEvents = await Promise.all(
+          onHoldEventsRaw.map(async (pe) => {
+            const event = dateTimePartsToEvent({
+              startDate: pe.startDate,
+              startTime: pe.startTime ?? undefined,
+              endDate: pe.endDate ?? undefined,
+              endTime: pe.endTime ?? undefined
+            });
 
-          const codingRaw = await cacheableRead(new CodingRepository(trx), pe.codingId).catch((error) => {
-            log.warn(`No coding found for on hold events, ${error}`);
-            throw new Problem(404, { detail: 'No valid on hold codings found.' });
-          });
+            const codingRaw = await cacheableRead(new CodingRepository(trx), pe.codingId).catch((error) => {
+              log.warn(`No coding found for on hold events, ${error}`);
+              throw new Problem(404, { detail: 'No valid on hold codings found.' });
+            });
 
-          const coding: Coding = {
-            code: codingRaw.code,
-            code_display: CodingDictionary[codingRaw.codeSystem][codingRaw.code].display,
-            code_set: CodingDictionary[codingRaw.codeSystem][codingRaw.code].codeSet,
-            code_system: codingRaw.codeSystem
-          };
-          return { coding, event } satisfies CodingEvent;
-        })
-      );
+            const coding: Coding = {
+              code: codingRaw.code,
+              code_display: CodingDictionary[codingRaw.codeSystem][codingRaw.code].display,
+              code_set: CodingDictionary[codingRaw.codeSystem][codingRaw.code].codeSet,
+              code_system: codingRaw.codeSystem
+            };
+            return { coding, event } satisfies CodingEvent;
+          })
+        );
+      }
 
-      const processEvents: ProcessEvent[] = await Promise.all(
-        processEventsRaw.map(async (pe) => {
-          const event = dateTimePartsToEvent({
-            startDate: pe.startDate,
-            startTime: pe.startTime ?? undefined,
-            endDate: pe.endDate ?? undefined,
-            endTime: pe.endTime ?? undefined
-          });
+      let processEvents: ProcessEvent[] | undefined;
+      if (processEventsRaw.length) {
+        processEvents = await Promise.all(
+          processEventsRaw.map(async (pe) => {
+            const event = dateTimePartsToEvent({
+              startDate: pe.startDate,
+              startTime: pe.startTime ?? undefined,
+              endDate: pe.endDate ?? undefined,
+              endTime: pe.endTime ?? undefined
+            });
 
-          const coding = await cacheableRead(new CodingRepository(trx), pe.codingId).catch((error) => {
-            log.warn(`No coding found for process events, ${error}`);
-            throw new Problem(404, { detail: 'No valid process codings found.' });
-          });
+            const coding = await cacheableRead(new CodingRepository(trx), pe.codingId).catch((error) => {
+              log.warn(`No coding found for process events, ${error}`);
+              throw new Problem(404, { detail: 'No valid process codings found.' });
+            });
 
-          const process: Process = {
-            code: coding.code,
-            code_display: CodingDictionary[coding.codeSystem][coding.code].display,
-            code_set: CodingDictionary[coding.codeSystem][coding.code].codeSet,
-            code_system: coding.codeSystem,
-            status: pe.status ?? undefined,
-            status_code: pe.statusCode ?? undefined,
-            status_description: pe.statusDescription ?? undefined
-          };
-          return { event, process } satisfies ProcessEvent;
-        })
-      );
+            const process: Process = {
+              code: coding.code,
+              code_display: CodingDictionary[coding.codeSystem][coding.code].display,
+              code_set: CodingDictionary[coding.codeSystem][coding.code].codeSet,
+              code_system: coding.codeSystem,
+              status: pe.status ?? undefined,
+              status_code: pe.statusCode ?? undefined,
+              status_description: pe.statusDescription ?? undefined
+            };
+            return { event, process } satisfies ProcessEvent;
+          })
+        );
+      }
 
       return {
         transaction_id: uuidv7(),
@@ -112,7 +113,7 @@ export const findRecordService = (systemRecord: Selectable<PiesSystemRecord>): P
         record_id: systemRecord.recordId,
         record_kind: recordKind.kind as Header['record_kind'],
         on_hold_event_set: onHoldEvents,
-        process_event_set: processEvents as [ProcessEvent, ...ProcessEvent[]]
+        process_event_set: processEvents
       } satisfies Record;
     },
     { accessMode: 'read only' }
@@ -185,7 +186,7 @@ export const replaceRecordService = (data: Record): Promise<void> => {
     const oheMatched = new Set<number>();
     const oheAdd = (
       await Promise.all(
-        data.on_hold_event_set.map(async (ce) => {
+        data.on_hold_event_set?.map(async (ce) => {
           const { id: codingId } = await cacheableUpsert(new CodingRepository(trx), {
             code: ce.coding.code,
             codeSystem: ce.coding.code_system,
@@ -205,7 +206,7 @@ export const replaceRecordService = (data: Record): Promise<void> => {
               ...eventToDateTimeParts(ce.event)
             };
           }
-        })
+        }) ?? []
       )
     ).filter((ohe) => !!ohe);
     if (oheAdd.length) await new OnHoldEventRepository(trx).createMany(oheAdd).execute();
@@ -233,7 +234,7 @@ export const replaceRecordService = (data: Record): Promise<void> => {
     const peMatched = new Set<number>();
     const peAdd = (
       await Promise.all(
-        data.process_event_set.map(async (pe) => {
+        data.process_event_set?.map(async (pe) => {
           const { id: codingId } = await cacheableUpsert(new CodingRepository(trx), {
             code: pe.process.code,
             codeSystem: pe.process.code_system,
@@ -262,7 +263,7 @@ export const replaceRecordService = (data: Record): Promise<void> => {
               ...eventToDateTimeParts(pe.event)
             };
           }
-        })
+        }) ?? []
       )
     ).filter((pe) => !!pe);
     if (peAdd.length) await new ProcessEventRepository(trx).createMany(peAdd).execute();

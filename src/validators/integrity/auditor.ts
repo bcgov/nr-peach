@@ -82,6 +82,6 @@ export function auditProcess(data: Process, index: number): IntegrityError[] {
  * @param data - The `ProcessEvent` array to validate.
  * @returns An array of detected `IntegrityError`s.
  */
-export function auditProcessEvent(data: readonly ProcessEvent[]): IntegrityError[] {
-  return data.flatMap((pe, index) => [...auditEvent(pe.event, index), ...auditProcess(pe.process, index)]);
+export function auditProcessEvent(data?: readonly ProcessEvent[]): IntegrityError[] {
+  return data?.flatMap((pe, index) => [...auditEvent(pe.event, index), ...auditProcess(pe.process, index)]) ?? [];
 }
