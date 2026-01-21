@@ -5,6 +5,7 @@ import {
   cacheableUpsert,
   dateTimePartsToEvent,
   eventToDateTimeParts,
+  findByThenUpsert,
   transactionWrapper
 } from '../../../src/services/helpers/index.ts';
 
@@ -269,6 +270,7 @@ describe('recordService', () => {
         start_datetime: '2024-01-01T00:00:00Z',
         end_datetime: '2024-01-01T01:00:00Z'
       });
+      (findByThenUpsert as Mock).mockResolvedValue({ id: 1 });
       (eventToDateTimeParts as Mock).mockReturnValue({
         startDate: '2024-01-01',
         startTime: '00:00:00',
@@ -316,7 +318,7 @@ describe('recordService', () => {
       await replaceRecordService(recordData);
 
       expect(transactionWrapper).toHaveBeenCalledTimes(1);
-      expect(cacheableUpsert).toHaveBeenCalledTimes(6);
+      expect(cacheableUpsert).toHaveBeenCalledTimes(5);
       expect(createMock).toHaveBeenCalledWith({ id: recordData.transaction_id });
       expect(findByMock).toHaveBeenCalledTimes(2);
       expect(createManyMock).toHaveBeenCalledTimes(2);

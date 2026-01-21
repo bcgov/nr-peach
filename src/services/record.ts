@@ -5,6 +5,7 @@ import {
   cacheableUpsert,
   dateTimePartsToEvent,
   eventToDateTimeParts,
+  findByThenUpsert,
   transactionWrapper
 } from './helpers/index.ts';
 import {
@@ -159,15 +160,11 @@ export const replaceRecordService = (data: Record): Promise<void> => {
       kind: data.kind,
       versionId: data.version
     });
-    const systemRecord = await cacheableUpsert(
-      new SystemRecordRepository(trx),
-      {
-        recordId: data.record_id,
-        recordKindId: recordKind.id,
-        systemId: data.system_id
-      },
-      false // LRU caching is not needed for this operation
-    );
+    const systemRecord = await findByThenUpsert(new SystemRecordRepository(trx), {
+      recordId: data.record_id,
+      recordKindId: recordKind.id,
+      systemId: data.system_id
+    });
 
     // Handle on hold events
     const oheOld = (await new OnHoldEventRepository(trx).findBy({ systemRecordId: systemRecord.id }).execute()).map(

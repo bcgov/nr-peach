@@ -28,6 +28,7 @@ vi.mock('../../../src/services/helpers/index.ts', async () => {
     cacheableUpsert: vi.fn(),
     dateTimePartsToEvent: vi.fn(),
     eventToDateTimeParts: vi.fn(),
+    findByThenUpsert: vi.fn(),
     /** Spy on the transactionWrapper method to directly test its callback behaviour */
     transactionWrapper: vi.fn((operation: <T>(trx?: Transaction<DB>) => Promise<T>) => operation({} as Transaction<DB>))
   };
