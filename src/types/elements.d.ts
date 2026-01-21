@@ -59,9 +59,9 @@ export interface Header {
    */
   record_id: string;
   /**
-   * The kind of record the source system stores this record as (i.e. Anchor, Permit, Project, Submission or Tracking).
+   * The kind of record the source system stores this record as (i.e. Anchor or Permit).
    */
-  record_kind: 'Anchor' | 'Permit' | 'Project' | 'Submission' | 'Tracking';
+  record_kind: 'Anchor' | 'Permit';
 }
 export interface Record2 {
   on_hold_event_set?: CodingEvent[];
@@ -170,8 +170,7 @@ export interface RecordLinkage2 {
    */
   linked_record_id: string;
   /**
-   * The kind of record the source system stores this linked record as (i.e. Anchor, Permit, Project, Submission or
-   * Tracking).
+   * The kind of record the source system stores this linked record as (i.e. Anchor or Permit).
    */
-  linked_record_kind: 'Anchor' | 'Permit' | 'Project' | 'Submission' | 'Tracking';
+  linked_record_kind: 'Anchor' | 'Permit';
 }
