@@ -23,18 +23,12 @@ describe('RecordLinkageRepository', () => {
     it('should call super with correct arguments', () => {
       new RecordLinkageRepository();
       expect(BaseRepositoryMock).toHaveBeenCalledTimes(1);
-      expect(BaseRepositoryMock).toHaveBeenCalledWith('pies.recordLinkage', undefined, [
-        'record_linkage_forward_unique',
-        'record_linkage_reverse_unique'
-      ]);
+      expect(BaseRepositoryMock).toHaveBeenCalledWith('pies.recordLinkage', undefined);
     });
 
     it('should call super with db argument if provided', () => {
       new RecordLinkageRepository(mockDb);
-      expect(BaseRepositoryMock).toHaveBeenCalledWith('pies.recordLinkage', mockDb, [
-        'record_linkage_forward_unique',
-        'record_linkage_reverse_unique'
-      ]);
+      expect(BaseRepositoryMock).toHaveBeenCalledWith('pies.recordLinkage', mockDb);
     });
   });
 });

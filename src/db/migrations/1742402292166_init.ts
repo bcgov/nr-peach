@@ -248,12 +248,18 @@ export async function up(db: Kysely<unknown>): Promise<void> {
     .addColumn('linked_system_record_id', 'integer', (col) =>
       col.notNull().references('system_record.id').onUpdate('cascade').onDelete('cascade')
     )
-    .addUniqueConstraint('record_linkage_forward_unique', ['system_record_id', 'linked_system_record_id'])
-    .addUniqueConstraint('record_linkage_reverse_unique', ['linked_system_record_id', 'system_record_id'])
     .$call(withTimestamps)
     .execute();
   await createIndex(db, 'pies', 'record_linkage', ['system_record_id']);
   await createIndex(db, 'pies', 'record_linkage', ['linked_system_record_id']);
+  // Ensures bidirectional links - should behave as an undirected graph
+  await sql`
+      CREATE UNIQUE INDEX record_linkage_undirected
+      ON pies.record_linkage (
+        LEAST(system_record_id, linked_system_record_id),
+        GREATEST(system_record_id, linked_system_record_id)
+      );
+    `.execute(db);
   await createUpdatedAtTrigger(db, 'pies', 'record_linkage');
   await createAuditLogTrigger(db, 'pies', 'record_linkage');
 }
@@ -270,6 +276,7 @@ export async function down(db: Kysely<unknown>): Promise<void> {
   // pies.record_linkage
   await dropAuditLogTrigger(db, 'pies', 'record_linkage');
   await dropUpdatedAtTrigger(db, 'pies', 'record_linkage');
+  await dropIndex(db, 'pies', 'record_linkage', ['record_linkage_undirected_unique']);
   await dropIndex(db, 'pies', 'record_linkage', ['linked_system_record_id']);
   await dropIndex(db, 'pies', 'record_linkage', ['system_record_id']);
   await db.schema.withSchema('pies').dropTable('record_linkage').execute();
