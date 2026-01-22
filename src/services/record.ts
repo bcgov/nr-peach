@@ -157,7 +157,7 @@ export const replaceRecordService = (data: Record): Promise<void> => {
     ]);
 
     const recordKind = await cacheableUpsert(new RecordKindRepository(trx), {
-      kind: data.kind,
+      kind: data.record_kind,
       versionId: data.version
     });
     const systemRecord = await findByThenUpsert(new SystemRecordRepository(trx), {
