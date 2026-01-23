@@ -1,15 +1,17 @@
 import { Router } from 'express';
 
-import { validationSuccessController } from '#src/controllers/index';
+import {
+  deleteRecordLinkageController,
+  getRecordLinkagesController,
+  putRecordLinkageController,
+  validationSuccessController
+} from '#src/controllers/index';
 import { authz, isJsonBody } from '#src/middlewares/index';
-import { Problem } from '#src/utils/index';
 import {
   deleteRecordLinkagesSchemaValidator,
   getRecordLinkagesSchemaValidator,
   putRecordLinkagesSchemaValidator
 } from '#src/validators/index';
-
-import type { Request, Response } from 'express';
 
 const router = Router();
 const putMiddleware = [isJsonBody(), authz('body'), putRecordLinkagesSchemaValidator];
@@ -22,23 +24,12 @@ router.put('/record-linkages/validate', ...putMiddleware, validationSuccessContr
 // Standard Endpoints
 
 /** Get Record Linkages */
-router.get('/record-linkages', getRecordLinkagesSchemaValidator, (req: Request, res: Response): void => {
-  new Problem(501).send(req, res);
-});
+router.get('/record-linkages', getRecordLinkagesSchemaValidator, getRecordLinkagesController);
 
 /** Put Record Linkages */
-router.put('/record-linkages', ...putMiddleware, (req: Request, res: Response): void => {
-  new Problem(501).send(req, res);
-});
+router.put('/record-linkages', ...putMiddleware, putRecordLinkageController);
 
 /** Delete Record Linkages */
-router.delete(
-  '/record-linkages',
-  deleteRecordLinkagesSchemaValidator,
-  authz('query'),
-  (req: Request, res: Response): void => {
-    new Problem(501).send(req, res);
-  }
-);
+router.delete('/record-linkages', authz('query'), deleteRecordLinkagesSchemaValidator, deleteRecordLinkageController);
 
 export default router;
