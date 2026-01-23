@@ -17,6 +17,7 @@ import { getLogger } from './src/utils/index.ts';
 
 // Load environment variables, prioritizing .env over .env.default
 config({ path: ['.env', '.env.default'], quiet: true });
+
 const automigrate = process.env.APP_AUTOMIGRATE?.toLowerCase() === 'true';
 const log = getLogger(import.meta.filename);
 const port = normalizePort(process.env.APP_PORT ?? '3000');
@@ -121,6 +122,7 @@ function shutdown(signal: NodeJS.Signals): void {
  */
 async function startup(): Promise<void> {
   try {
+    if (!validateConfig()) throw new Error('Invalid or missing auth config');
     if (!(await checkDatabaseHealth())) throw new Error('Health check failed');
     if (!(await checkDatabaseMigrations())) {
       if (automigrate) {
@@ -133,4 +135,30 @@ async function startup(): Promise<void> {
     log.error('Error during startup:', error);
     shutdown('SIGABRT');
   }
+}
+
+/**
+ * Validates the configuration settings and sets up the server's auth mode.
+ * @returns True if the configuration is valid, false otherwise.
+ */
+function validateConfig(): boolean {
+  const authMode = process.env.AUTH_MODE?.trim().toLowerCase();
+  if (!authMode) {
+    log.error('AUTH_MODE must be explicitly set');
+    return false;
+  }
+  if (authMode !== 'authn' && authMode !== 'authz' && authMode !== 'none') {
+    log.error(`Invalid AUTH_MODE value: '${authMode}'`);
+    return false;
+  }
+
+  state.authMode = authMode;
+  if (authMode === 'authn' || authMode === 'authz') {
+    if (!process.env.AUTH_ISSUER || !process.env.AUTH_JWKS_URI) {
+      log.error(`AUTH_MODE=${authMode} requires AUTH_ISSUER and AUTH_JWKS_URI to be set`);
+      return false;
+    }
+  }
+
+  return true;
 }

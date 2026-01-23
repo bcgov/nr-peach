@@ -1,8 +1,9 @@
 import { config } from 'dotenv';
 import jwt from 'jsonwebtoken';
 
-import { getAuthMode, getBearerToken, jwksClient, normalizeScopes, setAuthHeader } from './helpers/index.ts';
+import { getBearerToken, jwksClient, normalizeScopes, setAuthHeader } from './helpers/index.ts';
 import { Problem } from '../utils/index.ts';
+import { state } from '../state.ts';
 
 import type { Request, RequestHandler, Response } from 'express';
 import type { JwtPayload } from 'jsonwebtoken';
@@ -18,7 +19,7 @@ config({ path: ['.env', '.env.default'], quiet: true });
  */
 export function authn(): RequestHandler {
   return async function (req, res: Response<unknown, LocalContext>, next): Promise<void> {
-    if (getAuthMode() === 'none') return next();
+    if (state.authMode === 'none') return next();
 
     try {
       const token = getBearerToken(req);
@@ -33,7 +34,7 @@ export function authn(): RequestHandler {
       const claims = jwt.verify(token, kid.getPublicKey(), {
         algorithms: ['RS256'],
         audience: process.env.AUTH_AUDIENCE ?? 'nr-peach',
-        issuer: process.env.AUTH_ISSUER ?? ''
+        issuer: process.env.AUTH_ISSUER
       });
       if (claims && typeof claims !== 'string') res.locals.claims = Object.freeze(claims);
 
@@ -62,7 +63,7 @@ export function authz(source: SystemSource): RequestHandler {
     res: Response<unknown, LocalContext>,
     next
   ): void {
-    if (getAuthMode() !== 'authz') return next();
+    if (state.authMode !== 'authz') return next();
 
     const attributes: AuthErrorAttributes = { realm: process.env.AUTH_AUDIENCE ?? 'nr-peach', error: 'invalid_token' };
     const system_id = req[source].system_id;

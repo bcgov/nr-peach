@@ -1,53 +1,6 @@
-import {
-  getAuthMode,
-  getBearerToken,
-  normalizeScopes,
-  setAuthHeader
-} from '../../../../src/middlewares/helpers/oauth.ts';
+import { getBearerToken, normalizeScopes, setAuthHeader } from '../../../../src/middlewares/helpers/oauth.ts';
 
 import type { Request, Response } from 'express';
-
-describe('getAuthMode', () => {
-  const originalEnv = process.env;
-
-  beforeEach(() => {
-    process.env = { ...originalEnv };
-  });
-
-  afterEach(() => {
-    process.env = originalEnv;
-  });
-
-  it('returns "none" if AUTH_ISSUER or AUTH_JWKS_URI is missing', () => {
-    process.env.AUTH_MODE = 'authn';
-    process.env.AUTH_ISSUER = '';
-    process.env.AUTH_JWKS_URI = '';
-
-    const result = getAuthMode();
-
-    expect(result).toBe('none');
-  });
-
-  it('returns the correct mode if valid and environment variables are set', () => {
-    process.env.AUTH_MODE = 'authz';
-    process.env.AUTH_ISSUER = 'https://example.com';
-    process.env.AUTH_JWKS_URI = 'https://example.com/.well-known/jwks.json';
-
-    const result = getAuthMode();
-
-    expect(result).toBe('authz');
-  });
-
-  it('returns "none" for an invalid mode', () => {
-    process.env.AUTH_MODE = 'invalid';
-    process.env.AUTH_ISSUER = 'https://example.com';
-    process.env.AUTH_JWKS_URI = 'https://example.com/.well-known/jwks.json';
-
-    const result = getAuthMode();
-
-    expect(result).toBe('none');
-  });
-});
 
 describe('getBearerToken', () => {
   it('extracts the Bearer token from the Authorization header', () => {

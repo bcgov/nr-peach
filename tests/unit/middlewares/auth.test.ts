@@ -2,6 +2,7 @@ import express from 'express';
 import jwt from 'jsonwebtoken';
 import request from 'supertest';
 
+import { state } from '../../../src/state.ts';
 import { authn, authz } from '../../../src/middlewares/auth.ts';
 import * as helpers from '../../../src/middlewares/helpers/index.ts';
 
@@ -16,7 +17,6 @@ interface BadAuthResponse {
 describe('authn', () => {
   const mockHandler = vi.fn((_req: Request, res: Response) => res.status(200).send('Success'));
   const decodeSpy = vi.spyOn(jwt, 'decode');
-  const getAuthModeSpy = vi.spyOn(helpers, 'getAuthMode');
   const getBearerTokenSpy = vi.spyOn(helpers, 'getBearerToken');
   const getSigningKeySpy = vi.spyOn(helpers.jwksClient, 'getSigningKey');
   const verifySpy = vi.spyOn(jwt, 'verify');
@@ -29,7 +29,7 @@ describe('authn', () => {
   });
 
   it('should call next if auth mode is "none"', async () => {
-    getAuthModeSpy.mockReturnValue('none');
+    state.authMode = 'none';
 
     app.get('/test', authn(), mockHandler as unknown as RequestHandler);
 
@@ -40,7 +40,7 @@ describe('authn', () => {
   });
 
   it('should return 401 if token is missing', async () => {
-    getAuthModeSpy.mockReturnValue('authn');
+    state.authMode = 'authn';
     getBearerTokenSpy.mockReturnValue(null);
 
     app.get('/test', authn(), mockHandler as unknown as RequestHandler);
@@ -58,7 +58,7 @@ describe('authn', () => {
   });
 
   it('should return 401 if token is invalid', async () => {
-    getAuthModeSpy.mockReturnValue('authn');
+    state.authMode = 'authn';
     getBearerTokenSpy.mockReturnValue('invalid-token');
     decodeSpy.mockReturnValue(null);
 
@@ -77,7 +77,7 @@ describe('authn', () => {
   });
 
   it('should call next if token is valid', async () => {
-    getAuthModeSpy.mockReturnValue('authn');
+    state.authMode = 'authn';
     getBearerTokenSpy.mockReturnValue('valid-token');
     decodeSpy.mockReturnValue({ header: { kid: 'key-id' } });
     // @ts-expect-error ts(2345)
@@ -96,7 +96,6 @@ describe('authn', () => {
 
 describe('authz', () => {
   const mockHandler = vi.fn((_req: Request, res: Response) => res.status(200).send('Success'));
-  const getAuthModeSpy = vi.spyOn(helpers, 'getAuthMode');
 
   let app: Application;
 
@@ -106,7 +105,7 @@ describe('authz', () => {
   });
 
   it('should call next if auth mode is not "authz"', async () => {
-    getAuthModeSpy.mockReturnValue('none');
+    state.authMode = 'none';
 
     app.get('/test', authz('query'), mockHandler as unknown as RequestHandler);
 
@@ -117,7 +116,7 @@ describe('authz', () => {
   });
 
   it('should return 401 if system_id is missing', async () => {
-    getAuthModeSpy.mockReturnValue('authz');
+    state.authMode = 'authz';
 
     app.get('/test', authz('query'), mockHandler as unknown as RequestHandler);
 
@@ -134,7 +133,7 @@ describe('authz', () => {
   });
 
   it('should return 401 if claims are missing', async () => {
-    getAuthModeSpy.mockReturnValue('authz');
+    state.authMode = 'authz';
 
     app.get('/test', authz('query'), mockHandler as unknown as RequestHandler);
 
@@ -153,7 +152,7 @@ describe('authz', () => {
   });
 
   it('should return 403 if token lacks required scope', async () => {
-    getAuthModeSpy.mockReturnValue('authz');
+    state.authMode = 'authz';
 
     app.get(
       '/test',
@@ -180,7 +179,7 @@ describe('authz', () => {
   });
 
   it('should call next if token has required scope', async () => {
-    getAuthModeSpy.mockReturnValue('authz');
+    state.authMode = 'authz';
 
     app.get(
       '/test',

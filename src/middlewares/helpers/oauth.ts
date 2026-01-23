@@ -1,15 +1,11 @@
 import { config } from 'dotenv';
 import jwksRsa from 'jwks-rsa';
 
-import { getLogger } from '../../utils/index.ts';
-
 import type { Request, Response } from 'express';
-import type { AuthErrorAttributes, AuthMode } from '../../types/index.d.ts';
+import type { AuthErrorAttributes } from '../../types/index.d.ts';
 
 // Load environment variables, prioritizing .env over .env.default
 config({ path: ['.env', '.env.default'], quiet: true });
-
-const log = getLogger(import.meta.filename);
 
 export const jwksClient = jwksRsa({
   cache: true,
@@ -20,24 +16,6 @@ export const jwksClient = jwksRsa({
   rateLimit: true,
   timeout: 30000 // 30 seconds
 });
-
-/**
- * Determines the authentication mode based on environment variables.
- *
- * The function checks the `AUTH_MODE` environment variable and validates
- * the presence of `AUTH_ISSUER` and `AUTH_JWKS_URI`. If either `AUTH_ISSUER`
- * or `AUTH_JWKS_URI` is missing, the authentication mode is downgraded to 'none'.
- * Otherwise, it returns the mode if it matches one of the allowed values: 'authn', 'authz', or 'none'.
- * @returns The authentication mode, which can be 'authn', 'authz', or 'none'.
- */
-export function getAuthMode(): AuthMode {
-  const mode = process.env.AUTH_MODE?.toLowerCase();
-  if (!process.env.AUTH_ISSUER || !process.env.AUTH_JWKS_URI) {
-    log.warn('AUTH_MODE downgraded to none: missing AUTH_ISSUER or AUTH_JWKS_URI environment variables');
-    return 'none';
-  }
-  return mode === 'authn' || mode === 'authz' || mode === 'none' ? mode : 'none';
-}
 
 /**
  * Extracts the Bearer token from the Authorization header of the request.
