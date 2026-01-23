@@ -21,3 +21,8 @@ export interface SystemRecordQuery extends ParsedQs {
   /** The ID of the system to which the record belongs. */
   system_id?: string;
 }
+
+export interface LinkedSystemRecordQuery extends ParsedQs {
+  linked_record_id: string;
+  linked_system_id?: string;
+}
