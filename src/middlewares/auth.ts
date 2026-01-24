@@ -1,4 +1,3 @@
-import { config } from 'dotenv';
 import jwt from 'jsonwebtoken';
 
 import { getBearerToken, jwksClient, normalizeScopes, setAuthHeader } from './helpers/index.ts';
@@ -7,9 +6,6 @@ import { state } from '../state.ts';
 
 import type { Request, RequestHandler, Response } from 'express';
 import type { AuthErrorAttributes, LocalContext, SystemSource } from '../types/index.d.ts';
-
-// Load environment variables, prioritizing .env over .env.default
-config({ path: ['.env', '.env.default'], quiet: true });
 
 /**
  * Middleware for authentication. Verifies the JWT Token in the Authorization header and ensures it is valid.

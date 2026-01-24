@@ -1,4 +1,3 @@
-import { config } from 'dotenv';
 import { logger } from 'express-winston';
 import { parse } from 'node:path';
 import { createLogger, format, transports } from 'winston';
@@ -8,9 +7,6 @@ import type { Request, RequestHandler, Response } from 'express';
 import type { LogEntry, Logger } from 'winston';
 import type { TransportStreamOptions } from 'winston-transport';
 import type { LocalContext } from '../types/index.d.ts';
-
-// Load environment variables, prioritizing .env over .env.default
-config({ path: ['.env', '.env.default'], quiet: true });
 
 const DEFAULT_LOG_LEVEL = 'http';
 const USER_AGENTS = ['AlwaysOn', 'HealthCheck', 'kube-probe', 'ReadyForRequest'];

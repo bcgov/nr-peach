@@ -1,11 +1,7 @@
-import { config } from 'dotenv';
 import jwksRsa from 'jwks-rsa';
 
 import type { Request, Response } from 'express';
 import type { AuthErrorAttributes } from '../../types/index.d.ts';
-
-// Load environment variables, prioritizing .env over .env.default
-config({ path: ['.env', '.env.default'], quiet: true });
 
 export const jwksClient = jwksRsa({
   cache: true,
