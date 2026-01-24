@@ -6,7 +6,6 @@ import { Problem } from '../utils/index.ts';
 import { state } from '../state.ts';
 
 import type { Request, RequestHandler, Response } from 'express';
-import type { JwtPayload } from 'jsonwebtoken';
 import type { AuthErrorAttributes, LocalContext, SystemSource } from '../types/index.d.ts';
 
 // Load environment variables, prioritizing .env over .env.default
@@ -75,7 +74,7 @@ export function authz(source: SystemSource): RequestHandler {
       if (!claims) throw new Error('Missing or invalid access token');
 
       attributes.error = 'insufficient_scope';
-      const scopes = normalizeScopes((claims as JwtPayload & { scope?: string | string[] }).scope);
+      const scopes = normalizeScopes(claims.scope);
       if (!scopes.includes(system_id)) throw new Error('Access token lacks required scope');
 
       next();

@@ -4,7 +4,7 @@ import type { ParsedQs } from 'qs';
 /** Represents the local context in which a request is processed by the application. */
 export interface LocalContext {
   /** JWT claims associated with the current token. */
-  claims?: JwtPayload;
+  claims?: JwtPayload & { azp?: string; scope?: string | string[] };
 
   /** The authentication bearer token used for the request. */
   token?: string;
