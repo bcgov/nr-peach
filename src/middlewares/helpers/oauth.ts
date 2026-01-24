@@ -24,7 +24,7 @@ export const jwksClient = jwksRsa({
  */
 export function getBearerToken(req: Request): string | null {
   const auth = req.headers.authorization;
-  return auth?.toLowerCase().startsWith('bearer ') ? auth.substring(7) : null;
+  return auth?.trim().toLowerCase().startsWith('bearer ') ? auth.substring(7).trim() : null;
 }
 
 /**
@@ -39,13 +39,15 @@ export function normalizeScopes(scope: string | string[] | undefined): string[] 
 
 /**
  * Sets the WWW-Authenticate header in the response to provide authentication error details.
+ * @see https://datatracker.ietf.org/doc/html/rfc6750#section-3
  * @param res - The Express response object.
  * @param attributes - An object containing key-value pairs for the authentication error details.
  * @returns The modified response object with the set WWW-Authenticate header.
  */
 export function setAuthHeader(res: Response, attributes: AuthErrorAttributes): Response {
   const headerValue = `Bearer ${Object.entries(attributes)
-    .map(([k, v]) => `${k}="${v}"`)
+    .filter(([k, v]) => k && v)
+    .map(([k, v]) => `${k}="${(v as string).replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"`)
     .join(', ')}`;
   return res.set('WWW-Authenticate', headerValue);
 }

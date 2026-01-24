@@ -1,6 +1,6 @@
 /**
  * Represents an error that occurred during authentication.
- * @see https://datatracker.ietf.org/doc/html/rfc6750
+ * @see https://datatracker.ietf.org/doc/html/rfc6750#section-3
  */
 export interface AuthErrorAttributes {
   /** The realm associated with the error. */

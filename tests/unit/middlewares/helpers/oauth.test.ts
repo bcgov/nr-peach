@@ -82,4 +82,45 @@ describe('setAuthHeader', () => {
       'Bearer realm="nr-peach", error="invalid_token", error_description="The access token is invalid"'
     );
   });
+
+  it('sets the WWW-Authenticate header without empty attributes', () => {
+    const res = {
+      set: vi.fn()
+    } as unknown as Response;
+
+    const attributes = {
+      realm: 'nr-peach',
+      error: 'invalid_token',
+      error_description: 'The access token is invalid',
+      scope: ''
+    };
+
+    setAuthHeader(res, attributes);
+
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    expect(res.set).toHaveBeenCalledWith(
+      'WWW-Authenticate',
+      'Bearer realm="nr-peach", error="invalid_token", error_description="The access token is invalid"'
+    );
+  });
+
+  it('sets the WWW-Authenticate header with proper string escaping', () => {
+    const res = {
+      set: vi.fn()
+    } as unknown as Response;
+
+    const attributes = {
+      realm: 'nr-peach',
+      error: 'invalid_token',
+      error_description: 'Quote " and backslash \\ are escaped'
+    };
+
+    setAuthHeader(res, attributes);
+
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    expect(res.set).toHaveBeenCalledWith(
+      'WWW-Authenticate',
+      'Bearer realm="nr-peach", error="invalid_token", error_description="Quote \\" and backslash \\\\ are escaped"'
+    );
+  });
 });
