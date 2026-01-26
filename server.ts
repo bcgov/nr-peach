@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 
-import { config } from 'dotenv';
 import { createServer } from 'node:http';
 import { isMainThread } from 'node:worker_threads';
 
+import './src/env.ts';
 import { app } from './src/app.ts';
 import { state } from './src/state.ts';
 import {
@@ -14,9 +14,6 @@ import {
   shutdownDatabase
 } from './src/db/index.ts';
 import { getLogger } from './src/utils/index.ts';
-
-// Load environment variables, prioritizing .env over .env.default
-config({ path: ['.env', '.env.default'], quiet: true });
 
 const automigrate = process.env.APP_AUTOMIGRATE?.toLowerCase() === 'true';
 const log = getLogger(import.meta.filename);
