@@ -1,6 +1,7 @@
 import { getBearerToken, normalizeScopes, setAuthHeader } from '../../../../src/middlewares/helpers/oauth.ts';
 
 import type { Request, Response } from 'express';
+import type { AuthErrorAttributes } from '../../../../src/types/index.d.ts';
 
 describe('getBearerToken', () => {
   it('extracts the Bearer token from the Authorization header', () => {
@@ -15,9 +16,21 @@ describe('getBearerToken', () => {
     expect(result).toBe('exampletokenvalue');
   });
 
-  it('returns null if the Authorization header is missing', () => {
+  it('returns undefined if the Authorization header is not present', () => {
     const req = {
       headers: {}
+    } as Request;
+
+    const result = getBearerToken(req);
+
+    expect(result).toBeUndefined();
+  });
+
+  it('returns null if the Authorization header does not start with "Bearer"', () => {
+    const req = {
+      headers: {
+        authorization: 'Basic exampletokenvalue'
+      }
     } as Request;
 
     const result = getBearerToken(req);
@@ -25,10 +38,10 @@ describe('getBearerToken', () => {
     expect(result).toBeNull();
   });
 
-  it('returns null if the Authorization header does not start with "Bearer "', () => {
+  it('returns null if the Authorization header does not start with "Bearer"', () => {
     const req = {
       headers: {
-        authorization: 'Basic exampletokenvalue'
+        authorization: 'Bearer invalidtokenvalue!'
       }
     } as Request;
 
@@ -68,7 +81,7 @@ describe('setAuthHeader', () => {
       set: vi.fn()
     } as unknown as Response;
 
-    const attributes = {
+    const attributes: AuthErrorAttributes = {
       realm: 'nr-peach',
       error: 'invalid_token',
       error_description: 'The access token is invalid'
@@ -88,7 +101,7 @@ describe('setAuthHeader', () => {
       set: vi.fn()
     } as unknown as Response;
 
-    const attributes = {
+    const attributes: AuthErrorAttributes = {
       realm: 'nr-peach',
       error: 'invalid_token',
       error_description: 'The access token is invalid',
@@ -104,12 +117,29 @@ describe('setAuthHeader', () => {
     );
   });
 
+  it('sets the WWW-Authenticate header with only US-ASCII encoded string values', () => {
+    const res = {
+      set: vi.fn()
+    } as unknown as Response;
+
+    const attributes: AuthErrorAttributes = {
+      realm: 'nr-peach',
+      error: 'invalid_token',
+      error_description: 'Non-US-ASCII characters like éñüøß exist'
+    };
+
+    setAuthHeader(res, attributes);
+
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    expect(res.set).toHaveBeenCalledWith('WWW-Authenticate', 'Bearer realm="nr-peach", error="invalid_token"');
+  });
+
   it('sets the WWW-Authenticate header with proper string escaping', () => {
     const res = {
       set: vi.fn()
     } as unknown as Response;
 
-    const attributes = {
+    const attributes: AuthErrorAttributes = {
       realm: 'nr-peach',
       error: 'invalid_token',
       error_description: 'Quote " and backslash \\ are escaped'

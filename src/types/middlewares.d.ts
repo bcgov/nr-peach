@@ -6,11 +6,8 @@ export interface AuthErrorAttributes {
   /** The realm associated with the error. */
   realm: string;
 
-  /**
-   * The type of error that occurred.
-   * @see https://datatracker.ietf.org/doc/html/rfc6750#section-3.1
-   */
-  error: string;
+  /** The type of authentication error that occurred. */
+  error: AuthErrorCodes;
 
   /** A description of the error, if provided. */
   error_description?: string;
@@ -18,6 +15,12 @@ export interface AuthErrorAttributes {
   /** Additional scope information, if provided. */
   scope?: string;
 }
+
+/**
+ * Defines the possible error codes for authentication errors.
+ * @see https://datatracker.ietf.org/doc/html/rfc6750#section-3.1
+ */
+export type AuthErrorCodes = 'invalid_request' | 'invalid_token' | 'insufficient_scope';
 
 /**
  * Represents the authentication mode for the application.
@@ -28,7 +31,5 @@ export interface AuthErrorAttributes {
  */
 export type AuthMode = 'authn' | 'authz' | 'none';
 
-/**
- * Represents the source of a system_id input, which can either be from the request body or query parameters.
- */
+/** Represents the source of a system_id input, which can either be from the request body or query parameters. */
 export type SystemSource = 'body' | 'query';

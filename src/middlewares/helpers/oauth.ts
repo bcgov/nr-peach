@@ -14,13 +14,20 @@ export const jwksClient = jwksRsa({
 });
 
 /**
- * Extracts the Bearer token from the Authorization header of the request.
+ * Extracts a valid bearer token from the Authorization header of the request.
+ * @see https://datatracker.ietf.org/doc/html/rfc6750#section-2.1
  * @param req - The Express request object.
- * @returns The Bearer token as a string, or null if not present.
+ * @returns The valid bearer token as a string, undefined if not present, or null if invalid.
  */
-export function getBearerToken(req: Request): string | null {
+export function getBearerToken(req: Request): string | undefined | null {
   const auth = req.headers.authorization;
-  return auth?.trim().toLowerCase().startsWith('bearer ') ? auth.substring(7).trim() : null;
+  if (auth === undefined) return undefined;
+
+  const parts = auth.trim().split(' ');
+  const [scheme, token] = parts;
+  if (parts.length !== 2 || scheme !== 'Bearer') return null;
+
+  return /^[A-Za-z0-9\-._~+/]+=*$/.test(token) ? token : null; // RFC 6750 Section 2.1
 }
 
 /**
@@ -36,14 +43,17 @@ export function normalizeScopes(scope: string | string[] | undefined): string[] 
 /**
  * Sets the WWW-Authenticate header in the response to provide authentication error details.
  * @see https://datatracker.ietf.org/doc/html/rfc6750#section-3
+ * @see https://datatracker.ietf.org/doc/html/rfc7230#section-3.2.4
  * @param res - The Express response object.
  * @param attributes - An object containing key-value pairs for the authentication error details.
  * @returns The modified response object with the set WWW-Authenticate header.
  */
 export function setAuthHeader(res: Response, attributes: AuthErrorAttributes): Response {
   const headerValue = `Bearer ${Object.entries(attributes)
-    .filter(([k, v]) => k && v)
-    .map(([k, v]) => `${k}="${(v as string).replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"`)
+    // Drop undefined pairs and non-US-ASCII encoded values (RFC 7230 Section 3.2.4)
+    .filter(([k, v]) => k && v && /^[\u0020-\u007E]*$/.test(v as string))
+    // Escape double quotes and backslashes in values
+    .map(([k, v]) => `${k}="${(v as string).replaceAll(/\\/g, String.raw`\\`).replaceAll(/"/g, String.raw`\"`)}"`)
     .join(', ')}`;
   return res.set('WWW-Authenticate', headerValue);
 }
