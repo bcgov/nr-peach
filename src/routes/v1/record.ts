@@ -22,12 +22,12 @@ const router = Router();
 router.get('/records', getRecordSchemaValidator, getRecordController);
 
 /** Post Process Events */
-router.post('/records', postRecordSchemaValidator, postRecordIntegrityValidator, authz('body'), postRecordController);
+router.post('/records', authz('body'), postRecordSchemaValidator, postRecordIntegrityValidator, postRecordController);
 
 /** Prune Process Events */
-router.delete('/records', pruneRecordSchemaValidator, authz('query'), pruneRecordController);
+router.delete('/records', authz('query'), pruneRecordSchemaValidator, pruneRecordController);
 
 /** Put Process Events */
-router.put('/records', putRecordSchemaValidator, putRecordIntegrityValidator, authz('body'), putRecordController);
+router.put('/records', authz('body'), putRecordSchemaValidator, putRecordIntegrityValidator, putRecordController);
 
 export default router;

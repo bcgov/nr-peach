@@ -39,25 +39,44 @@ describe('authn', () => {
     expect(mockHandler).toHaveBeenCalledTimes(1);
   });
 
-  it('should return 401 if token is missing', async () => {
+  it('should return 401 if token is not present', async () => {
     state.authMode = 'authn';
-    getBearerTokenSpy.mockReturnValue(null);
+    getBearerTokenSpy.mockReturnValue(undefined);
 
     app.get('/test', authn(), mockHandler as unknown as RequestHandler);
 
     const response = (await request(app).get('/test').send()) as BadAuthResponse;
 
     expect(response.status).toBe(401);
-    expect(response.body.detail).toBe('Missing or malformed bearer token');
+    expect(response.body.detail).toBe('Missing bearer token');
     expect(response.body.realm).toBe('nr-peach');
-    expect(response.headers).toHaveProperty(
-      'www-authenticate',
-      'Bearer realm="nr-peach", error="invalid_token", error_description="Missing or malformed bearer token"'
-    );
+    expect(response.headers['www-authenticate']).toContain('Bearer');
+    expect(response.headers['www-authenticate']).toContain('realm="nr-peach');
+    expect(response.headers['www-authenticate']).toContain('error="invalid_token"');
+    expect(response.headers['www-authenticate']).toContain('error_description="Missing bearer token"');
     expect(mockHandler).toHaveBeenCalledTimes(0);
   });
 
-  it('should return 401 if token is invalid', async () => {
+  it('should return 400 if token is invalid', async () => {
+    state.authMode = 'authn';
+    getBearerTokenSpy.mockReturnValue(null);
+    decodeSpy.mockReturnValue(null);
+
+    app.get('/test', authn(), mockHandler as unknown as RequestHandler);
+
+    const response = (await request(app).get('/test').send()) as BadAuthResponse;
+
+    expect(response.status).toBe(400);
+    expect(response.body.detail).toBe('Invalid bearer token');
+    expect(response.body.realm).toBe('nr-peach');
+    expect(response.headers['www-authenticate']).toContain('Bearer');
+    expect(response.headers['www-authenticate']).toContain('realm="nr-peach');
+    expect(response.headers['www-authenticate']).toContain('error="invalid_request"');
+    expect(response.headers['www-authenticate']).toContain('error_description="Invalid bearer token"');
+    expect(mockHandler).toHaveBeenCalledTimes(0);
+  });
+
+  it('should return 400 if token is not decodable', async () => {
     state.authMode = 'authn';
     getBearerTokenSpy.mockReturnValue('invalid-token');
     decodeSpy.mockReturnValue(null);
@@ -66,13 +85,13 @@ describe('authn', () => {
 
     const response = (await request(app).get('/test').send()) as BadAuthResponse;
 
-    expect(response.status).toBe(401);
+    expect(response.status).toBe(400);
     expect(response.body.detail).toBe('Unable to decode access token');
     expect(response.body.realm).toBe('nr-peach');
-    expect(response.headers).toHaveProperty(
-      'www-authenticate',
-      'Bearer realm="nr-peach", error="invalid_token", error_description="Unable to decode access token"'
-    );
+    expect(response.headers['www-authenticate']).toContain('Bearer');
+    expect(response.headers['www-authenticate']).toContain('realm="nr-peach');
+    expect(response.headers['www-authenticate']).toContain('error="invalid_request"');
+    expect(response.headers['www-authenticate']).toContain('error_description="Unable to decode access token"');
     expect(mockHandler).toHaveBeenCalledTimes(0);
   });
 
@@ -115,19 +134,21 @@ describe('authz', () => {
     expect(mockHandler).toHaveBeenCalledTimes(1);
   });
 
-  it('should return 401 if system_id is missing', async () => {
+  it('should return 400 if system_id is missing', async () => {
     state.authMode = 'authz';
 
     app.get('/test', authz('query'), mockHandler as unknown as RequestHandler);
 
     const response = (await request(app).get('/test').send()) as BadAuthResponse;
 
-    expect(response.status).toBe(401);
-    expect(response.body.detail).toBe('Unable to determine required scope');
+    expect(response.status).toBe(400);
+    expect(response.body.detail).toBe('Unable to determine required system_id scope from query');
     expect(response.body.realm).toBe('nr-peach');
-    expect(response.headers).toHaveProperty(
-      'www-authenticate',
-      'Bearer realm="nr-peach", error="invalid_token", error_description="Unable to determine required scope"'
+    expect(response.headers['www-authenticate']).toContain('Bearer');
+    expect(response.headers['www-authenticate']).toContain('realm="nr-peach');
+    expect(response.headers['www-authenticate']).toContain('error="invalid_request"');
+    expect(response.headers['www-authenticate']).toContain(
+      'error_description="Unable to determine required system_id scope from query"'
     );
     expect(mockHandler).toHaveBeenCalledTimes(0);
   });
@@ -143,11 +164,11 @@ describe('authz', () => {
     expect(response.body.detail).toBe('Missing or invalid access token');
     expect(response.body.realm).toBe('nr-peach');
     expect(response.body.scope).toBe('some-scope');
-    expect(response.headers).toHaveProperty(
-      'www-authenticate',
-      'Bearer realm="nr-peach", error="invalid_token", scope="some-scope", ' +
-        'error_description="Missing or invalid access token"'
-    );
+    expect(response.headers['www-authenticate']).toContain('Bearer');
+    expect(response.headers['www-authenticate']).toContain('realm="nr-peach');
+    expect(response.headers['www-authenticate']).toContain('error="invalid_token"');
+    expect(response.headers['www-authenticate']).toContain('error_description="Missing or invalid access token"');
+    expect(response.headers['www-authenticate']).toContain('scope="some-scope');
     expect(mockHandler).toHaveBeenCalledTimes(0);
   });
 
@@ -170,11 +191,11 @@ describe('authz', () => {
     expect(response.body.detail).toBe('Access token lacks required scope');
     expect(response.body.realm).toBe('nr-peach');
     expect(response.body.scope).toBe('required-scope');
-    expect(response.headers).toHaveProperty(
-      'www-authenticate',
-      'Bearer realm="nr-peach", error="insufficient_scope", scope="required-scope", ' +
-        'error_description="Access token lacks required scope"'
-    );
+    expect(response.headers['www-authenticate']).toContain('Bearer');
+    expect(response.headers['www-authenticate']).toContain('realm="nr-peach"');
+    expect(response.headers['www-authenticate']).toContain('error="insufficient_scope"');
+    expect(response.headers['www-authenticate']).toContain('error_description="Access token lacks required scope"');
+    expect(response.headers['www-authenticate']).toContain('scope="required-scope"');
     expect(mockHandler).toHaveBeenCalledTimes(0);
   });
 

@@ -18,7 +18,7 @@ router.get('/record-linkages', getRecordLinkagesSchemaValidator, (req: Request, 
 });
 
 /** Put Record Linkages */
-router.put('/record-linkages', putRecordLinkagesSchemaValidator, authz('body'), (req: Request, res: Response): void => {
+router.put('/record-linkages', authz('body'), putRecordLinkagesSchemaValidator, (req: Request, res: Response): void => {
   new Problem(501).send(req, res);
 });
 
