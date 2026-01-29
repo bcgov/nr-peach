@@ -24,7 +24,7 @@ const authStatusMap: Record<AuthErrorCodes, number> = {
  */
 export function authn(): RequestHandler {
   return async function (req, res: Response<unknown, LocalContext>, next): Promise<void> {
-    if (state.authMode === 'none') return next();
+    if (state.authMode && state.authMode === 'none') return next();
 
     try {
       const token = getBearerToken(req);
@@ -77,7 +77,7 @@ export function authz(source: SystemSource): RequestHandler {
     res: Response<unknown, LocalContext>,
     next
   ): void {
-    if (state.authMode !== 'authz') return next();
+    if (state.authMode && state.authMode !== 'authz') return next();
 
     const system_id = req[source].system_id;
     try {

@@ -81,7 +81,7 @@ function getSpec(): OpenAPISpec {
     // eslint-disable-next-line max-len
     spec.components.securitySchemes!.OpenID.openIdConnectUrl = `${process.env.AUTH_ISSUER}/.well-known/openid-configuration`;
   }
-  if (state.authMode === 'none') {
+  if (state.authMode && state.authMode === 'none') {
     delete spec.security;
     delete spec.components.securitySchemes;
   }
