@@ -41,6 +41,7 @@ resource "azurerm_linux_web_app" "api" {
     APP_AUTOMIGRATE                       = var.app_automigrate
     APPINSIGHTS_INSTRUMENTATIONKEY        = var.appinsights_instrumentation_key
     APPLICATIONINSIGHTS_CONNECTION_STRING = var.appinsights_connection_string
+    AUTH_MODE                             = "none" # TODO: Set up variable wiring
     DOCKER_ENABLE_CI                      = "true"
     NODE_ENV                              = var.node_env
     PGDATABASE                            = var.database_name
