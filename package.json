@@ -46,6 +46,8 @@
     "express-winston": "4.2.0",
     "helmet": "8.1.0",
     "js-yaml": "4.1.1",
+    "jsonwebtoken": "9.0.3",
+    "jwks-rsa": "3.2.0",
     "kysely": "0.28.10",
     "kysely-codegen": "0.19.0",
     "kysely-ctl": "0.20.0",

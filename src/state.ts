@@ -1,6 +1,8 @@
 import { getGitRevision } from './utils/index.ts';
 
-export const state = {
+import type { AuthMode } from './types/index.ts';
+
+export const state: { authMode?: AuthMode; gitRev?: string; ready: boolean; shutdown: boolean } = {
   gitRev: getGitRevision(),
   ready: false,
   shutdown: false

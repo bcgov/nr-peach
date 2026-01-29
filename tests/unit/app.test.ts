@@ -6,11 +6,16 @@ import { state } from '../../src/state.ts';
 import * as db from '../../src/db/index.ts';
 import { Problem } from '../../src/utils/index.ts';
 
-import type { Request, Response } from 'express';
+import type { Request, RequestHandler, Response } from 'express';
 
-const checkDatabaseHealthSpy = vi.spyOn(db, 'checkDatabaseHealth');
+vi.mock('../../src/middlewares/validator.ts', () => ({
+  validateRequestIntegrity: () => vi.fn<RequestHandler>((_req, _res, next) => next()),
+  validateRequestSchema: () => vi.fn<RequestHandler>((_req, _res, next) => next())
+}));
 
 describe('App', () => {
+  const checkDatabaseHealthSpy = vi.spyOn(db, 'checkDatabaseHealth');
+
   beforeEach(() => {
     state.ready = true;
     state.shutdown = false;

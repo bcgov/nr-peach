@@ -1,9 +1,8 @@
 #!/usr/bin/env node
 
-import { config } from 'dotenv';
 import { createServer } from 'node:http';
-import { isMainThread } from 'node:worker_threads';
 
+import './src/env.ts';
 import { app } from './src/app.ts';
 import { state } from './src/state.ts';
 import {
@@ -15,29 +14,34 @@ import {
 } from './src/db/index.ts';
 import { getLogger } from './src/utils/index.ts';
 
-// Load environment variables, prioritizing .env over .env.default
-config({ path: ['.env', '.env.default'], quiet: true });
 const automigrate = process.env.APP_AUTOMIGRATE?.toLowerCase() === 'true';
 const log = getLogger(import.meta.filename);
 const port = normalizePort(process.env.APP_PORT ?? '3000');
+const server = createServer(app);
+
+// Prevent unhandled rejections from crashing application
+process.on('unhandledRejection', (err: Error): void => {
+  if (err?.stack) log.error(err);
+});
+
+// Graceful shutdown support
+const signals: readonly NodeJS.Signals[] = ['SIGHUP', 'SIGINT', 'SIGTERM', 'SIGUSR1', 'SIGUSR2'];
+signals.forEach((signal) => process.once(signal, () => shutdown(signal)));
+process.on('exit', () => log.info('Exiting...'));
+
+// Perform preliminary system checks
+if (!validateConfig()) {
+  log.error('Invalid or missing auth config');
+  shutdown('SIGABRT');
+}
 
 // Create HTTP server and listen on provided port, on all network interfaces.
-const server = createServer(app);
-server.listen(port, () => log.info(`Server running on http://localhost:${port}`));
+server.listen(port, () => {
+  const authModeMap = { none: 'no authentication', authn: 'authentication only', authz: 'scoped authorization' };
+  log.info(`Server running on http://localhost:${port}`);
+  if (state.authMode) log.info(`Server running in ${authModeMap[state.authMode]} mode`);
+});
 server.on('error', onError);
-
-if (isMainThread) {
-  // Prevent unhandled rejections from crashing application
-  process.on('unhandledRejection', (err: Error): void => {
-    if (err?.stack) log.error(err);
-  });
-
-  // Graceful shutdown support
-  ['SIGHUP', 'SIGINT', 'SIGTERM', 'SIGUSR1', 'SIGUSR2'].forEach((signal) => {
-    process.on(signal, () => shutdown(signal as NodeJS.Signals));
-  });
-  process.on('exit', () => log.info('Exiting...'));
-}
 
 // Perform preliminary database checks
 void startup();
@@ -117,16 +121,44 @@ function shutdown(signal: NodeJS.Signals): void {
  */
 async function startup(): Promise<void> {
   try {
-    if (!(await checkDatabaseHealth())) throw new Error('Health check failed');
-    if (!(await checkDatabaseMigrations())) {
-      if (automigrate) {
-        if (!(await runMigrations())) throw new Error('Auto-migrations failed');
-        else if (!(await runSeeds())) throw new Error('Auto-seeding failed');
-      } else throw new Error('Migration check failed');
+    if (state.authMode) {
+      if (!(await checkDatabaseHealth())) throw new Error('Health check failed');
+      if (!(await checkDatabaseMigrations())) {
+        if (automigrate) {
+          if (!(await runMigrations())) throw new Error('Auto-migrations failed');
+          else if (!(await runSeeds())) throw new Error('Auto-seeding failed');
+        } else throw new Error('Migration check failed');
+      }
+      state.ready = true;
     }
-    state.ready = true;
   } catch (error) {
     log.error('Error during startup:', error);
     shutdown('SIGABRT');
   }
+}
+
+/**
+ * Validates the configuration settings and sets up the server's auth mode.
+ * @returns True if the configuration is valid, false otherwise.
+ */
+function validateConfig(): boolean {
+  const authMode = process.env.AUTH_MODE?.trim().toLowerCase();
+  if (!authMode) {
+    log.error('AUTH_MODE must be explicitly set');
+    return false;
+  }
+  if (authMode !== 'authn' && authMode !== 'authz' && authMode !== 'none') {
+    log.error(`Invalid AUTH_MODE value: '${authMode}'`);
+    return false;
+  }
+
+  state.authMode = authMode;
+  if (authMode === 'authn' || authMode === 'authz') {
+    if (!process.env.AUTH_ISSUER || !process.env.AUTH_JWKS_URI) {
+      log.error(`AUTH_MODE=${authMode} requires AUTH_ISSUER and AUTH_JWKS_URI to be set`);
+      return false;
+    }
+  }
+
+  return true;
 }

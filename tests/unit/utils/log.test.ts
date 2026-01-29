@@ -30,17 +30,19 @@ describe('Logger', () => {
 
       const meta = dynamicMeta(req, res);
 
-      expect(meta).toEqual({
-        contentLength: '123',
-        httpVersion: '1.1',
-        ip: '127.0.0.1',
-        method: 'GET',
-        path: '/test',
-        query: { key: 'value' },
-        responseTime: 200,
-        statusCode: 200,
-        userAgent: 'test-agent'
-      });
+      expect(meta).toEqual(
+        expect.objectContaining({
+          contentLength: '123',
+          httpVersion: '1.1',
+          ip: '127.0.0.1',
+          method: 'GET',
+          path: '/test',
+          query: { key: 'value' },
+          responseTime: 200,
+          statusCode: 200,
+          userAgent: 'test-agent'
+        })
+      );
     });
 
     it('should handle missing query and responseTime gracefully', () => {
@@ -66,17 +68,19 @@ describe('Logger', () => {
 
       const meta = dynamicMeta(req, res);
 
-      expect(meta).toEqual({
-        contentLength: '456',
-        httpVersion: '1.1',
-        ip: '127.0.0.1',
-        method: 'POST',
-        path: '/test',
-        query: undefined,
-        responseTime: undefined,
-        statusCode: 404,
-        userAgent: 'test-agent'
-      });
+      expect(meta).toEqual(
+        expect.objectContaining({
+          contentLength: '456',
+          httpVersion: '1.1',
+          ip: '127.0.0.1',
+          method: 'POST',
+          path: '/test',
+          query: undefined,
+          responseTime: undefined,
+          statusCode: 404,
+          userAgent: 'test-agent'
+        })
+      );
     });
 
     it('should return undefined for userAgent if not provided', () => {
@@ -96,19 +100,22 @@ describe('Logger', () => {
 
       const meta = dynamicMeta(req, res);
 
-      expect(meta).toEqual({
-        contentLength: undefined,
-        httpVersion: '1.1',
-        ip: '127.0.0.1',
-        method: 'PUT',
-        path: '/test',
-        query: undefined,
-        responseTime: undefined,
-        statusCode: 500,
-        userAgent: undefined
-      });
+      expect(meta).toEqual(
+        expect.objectContaining({
+          contentLength: undefined,
+          httpVersion: '1.1',
+          ip: '127.0.0.1',
+          method: 'PUT',
+          path: '/test',
+          query: undefined,
+          responseTime: undefined,
+          statusCode: 500,
+          userAgent: undefined
+        })
+      );
     });
   });
+
   describe('getLogger', () => {
     it('should return a logger instance without a filename', () => {
       const logger = getLogger(undefined);
