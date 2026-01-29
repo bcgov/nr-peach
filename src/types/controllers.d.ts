@@ -6,6 +6,9 @@ export interface LocalContext {
   /** JWT claims associated with the current token. */
   claims?: JwtPayload & { azp?: string; scope?: string | string[] };
 
+  /** Content Security Policy nonce scoped to the response */
+  cspNonce?: string;
+
   /** The authentication bearer token used for the request. */
   token?: string;
 }

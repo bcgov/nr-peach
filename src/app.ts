@@ -12,6 +12,7 @@ import { state } from './state.ts';
 import { getLogger, httpLogger, Problem } from './utils/index.ts';
 
 import type { NextFunction, Request, Response } from 'express';
+import type { LocalContext } from './types/index.d.ts';
 
 const log = getLogger(import.meta.filename);
 
@@ -22,11 +23,11 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded());
 app.use(favicon('src/public/favicon.ico'));
-app.use((_req: Request, res: Response, next: NextFunction): void => {
+app.use((_req: Request, res: Response<unknown, LocalContext>, next: NextFunction): void => {
   res.locals.cspNonce = randomBytes(32).toString('hex');
-  helmet();
   next();
 });
+app.use(helmet());
 
 // Skip if running tests
 if (process.env.NODE_ENV !== 'test') app.use(httpLogger);
