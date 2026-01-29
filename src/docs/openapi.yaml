@@ -47,6 +47,8 @@ paths:
               schema:
                 $ref: >-
                   https://raw.githubusercontent.com/bcgov/nr-pies/refs/heads/main/docs/spec/element/message/record.schema.json
+        '400':
+          $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
@@ -77,6 +79,8 @@ paths:
           description: >-
             Accepted - Merged an existing Record with the associated
             ProcessEvents
+        '400':
+          $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
@@ -105,6 +109,8 @@ paths:
       responses:
         '201':
           description: Created - Added a new Record with the associated ProcessEvents
+        '400':
+          $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
@@ -129,6 +135,8 @@ paths:
       responses:
         '204':
           description: No Content
+        '400':
+          $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
@@ -164,6 +172,8 @@ paths:
                 items:
                   $ref: >-
                     https://raw.githubusercontent.com/bcgov/nr-pies/refs/heads/main/docs/spec/element/message/record_linkage.schema.json
+        '400':
+          $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
@@ -192,6 +202,8 @@ paths:
       responses:
         '201':
           description: Created - Added a new Record with the associated RecordLinkage
+        '400':
+          $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
@@ -218,6 +230,8 @@ paths:
       responses:
         '204':
           description: No Content
+        '400':
+          $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
@@ -249,6 +263,8 @@ paths:
             application/json:
               schema:
                 type: boolean
+        '400':
+          $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
@@ -263,7 +279,7 @@ paths:
     get:
       summary: Get a specific system record header
       description: Get a specific system record header
-      operationId: getRecords
+      operationId: getSystemRecords
       tags:
         - Systems
       parameters:
@@ -277,6 +293,8 @@ paths:
               schema:
                 $ref: >-
                   https://raw.githubusercontent.com/bcgov/nr-pies/refs/heads/main/docs/spec/element/data/header.schema.json
+        '400':
+          $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
@@ -301,6 +319,8 @@ paths:
       responses:
         '204':
           description: No Content
+        '400':
+          $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
@@ -386,6 +406,10 @@ components:
         does not need to be machine readable.
       format: uri
       example: https://apps.nrs.gov.bc.ca/int/jira/secure/insight/assets/ITSM-5917
+    Header-WWW-Authenticate:
+      title: Header WWW-Authenticate
+      type: string
+      description: HTTP Authentication header indicating the status of the request
     Response-BadRequest:
       title: Response Bad Request
       type: object
@@ -527,11 +551,15 @@ components:
               example: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/422
   responses:
     BadRequest:
-      description: Bad Request (Request is missing content or malformed)
+      description: Bad Request (Missing content or malformed)
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/Response-BadRequest'
+      headers:
+        WWW-Authenticate:
+          schema:
+            $ref: '#/components/schemas/Header-WWW-Authenticate'
     Conflict:
       description: Conflict
       content:
@@ -545,11 +573,15 @@ components:
           schema:
             $ref: '#/components/schemas/Response-Error'
     Forbidden:
-      description: Forbidden
+      description: Forbidden (Insufficient privileges)
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/Response-Forbidden'
+      headers:
+        WWW-Authenticate:
+          schema:
+            $ref: '#/components/schemas/Header-WWW-Authenticate'
     NotFound:
       description: Not Found
       content:
@@ -557,11 +589,15 @@ components:
           schema:
             $ref: '#/components/schemas/Response-NotFound'
     Unauthorized:
-      description: Unauthorized
+      description: Unauthorized (Requires authentication)
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/Response-Unauthorized'
+      headers:
+        WWW-Authenticate:
+          schema:
+            $ref: '#/components/schemas/Header-WWW-Authenticate'
     UnprocessableEntity:
       description: Unprocessable Content (Generally validation error(s))
       content:

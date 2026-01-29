@@ -1,4 +1,3 @@
-import { config } from 'dotenv';
 import { existsSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { cwd } from 'node:process';
@@ -6,8 +5,6 @@ import { validate, version } from 'uuid';
 
 import { getLogger } from './log.ts';
 
-// Load environment variables, prioritizing .env over .env.default
-config({ path: ['.env', '.env.default'], quiet: true });
 const log = getLogger(import.meta.filename);
 
 /**

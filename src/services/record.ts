@@ -122,7 +122,7 @@ export const findRecordService = (systemRecord: Selectable<PiesSystemRecord>): P
 };
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-export const mergeRecordService = (data: Record): Promise<void> => {
+export const mergeRecordService = (data: Record, principal?: string): Promise<void> => {
   throw new Error('mergeRecordService not implemented');
 };
 
@@ -145,13 +145,14 @@ export const pruneRecordService = async (
 /**
  * Replaces the record for the given system record.
  * @param data - The record to replace.
+ * @param principal - The authenticated identity performing the operation.
  * @returns A promise that resolves when the operation is complete.
  */
-export const replaceRecordService = (data: Record): Promise<void> => {
+export const replaceRecordService = (data: Record, principal?: string): Promise<void> => {
   return transactionWrapper(async (trx) => {
     // Update atomic fact tables
     await Promise.all([
-      new TransactionRepository(trx).create({ id: data.transaction_id }).execute(),
+      new TransactionRepository(trx).create({ id: data.transaction_id, createdBy: principal }).execute(),
       cacheableUpsert(new SystemRepository(trx), { id: data.system_id }),
       cacheableUpsert(new VersionRepository(trx), { id: data.version })
     ]);
@@ -200,7 +201,8 @@ export const replaceRecordService = (data: Record): Promise<void> => {
               codingId: codingId,
               systemRecordId: systemRecord.id,
               transactionId: data.transaction_id,
-              ...eventToDateTimeParts(ce.event)
+              ...eventToDateTimeParts(ce.event),
+              createdBy: principal
             };
           }
         }) ?? []
@@ -257,7 +259,8 @@ export const replaceRecordService = (data: Record): Promise<void> => {
               statusDescription: pe.process.status_description,
               systemRecordId: systemRecord.id,
               transactionId: data.transaction_id,
-              ...eventToDateTimeParts(pe.event)
+              ...eventToDateTimeParts(pe.event),
+              createdBy: principal
             };
           }
         }) ?? []

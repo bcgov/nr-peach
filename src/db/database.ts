@@ -1,4 +1,3 @@
-import { config } from 'dotenv';
 import { CamelCasePlugin, Kysely, Migrator, PostgresDialect, sql } from 'kysely';
 import { Seeder } from 'kysely-ctl';
 import { promises as dns } from 'node:dns';
@@ -12,9 +11,6 @@ import type { LogEvent, Migration } from 'kysely';
 import type { Seed } from 'kysely-ctl';
 import type { DB } from '../types/index.d.ts';
 
-// Load environment variables, prioritizing .env over .env.default
-config({ path: ['.env', '.env.default'], quiet: true });
-
 const log = getLogger(import.meta.filename);
 
 /**
@@ -25,7 +21,7 @@ const int8TypeId = 20; // PostgreSQL's bigint type is represented as int8 in Kys
 types.setTypeParser(int8TypeId, (value: string): number => Number.parseInt(value, 10));
 
 const pool = new Pool({
-  host: (await dns.lookup(process.env.PGHOST ?? '', { family: 4 })).address,
+  host: (await dns.lookup(process.env.PGHOST ?? 'localhost', { family: 4 })).address,
   database: process.env.PGDATABASE,
   user: process.env.PGUSER,
   password: process.env.PGPASSWORD,

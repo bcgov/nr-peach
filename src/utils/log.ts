@@ -1,6 +1,4 @@
-import { config } from 'dotenv';
 import { logger } from 'express-winston';
-// import { jwt } = from 'jsonwebtoken'; // TODO: Revisit when we look at authentication
 import { parse } from 'node:path';
 import { createLogger, format, transports } from 'winston';
 import Transport from 'winston-transport';
@@ -8,9 +6,7 @@ import Transport from 'winston-transport';
 import type { Request, RequestHandler, Response } from 'express';
 import type { LogEntry, Logger } from 'winston';
 import type { TransportStreamOptions } from 'winston-transport';
-
-// Load environment variables, prioritizing .env over .env.default
-config({ path: ['.env', '.env.default'], quiet: true });
+import type { LocalContext } from '../types/index.d.ts';
 
 const DEFAULT_LOG_LEVEL = 'http';
 const USER_AGENTS = ['AlwaysOn', 'HealthCheck', 'kube-probe', 'ReadyForRequest'];
@@ -84,8 +80,15 @@ export function getLogger(filename?: string): Logger {
  * @param res Express response object
  * @returns Dynamic meta object
  */
-export function dynamicMeta(req: Request, res: Response & { responseTime?: number }): Record<string, unknown> {
+export function dynamicMeta(
+  req: Request,
+  res: Response<unknown, LocalContext> & { responseTime?: number }
+): Record<string, unknown> {
   return {
+    claims: {
+      azp: res.locals?.claims?.azp,
+      sub: res.locals?.claims?.sub
+    },
     contentLength: res.get('content-length'),
     httpVersion: req.httpVersion,
     ip: req.ip,
