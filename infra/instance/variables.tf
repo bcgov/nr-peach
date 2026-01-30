@@ -74,6 +74,20 @@ variable "enable_cloudbeaver" {
   nullable    = false
 }
 
+variable "enable_frontdoor_firewall" {
+  description = "Whether to create a firewall policy for the frontdoor."
+  type        = bool
+  nullable    = false
+  default     = true
+}
+
+variable "frontdoor_firewall_policy_name" {
+  description = "Name of the shared Front Door WAF policy created in core (if enabled)."
+  type        = string
+  nullable    = true
+  default     = null
+}
+
 variable "instance_name" {
   description = "Name of the instance"
   type        = string

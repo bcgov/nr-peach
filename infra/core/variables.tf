@@ -42,6 +42,13 @@ variable "enable_api_autoscale" {
   nullable    = false
 }
 
+variable "enable_frontdoor_firewall" {
+  description = "Whether to create a firewall policy for the frontdoor."
+  type        = bool
+  nullable    = false
+  default     = true
+}
+
 variable "enable_postgres_auto_grow" {
   description = "Enable auto-grow for PostgreSQL Flexible Server storage"
   type        = bool
@@ -61,6 +68,23 @@ variable "enable_postgres_geo_redundant_backup" {
   type        = bool
   default     = false
   nullable    = false
+}
+
+variable "frontdoor_firewall_mode" {
+  description = "Front Door firewall mode, detection = log, prevention = log + block"
+  type        = string
+  default     = "Prevention" # Detection | Prevention
+}
+
+variable "frontdoor_sku_name" {
+  description = "Front Door SKU. Premium required for Private Link to private origins."
+  type        = string
+  nullable    = false
+
+  validation {
+    condition     = var.frontdoor_sku_name == "Premium_AzureFrontDoor"
+    error_message = "frontdoor_sku_name must be Premium_AzureFrontDoor for this deployment."
+  }
 }
 
 variable "lifecycle_name" {
@@ -140,6 +164,20 @@ variable "postgresql_admin_username" {
   nullable    = false
 }
 
+variable "rate_limit_duration_in_minutes" {
+  description = "Firewall rate limit duration."
+  type        = number
+  nullable    = false
+  default     = 1
+}
+
+variable "rate_limit_threshold" {
+  description = "Firewall rate limit threshold."
+  type        = number
+  nullable    = false
+  default     = 100
+}
+
 variable "resource_group_name" {
   description = "Name of the resource group"
   type        = string
@@ -159,12 +197,6 @@ variable "tenant_id" {
   type        = string
   nullable    = false
   sensitive   = true
-}
-
-variable "vnet_address_space" {
-  type        = string
-  description = "Address space for the virtual network, it is created by platform team"
-  nullable    = false
 }
 
 variable "vnet_name" {

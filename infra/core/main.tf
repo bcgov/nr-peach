@@ -45,7 +45,6 @@ module "network" {
 
   common_tags              = var.common_tags
   resource_group_name      = azurerm_resource_group.main.name
-  vnet_address_space       = var.vnet_address_space
   vnet_name                = var.vnet_name
   vnet_resource_group_name = var.vnet_resource_group_name
 
@@ -63,6 +62,37 @@ module "appservice" {
   resource_group_name  = azurerm_resource_group.main.name
 
   depends_on = [module.network]
+}
+
+module "containerapp" {
+  source = "./modules/containerapp"
+
+  app_name                            = var.app_name
+  app_env                             = var.app_env
+  location                            = var.location
+  resource_group_name                 = azurerm_resource_group.main.name
+  common_tags                         = var.common_tags
+  container_apps_subnet_id            = module.network.container_apps_subnet_id
+  private_endpoint_subnet_id          = module.network.private_endpoint_subnet_id
+  log_analytics_workspace_id          = module.monitoring.log_analytics_workspace_id
+  log_analytics_workspace_customer_id = module.monitoring.log_analytics_workspace_workspaceId
+  log_analytics_workspace_key         = module.monitoring.log_analytics_workspace_key
+
+  depends_on = [module.network, module.monitoring]
+}
+
+module "frontdoor" {
+  source = "./modules/frontdoor"
+
+  app_name            = var.app_name
+  resource_group_name = azurerm_resource_group.main.name
+  common_tags         = var.common_tags
+  frontdoor_sku_name  = var.frontdoor_sku_name
+
+  enable_frontdoor_firewall      = var.enable_frontdoor_firewall
+  frontdoor_firewall_mode        = var.frontdoor_firewall_mode
+  rate_limit_duration_in_minutes = var.rate_limit_duration_in_minutes
+  rate_limit_threshold           = var.rate_limit_threshold
 }
 
 module "postgresql" {

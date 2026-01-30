@@ -4,6 +4,11 @@ output "app_service_subnet_id" {
   sensitive   = true
 }
 
+output "container_apps_subnet_id" {
+  description = "The subnet ID for Container Apps Environment."
+  value       = azapi_resource.container_apps_subnet.id
+}
+
 output "container_instance_subnet_id" {
   description = "The subnet ID for the container instance."
   value       = azapi_resource.container_instance_subnet.id

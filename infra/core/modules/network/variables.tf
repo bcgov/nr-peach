@@ -11,6 +11,13 @@ variable "common_tags" {
   default     = {}
 }
 
+variable "container_apps_subnet_name" {
+  description = "Name of the subnet for Container Apps"
+  type        = string
+  default     = "container-apps-subnet"
+  nullable    = false
+}
+
 variable "container_instance_subnet_name" {
   description = "Name of the subnet for container instances"
   type        = string
@@ -35,12 +42,6 @@ variable "private_endpoints_subnet_name" {
 variable "resource_group_name" {
   description = "Name of the resource group"
   type        = string
-  nullable    = false
-}
-
-variable "vnet_address_space" {
-  type        = string
-  description = "Address space for the virtual network, it is created by platform team"
   nullable    = false
 }
 
