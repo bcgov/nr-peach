@@ -27,6 +27,25 @@ variable "app_service_subnet_name" {
   nullable    = false
 }
 
+variable "auth_audience" {
+  description = "The audience for OIDC JWT tokens."
+  type        = string
+  default     = "nr-peach"
+}
+
+variable "auth_issuer" {
+  description = "The issuer of OIDC JWT tokens. Required if AUTH_MODE is authn or authz."
+  type        = string
+  nullable    = false
+}
+
+variable "auth_mode" {
+  description = "Set the server auth mode. Options: (none, authn, authz)."
+  type        = string
+  nullable    = false
+  default     = "authz"
+}
+
 variable "client_id" {
   description = "Azure client ID for the service principal"
   type        = string

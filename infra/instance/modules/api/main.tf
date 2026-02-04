@@ -17,14 +17,13 @@ resource "azurerm_linux_web_app" "api" {
     always_on                                     = true
     container_registry_use_managed_identity       = true
     container_registry_managed_identity_client_id = var.user_assigned_identity_client_id
-    minimum_tls_version                           = "1.3"
     health_check_path                             = "/ready"
     health_check_eviction_time_in_min             = 2
+    minimum_tls_version                           = "1.3"
     application_stack {
       docker_image_name   = var.container_image
       docker_registry_url = var.container_registry_url
     }
-    ftps_state = "Disabled"
     # cors {
     #   allowed_origins     = ["*"]
     #   support_credentials = false
@@ -41,7 +40,9 @@ resource "azurerm_linux_web_app" "api" {
     APP_AUTOMIGRATE                       = var.app_automigrate
     APPINSIGHTS_INSTRUMENTATIONKEY        = var.appinsights_instrumentation_key
     APPLICATIONINSIGHTS_CONNECTION_STRING = var.appinsights_connection_string
-    AUTH_MODE                             = "none" # TODO: Set up variable wiring
+    AUTH_AUDIENCE                         = var.auth_audience
+    AUTH_ISSUER                           = var.auth_issuer
+    AUTH_MODE                             = var.auth_mode
     NODE_ENV                              = var.node_env
     PGDATABASE                            = var.database_name
     PGHOST                                = var.database_host
