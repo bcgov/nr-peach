@@ -27,24 +27,23 @@ process.on('unhandledRejection', (err: Error): void => {
 // Graceful shutdown support
 const signals: readonly NodeJS.Signals[] = ['SIGHUP', 'SIGINT', 'SIGTERM', 'SIGUSR1', 'SIGUSR2'];
 signals.forEach((signal) => process.once(signal, () => shutdown(signal)));
-process.on('exit', () => log.info('Exiting...'));
 
-// Perform preliminary system checks
-if (!validateConfig()) {
-  log.error('Invalid or missing auth config');
+// Perform preliminary system and database checks
+try {
+  validateConfig();
+  await startup();
+} catch (error) {
+  log.error(`Startup failure: ${error instanceof Error ? error.message : String(error)}`);
   shutdown('SIGABRT');
 }
 
 // Create HTTP server and listen on provided port, on all network interfaces.
 server.listen(port, () => {
   const authModeMap = { none: 'no authentication', authn: 'authentication only', authz: 'scoped authorization' };
-  log.info(`Server running on http://localhost:${port}`);
-  if (state.authMode) log.info(`Server running in ${authModeMap[state.authMode]} mode`);
+  const runMsg = `Server running on http://localhost:${port}`;
+  if (state.ready) log.info(state.authMode ? `${runMsg} in ${authModeMap[state.authMode]} mode` : runMsg);
 });
 server.on('error', onError);
-
-// Perform preliminary database checks
-void startup();
 
 /**
  * Normalize a port into a number, string, or false.
@@ -118,47 +117,35 @@ function shutdown(signal: NodeJS.Signals): void {
 
 /**
  * Initializes the server by checking database health and migration maintenance
+ * @throws {Error} If database health or migrations fail.
  */
 async function startup(): Promise<void> {
-  try {
-    if (state.authMode) {
-      if (!(await checkDatabaseHealth())) throw new Error('Health check failed');
-      if (!(await checkDatabaseMigrations())) {
-        if (automigrate) {
-          if (!(await runMigrations())) throw new Error('Auto-migrations failed');
-          else if (!(await runSeeds())) throw new Error('Auto-seeding failed');
-        } else throw new Error('Migration check failed');
-      }
-      state.ready = true;
+  if (state.authMode) {
+    if (!(await checkDatabaseHealth())) throw new Error('Database health check failed');
+    if (!(await checkDatabaseMigrations())) {
+      if (automigrate) {
+        if (!(await runMigrations())) throw new Error('Database auto-migrations failed');
+        else if (!(await runSeeds())) throw new Error('Database auto-seeding failed');
+      } else throw new Error('Database migration check failed');
     }
-  } catch (error) {
-    log.error('Error during startup:', error);
-    shutdown('SIGABRT');
+    state.ready = true;
   }
 }
 
 /**
- * Validates the configuration settings and sets up the server's auth mode.
- * @returns True if the configuration is valid, false otherwise.
+ * Validates the configuration settings and sets the server's auth mode
+ * @throws {Error} If configuration settings are invalid or missing.
  */
-function validateConfig(): boolean {
+function validateConfig(): void {
   const authMode = process.env.AUTH_MODE?.trim().toLowerCase();
-  if (!authMode) {
-    log.error('AUTH_MODE must be explicitly set');
-    return false;
-  }
+  if (!authMode) throw new Error('AUTH_MODE must be explicitly set');
+
   if (authMode !== 'authn' && authMode !== 'authz' && authMode !== 'none') {
-    log.error(`Invalid AUTH_MODE value: '${authMode}'`);
-    return false;
+    throw new Error(`Invalid AUTH_MODE value: '${authMode}'`);
   }
 
   state.authMode = authMode;
-  if (authMode === 'authn' || authMode === 'authz') {
-    if (!process.env.AUTH_ISSUER || !process.env.AUTH_JWKS_URI) {
-      log.error(`AUTH_MODE=${authMode} requires AUTH_ISSUER and AUTH_JWKS_URI to be set`);
-      return false;
-    }
+  if (authMode !== 'none' && !process.env.AUTH_ISSUER) {
+    throw new Error(`AUTH_MODE=${authMode} requires AUTH_ISSUER to be set`);
   }
-
-  return true;
 }

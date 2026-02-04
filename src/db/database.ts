@@ -90,8 +90,7 @@ export async function checkDatabaseHealth(now?: number): Promise<boolean> {
       log.error('Database is unhealthy', {
         code: (error as { code?: string }).code,
         message: (error as Error).message,
-        stack: (error as Error).stack,
-        error
+        stack: (error as Error).stack
       });
       return lastHealthCheckResult;
     } finally {

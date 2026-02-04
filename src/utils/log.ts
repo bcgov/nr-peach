@@ -55,15 +55,10 @@ if (process.env.NODE_ENV === 'test') {
 }
 
 if (process.env.APP_LOGFILE) {
-  log.add(
-    new transports.File({
-      filename: process.env.APP_LOGFILE,
-      handleExceptions: true
-    })
-  );
+  log.add(new transports.File({ filename: process.env.APP_LOGFILE, handleExceptions: true }));
 }
 
-log.info('Logger initialized', { loglevel: log.level });
+log.info(`Logger initialized at '${log.level}' level`, { component: 'log', logLevel: log.level });
 
 /**
  * Returns a Winston Logger or Child Winston Logger
