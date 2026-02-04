@@ -45,7 +45,6 @@ module "network" {
 
   common_tags              = var.common_tags
   resource_group_name      = azurerm_resource_group.main.name
-  vnet_address_space       = var.vnet_address_space
   vnet_name                = var.vnet_name
   vnet_resource_group_name = var.vnet_resource_group_name
 

@@ -4,12 +4,6 @@ output "app_service_subnet_id" {
   sensitive   = true
 }
 
-output "container_instance_subnet_id" {
-  description = "The subnet ID for the container instance."
-  value       = azapi_resource.container_instance_subnet.id
-  sensitive   = true
-}
-
 output "dns_servers" {
   description = "The DNS servers for the virtual network."
   value       = data.azurerm_virtual_network.main.dns_servers

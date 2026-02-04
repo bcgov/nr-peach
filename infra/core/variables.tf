@@ -161,12 +161,6 @@ variable "tenant_id" {
   sensitive   = true
 }
 
-variable "vnet_address_space" {
-  type        = string
-  description = "Address space for the virtual network, it is created by platform team"
-  nullable    = false
-}
-
 variable "vnet_name" {
   description = "Name of the existing virtual network"
   type        = string
