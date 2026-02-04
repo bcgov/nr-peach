@@ -168,7 +168,6 @@ jobs:
             {"app_name":"peach","environment":"${{ inputs.environment }}","instance":"${{ steps.instance.outputs.instance }}","repo_name":"nr-peach","managed_by":"terraform"}
           TF_VAR_database_admin_password: ${{ steps.core.outputs.database_password }}
           TF_VAR_database_host: ${{ steps.core.outputs.database_host }}
-          TF_VAR_enable_cloudbeaver: 'true'
           TF_VAR_enable_force_migration: ${{ steps.instance.outputs.force_migration }}
           TF_VAR_instance_name: ${{ steps.instance.outputs.instance }}
           TF_VAR_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
