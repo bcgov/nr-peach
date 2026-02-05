@@ -153,5 +153,5 @@ async function validateConfig(): Promise<void> {
     throw new Error(`AUTH_MODE=${authMode} requires AUTH_ISSUER to be set`);
   }
 
-  await getJwksClient();
+  if (authMode !== 'none') await getJwksClient();
 }

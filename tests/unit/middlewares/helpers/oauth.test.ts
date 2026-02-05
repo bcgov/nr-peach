@@ -195,7 +195,7 @@ describe('getJwksUri', () => {
       json: vi.fn().mockResolvedValueOnce({})
     });
 
-    await expect(getJwksUri()).rejects.toThrow('`jwks_uri` missing in OIDC Provider configuration');
+    await expect(getJwksUri()).rejects.toThrow('`jwks_uri` missing or invalid in OIDC Provider configuration');
   });
 });
 

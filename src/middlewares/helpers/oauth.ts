@@ -82,7 +82,7 @@ export async function getJwksUri(): Promise<string> {
 
     const configuration = (await res.json()) as { jwks_uri?: string };
     if (typeof configuration.jwks_uri !== 'string') {
-      throw new Error('`jwks_uri` missing in OIDC Provider configuration');
+      throw new TypeError('`jwks_uri` missing or invalid in OIDC Provider configuration');
     }
 
     return configuration.jwks_uri;
