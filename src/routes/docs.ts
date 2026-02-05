@@ -31,18 +31,16 @@ router.get(
         "'self'", // eslint-disable-line quotes
         'https://raw.githubusercontent.com'
       ],
-      // @ts-expect-error ts(2322)
       'img-src': [
         "'self'", // eslint-disable-line quotes
         'data:',
-        (_req: Request, res: Response): string => `'nonce-${res.locals.cspNonce}'`,
+        (_req, res): string => `'nonce-${(res as Response).locals.cspNonce}'`,
         'https://cdn.redoc.ly'
       ],
-      // @ts-expect-error ts(2322)
       'media-src': [
         "'self'", // eslint-disable-line quotes
         'data:',
-        (_req: Request, res: Response): string => `'nonce-${res.locals.cspNonce}'`
+        (_req, res): string => `'nonce-${(res as Response).locals.cspNonce}'`
       ],
       'script-src': [
         'blob:',

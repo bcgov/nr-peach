@@ -13,14 +13,23 @@ import {
   withTimestamps
 } from '../../../src/db/utils.ts';
 
-import type { CreateTableBuilder, KyselyConfig } from 'kysely';
+import type { CreateTableBuilder, KyselyConfig, SchemaModule } from 'kysely';
 import type { Mock } from 'vitest';
 
+interface ExtendedKysely extends Kysely<unknown> {
+  schema: SchemaModule & {
+    columns: () => unknown;
+    execute: () => unknown;
+    ifExists: () => unknown;
+    on: () => unknown;
+  };
+}
+
 describe('DB Utils', () => {
-  let qb: Kysely<unknown>;
+  let qb: ExtendedKysely;
 
   beforeEach(() => {
-    qb = new Kysely<unknown>({} as KyselyConfig);
+    qb = new Kysely<unknown>({} as KyselyConfig) as ExtendedKysely;
     (sql as unknown as Mock).mockImplementation(mockSqlExecuteReturn(qb));
   });
 
@@ -49,11 +58,8 @@ describe('DB Utils', () => {
     expect(qb.schema.withSchema).toHaveBeenCalledWith('public');
     // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(qb.schema.createIndex).toHaveBeenCalledWith('test_table_column1_column2_index');
-    // @ts-expect-error ts(2339)
     expect(qb.schema.on).toHaveBeenCalledWith('test_table');
-    // @ts-expect-error ts(2339)
     expect(qb.schema.columns).toHaveBeenCalledWith(['column1', 'column2']);
-    // @ts-expect-error ts(2339)
     expect(qb.schema.execute).toHaveBeenCalled();
   });
 
@@ -96,9 +102,7 @@ describe('DB Utils', () => {
     expect(qb.schema.withSchema).toHaveBeenCalledWith('public');
     // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(qb.schema.dropIndex).toHaveBeenCalledWith('test_table_column1_column2_index');
-    // @ts-expect-error ts(2339)
     expect(qb.schema.ifExists).toHaveBeenCalled();
-    // @ts-expect-error ts(2339)
     expect(qb.schema.execute).toHaveBeenCalled();
   });
 
