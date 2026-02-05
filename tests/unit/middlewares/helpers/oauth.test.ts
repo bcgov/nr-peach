@@ -1,11 +1,7 @@
-import {
-  getBearerToken,
-  getJwksUri,
-  normalizeScopes,
-  setAuthHeader
-} from '../../../../src/middlewares/helpers/oauth.ts';
+import { getBearerToken, normalizeScopes, setAuthHeader } from '../../../../src/middlewares/helpers/oauth.ts';
 
 import type { Request, Response } from 'express';
+import type { JwksClient } from 'jwks-rsa';
 import type { AuthErrorAttributes } from '../../../../src/types/index.d.ts';
 
 describe('getBearerToken', () => {
@@ -56,87 +52,150 @@ describe('getBearerToken', () => {
   });
 });
 
-describe('getJwksUri', () => {
-  const originalEnv = process.env;
+// Note: This is a semi-brittle test suite that hits both getJwksClient and getJwksUri
+describe('getJwksClient', () => {
+  let getJwksClient: () => Promise<JwksClient>;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     vi.resetModules();
-    process.env = { ...originalEnv };
+    vi.unstubAllGlobals();
+    delete (global as Record<string, unknown>).jwksClientPromise;
+    getJwksClient = (await import('../../../../src/middlewares/helpers/oauth.ts')).getJwksClient;
+    process.env.AUTH_ISSUER = 'https://auth.example.com/';
   });
 
   afterEach(() => {
-    process.env = originalEnv;
+    vi.clearAllMocks();
   });
 
-  it('returns the JWKS URI when the configuration is valid', async () => {
-    process.env.AUTH_ISSUER = 'https://example.com';
+  it('creates a JWKS client with the correct configuration', async () => {
+    const mockUri = 'https://auth.example.com/.well-known/jwks.json';
 
     global.fetch = vi.fn().mockResolvedValueOnce({
       ok: true,
-      json: vi.fn().mockResolvedValueOnce({ jwks_uri: 'https://example.com/jwks' })
-    }) as unknown as typeof fetch;
+      json: vi.fn().mockResolvedValueOnce({ jwks_uri: mockUri })
+    });
+
+    const client = await getJwksClient();
+
+    expect(client).toBeDefined();
+    expect(global.fetch).toHaveBeenCalledWith('https://auth.example.com/.well-known/openid-configuration');
+  });
+
+  it('returns cached promise on subsequent calls', async () => {
+    const mockUri = 'https://auth.example.com/.well-known/jwks.json';
+
+    global.fetch = vi.fn().mockResolvedValueOnce({
+      ok: true,
+      json: vi.fn().mockResolvedValueOnce({ jwks_uri: mockUri })
+    });
+
+    const client1 = await getJwksClient();
+    const client2 = await getJwksClient();
+
+    expect(client1).toBe(client2);
+    expect(global.fetch).toHaveBeenCalledTimes(1);
+  });
+
+  it('throws an error if getJwksUri fails', async () => {
+    global.fetch = vi.fn().mockResolvedValueOnce({
+      ok: false,
+      status: 500,
+      statusText: 'Internal Server Error'
+    });
+
+    await expect(getJwksClient()).rejects.toThrow('Failed to load OIDC Provider configuration');
+  });
+});
+
+describe('getJwksUri', () => {
+  let getJwksUri: () => Promise<string>;
+
+  beforeEach(async () => {
+    vi.resetModules();
+    vi.unstubAllGlobals();
+    delete (global as Record<string, unknown>).jwksUriPromise;
+    getJwksUri = (await import('../../../../src/middlewares/helpers/oauth.ts')).getJwksUri;
+  });
+
+  afterEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('fetches the jwks_uri from the OIDC Provider configuration', async () => {
+    const mockUri = 'https://auth.example.com/.well-known/jwks.json';
+    process.env.AUTH_ISSUER = 'https://auth.example.com';
+
+    global.fetch = vi.fn().mockResolvedValueOnce({
+      ok: true,
+      json: vi.fn().mockResolvedValueOnce({ jwks_uri: mockUri })
+    });
 
     const result = await getJwksUri();
 
-    expect(result).toBe('https://example.com/jwks');
-    expect(fetch).toHaveBeenCalledWith('https://example.com/.well-known/openid-configuration');
+    expect(result).toBe(mockUri);
+    expect(global.fetch).toHaveBeenCalledWith('https://auth.example.com/.well-known/openid-configuration');
   });
 
-  it('throws an error if AUTH_ISSUER is not set', async () => {
+  it('returns cached promise on subsequent calls', async () => {
+    const mockUri = 'https://auth.example.com/.well-known/jwks.json';
+    process.env.AUTH_ISSUER = 'https://auth.example.com';
+
+    global.fetch = vi.fn().mockResolvedValueOnce({
+      ok: true,
+      json: vi.fn().mockResolvedValueOnce({ jwks_uri: mockUri })
+    });
+
+    const result1 = await getJwksUri();
+    const result2 = await getJwksUri();
+
+    expect(result1).toBe(mockUri);
+    expect(result2).toBe(mockUri);
+    expect(global.fetch).toHaveBeenCalledTimes(1);
+  });
+
+  it('handles issuer URL with trailing slash', async () => {
+    const mockUri = 'https://auth.example.com/.well-known/jwks.json';
+    process.env.AUTH_ISSUER = 'https://auth.example.com/';
+
+    global.fetch = vi.fn().mockResolvedValueOnce({
+      ok: true,
+      json: vi.fn().mockResolvedValueOnce({ jwks_uri: mockUri })
+    });
+
+    const result = await getJwksUri();
+
+    expect(result).toBe(mockUri);
+    expect(global.fetch).toHaveBeenCalledWith('https://auth.example.com/.well-known/openid-configuration');
+  });
+
+  it('throws an error when AUTH_ISSUER is not set', async () => {
     delete process.env.AUTH_ISSUER;
 
     await expect(getJwksUri()).rejects.toThrow('AUTH_ISSUER is not set');
   });
 
-  it('throws an error if the fetch request fails', async () => {
-    process.env.AUTH_ISSUER = 'https://example.com';
+  it('throws an error when fetch fails', async () => {
+    process.env.AUTH_ISSUER = 'https://auth.example.com';
 
     global.fetch = vi.fn().mockResolvedValueOnce({
       ok: false,
-      status: 500,
-      statusText: 'Internal Server Error'
-    }) as unknown as typeof fetch;
+      status: 404,
+      statusText: 'Not Found'
+    });
 
-    await expect(getJwksUri()).rejects.toThrow('Failed to load OIDC Provider configuration: 500 Internal Server Error');
+    await expect(getJwksUri()).rejects.toThrow('Failed to load OIDC Provider configuration: 404 Not Found');
   });
 
-  it('throws an error if `jwks_uri` is missing in the configuration', async () => {
-    process.env.AUTH_ISSUER = 'https://example.com';
+  it('throws an error when jwks_uri is missing in the configuration', async () => {
+    process.env.AUTH_ISSUER = 'https://auth.example.com';
 
     global.fetch = vi.fn().mockResolvedValueOnce({
       ok: true,
       json: vi.fn().mockResolvedValueOnce({})
-    }) as unknown as typeof fetch;
+    });
 
     await expect(getJwksUri()).rejects.toThrow('`jwks_uri` missing in OIDC Provider configuration');
-  });
-
-  it('constructs the configuration URL correctly when AUTH_ISSUER ends with a slash', async () => {
-    process.env.AUTH_ISSUER = 'https://example.com/';
-
-    global.fetch = vi.fn().mockResolvedValueOnce({
-      ok: true,
-      json: vi.fn().mockResolvedValueOnce({ jwks_uri: 'https://example.com/jwks' })
-    }) as unknown as typeof fetch;
-
-    const result = await getJwksUri();
-
-    expect(result).toBe('https://example.com/jwks');
-    expect(fetch).toHaveBeenCalledWith('https://example.com/.well-known/openid-configuration');
-  });
-
-  it('constructs the configuration URL correctly when AUTH_ISSUER does not end with a slash', async () => {
-    process.env.AUTH_ISSUER = 'https://example.com';
-
-    global.fetch = vi.fn().mockResolvedValueOnce({
-      ok: true,
-      json: vi.fn().mockResolvedValueOnce({ jwks_uri: 'https://example.com/jwks' })
-    }) as unknown as typeof fetch;
-
-    const result = await getJwksUri();
-
-    expect(result).toBe('https://example.com/jwks');
-    expect(fetch).toHaveBeenCalledWith('https://example.com/.well-known/openid-configuration');
   });
 });
 

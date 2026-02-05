@@ -7,6 +7,7 @@ import { authn, authz } from '../../../src/middlewares/auth.ts';
 import * as helpers from '../../../src/middlewares/helpers/index.ts';
 
 import type { Application, Request, RequestHandler, Response } from 'express';
+import type { JwksClient } from 'jwks-rsa';
 
 interface BadAuthResponse {
   body: Record<string, unknown>;
@@ -18,7 +19,7 @@ describe('authn', () => {
   const mockHandler = vi.fn((_req: Request, res: Response) => res.status(200).send('Success'));
   const decodeSpy = vi.spyOn(jwt, 'decode');
   const getBearerTokenSpy = vi.spyOn(helpers, 'getBearerToken');
-  const getSigningKeySpy = vi.spyOn(helpers.jwksClient, 'getSigningKey');
+  const getJwksClientSpy = vi.spyOn(helpers, 'getJwksClient');
   const verifySpy = vi.spyOn(jwt, 'verify');
 
   let app: Application;
@@ -96,13 +97,13 @@ describe('authn', () => {
   });
 
   it('should call next if token is valid', async () => {
+    const getSigningKeySpy = vi.fn().mockResolvedValue({ getPublicKey: vi.fn().mockReturnValue('public-key') });
+
     state.authMode = 'authn';
     getBearerTokenSpy.mockReturnValue('valid-token');
     decodeSpy.mockReturnValue({ header: { kid: 'key-id' } });
-    // @ts-expect-error ts(2345)
-    getSigningKeySpy.mockResolvedValue({ getPublicKey: vi.fn().mockReturnValue('public-key') });
-    // @ts-expect-error ts(2345)
-    verifySpy.mockReturnValue({ sub: 'user-id' });
+    getJwksClientSpy.mockResolvedValue({ getSigningKey: getSigningKeySpy } as unknown as JwksClient);
+    verifySpy.mockReturnValue({ sub: 'user-id' } as unknown as void);
 
     app.get('/test', authn(), (_req: Request, res: Response) => res.status(200).json(res.locals));
 

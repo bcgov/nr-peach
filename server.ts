@@ -12,6 +12,7 @@ import {
   runSeeds,
   shutdownDatabase
 } from './src/db/index.ts';
+import { getJwksClient } from './src/middlewares/helpers/oauth.ts';
 import { getLogger } from './src/utils/index.ts';
 
 const automigrate = process.env.APP_AUTOMIGRATE?.toLowerCase() === 'true';
@@ -30,7 +31,7 @@ signals.forEach((signal) => process.once(signal, () => shutdown(signal)));
 
 // Perform preliminary system and database checks
 try {
-  validateConfig();
+  await validateConfig();
   await startup();
 } catch (error) {
   log.error(`Startup failure: ${error instanceof Error ? error.message : String(error)}`);
@@ -39,9 +40,13 @@ try {
 
 // Create HTTP server and listen on provided port, on all network interfaces.
 server.listen(port, () => {
-  const authModeMap = { none: 'no authentication', authn: 'authentication only', authz: 'scoped authorization' };
-  const runMsg = `Server running on http://localhost:${port}`;
-  if (state.ready) log.info(state.authMode ? `${runMsg} in ${authModeMap[state.authMode]} mode` : runMsg);
+  const url = `http://localhost:${port}`;
+  const modeText = {
+    none: ' in no authentication mode',
+    authn: ' in authentication only mode',
+    authz: ' in scoped authorization mode'
+  }[state.authMode!];
+  if (state.ready) log.info(`Server listening at ${url}${modeText}`, { authMode: state.authMode, url: url });
 });
 server.on('error', onError);
 
@@ -65,8 +70,7 @@ function normalizePort(val: string): string | number | boolean {
  * @param error.syscall System call
  * @param error.code Error code
  */
-function onError(error: { syscall?: string; code: string }): void {
-  // eslint-disable-next-line @typescript-eslint/only-throw-error
+function onError(error: Error & { syscall?: string; code: string }): void {
   if (error.syscall !== 'listen') throw error;
 
   // Handle specific listen errors with friendly messages
@@ -81,7 +85,7 @@ function onError(error: { syscall?: string; code: string }): void {
       shutdown('SIGABRT');
       break;
     default:
-      throw error; // eslint-disable-line @typescript-eslint/only-throw-error
+      throw error;
   }
 }
 
@@ -136,7 +140,7 @@ async function startup(): Promise<void> {
  * Validates the configuration settings and sets the server's auth mode
  * @throws {Error} If configuration settings are invalid or missing.
  */
-function validateConfig(): void {
+async function validateConfig(): Promise<void> {
   const authMode = process.env.AUTH_MODE?.trim().toLowerCase();
   if (!authMode) throw new Error('AUTH_MODE must be explicitly set');
 
@@ -148,4 +152,6 @@ function validateConfig(): void {
   if (authMode !== 'none' && !process.env.AUTH_ISSUER) {
     throw new Error(`AUTH_MODE=${authMode} requires AUTH_ISSUER to be set`);
   }
+
+  await getJwksClient();
 }
