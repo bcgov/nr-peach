@@ -2,6 +2,11 @@ variable "app_env" {
   description = "The deployment environment (e.g., dev, test, prod)."
   type        = string
   nullable    = false
+
+  validation {
+    condition     = contains(["dev", "test", "prod"], var.app_env)
+    error_message = "app_env must be dev, test or prod."
+  }
 }
 
 variable "app_name" {

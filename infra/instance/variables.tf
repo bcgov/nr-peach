@@ -12,6 +12,11 @@ variable "app_env" {
   description = "Application environment (dev, test, prod)"
   type        = string
   nullable    = false
+
+  validation {
+    condition     = contains(["dev", "test", "prod"], var.app_env)
+    error_message = "app_env must be dev, test or prod."
+  }
 }
 
 variable "app_name" {
@@ -44,6 +49,11 @@ variable "auth_mode" {
   type        = string
   nullable    = false
   default     = "authz"
+
+  validation {
+    condition     = contains(["none", "authn", "authz"], var.auth_mode)
+    error_message = "auth_mode must be none, authn or authz."
+  }
 }
 
 variable "client_id" {
