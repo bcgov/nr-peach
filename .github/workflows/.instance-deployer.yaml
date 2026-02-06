@@ -40,17 +40,17 @@ jobs:
         uses: actions/checkout@v6.0.2
       - name: Verify required GitHub secrets
         env:
+          AUTH_ISSUER: ${{ secrets.AUTH_ISSUER }}
           AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
           AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
           AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-          VNET_ADDRESS_SPACE: ${{ secrets.VNET_ADDRESS_SPACE }}
           VNET_RESOURCE_GROUP_NAME: ${{ secrets.VNET_RESOURCE_GROUP_NAME }}
           VNET_NAME: ${{ secrets.VNET_NAME }}
         run: |
           # Verify that all required secrets are set
           set -euo pipefail
           missing=0
-          for secret in AZURE_CLIENT_ID AZURE_TENANT_ID AZURE_SUBSCRIPTION_ID VNET_RESOURCE_GROUP_NAME VNET_ADDRESS_SPACE VNET_NAME; do
+          for secret in AUTH_ISSUER AZURE_CLIENT_ID AZURE_TENANT_ID AZURE_SUBSCRIPTION_ID VNET_RESOURCE_GROUP_NAME VNET_NAME; do
             if [ -z "${!secret}" ]; then
               echo "Missing required secret: $secret"
               missing=1
@@ -161,6 +161,9 @@ jobs:
           TF_VAR_api_image: ${{ github.repository }}:${{ inputs.tag }}
           TF_VAR_app_env: ${{ inputs.environment }}
           TF_VAR_app_name: nr-peach
+          TF_VAR_auth_audience: nr-peach
+          TF_VAR_auth_issuer: ${{ secrets.AUTH_ISSUER }}
+          TF_VAR_auth_mode: authz
           TF_VAR_azure_client_id: ${{ secrets.AZURE_CLIENT_ID }}
           TF_VAR_azure_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
           TF_VAR_azure_tenant_id: ${{ secrets.AZURE_TENANT_ID }}
@@ -169,12 +172,10 @@ jobs:
             {"app_name":"peach","environment":"${{ inputs.environment }}","instance":"${{ steps.instance.outputs.instance }}","repo_name":"nr-peach","managed_by":"terraform"}
           TF_VAR_database_admin_password: ${{ steps.core.outputs.database_password }}
           TF_VAR_database_host: ${{ steps.core.outputs.database_host }}
-          TF_VAR_enable_cloudbeaver: 'true'
           TF_VAR_enable_force_migration: ${{ steps.instance.outputs.force_migration }}
           TF_VAR_instance_name: ${{ steps.instance.outputs.instance }}
           TF_VAR_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
           TF_VAR_tenant_id: ${{ secrets.AZURE_TENANT_ID }}
-          TF_VAR_vnet_address_space: ${{ secrets.VNET_ADDRESS_SPACE }}
           TF_VAR_vnet_name: ${{ secrets.VNET_NAME }}
           TF_VAR_vnet_resource_group_name: ${{ secrets.VNET_RESOURCE_GROUP_NAME }}
         run: |

@@ -26,7 +26,6 @@ const pool = new Pool({
   user: process.env.PGUSER,
   password: process.env.PGPASSWORD,
   port: +(process.env.PGPORT ?? 5432),
-  // TODO: Consider using 'rejectUnauthorized: true' with proper certificate configuration
   ssl: process.env.PGSSLMODE === 'require' ? { rejectUnauthorized: false } : false,
   connectionTimeoutMillis: +(process.env.PGPOOL_TIMEOUT ?? 5000),
   idleTimeoutMillis: +(process.env.PGPOOL_IDLE_TIMEOUT ?? 10000),
@@ -90,8 +89,7 @@ export async function checkDatabaseHealth(now?: number): Promise<boolean> {
       log.error('Database is unhealthy', {
         code: (error as { code?: string }).code,
         message: (error as Error).message,
-        stack: (error as Error).stack,
-        error
+        stack: (error as Error).stack
       });
       return lastHealthCheckResult;
     } finally {

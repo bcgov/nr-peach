@@ -83,6 +83,9 @@ module "api" {
   appinsights_connection_string    = data.azurerm_application_insights.main.connection_string
   appinsights_instrumentation_key  = data.azurerm_application_insights.main.instrumentation_key
   api_subnet_id                    = data.azapi_resource.app_service_subnet.output.id
+  auth_audience                    = var.auth_audience
+  auth_issuer                      = var.auth_issuer
+  auth_mode                        = var.auth_mode
   common_tags                      = var.common_tags
   database_admin_password          = var.database_admin_password
   database_admin_username          = var.database_admin_username

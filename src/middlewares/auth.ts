@@ -1,6 +1,6 @@
 import jwt from 'jsonwebtoken';
 
-import { getBearerToken, jwksClient, normalizeScopes, setAuthHeader } from './helpers/index.ts';
+import { getBearerToken, getJwksClient, normalizeScopes, setAuthHeader } from './helpers/index.ts';
 import { Problem } from '../utils/index.ts';
 import { state } from '../state.ts';
 
@@ -45,6 +45,7 @@ export function authn(): RequestHandler {
         throw new Error('Unable to decode access token');
       }
 
+      const jwksClient = await getJwksClient();
       const kid = await jwksClient.getSigningKey(decoded.header.kid);
       const claims = jwt.verify(token, kid.getPublicKey(), {
         algorithms: ['RS256'],

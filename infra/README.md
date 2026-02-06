@@ -71,15 +71,6 @@ curl -sSL https://raw.githubusercontent.com/bcgov/quickstart-azure-containers/re
 curl -sSL https://raw.githubusercontent.com/bcgov/quickstart-azure-containers/refs/heads/main/initial-azure-setup.sh | bash -s -- -g "123456-test-networking" -n "nr-peach-test-identity" -r "bcgov/nr-peach" -e "test" --create-storage --create-github-secrets
 ```
 
-You will also need to manually enter in the `VNET_ADDRESS_SPACE` into the Github environment secrets, as this is not
-done by the script. The address space value can be found by inspecting your subscription in the Azure portal, or with
-the following command:
-
-```sh
-# Example invocation for test environment network
-az network vnet show --name 123456-test-vwan-spoke --resource-group 123456-test-networking --query "addressSpace.addressPrefixes" -o tsv
-```
-
 You should see some kind of IPv4 address with a `/24` postfixed to it in the output.
 
 Once you have completed these steps, check your new GitHub environment and make sure the following have been populated
@@ -88,7 +79,6 @@ under environment secrets:
 - `AZURE_CLIENT_ID`
 - `AZURE_SUBSCRIPTION_ID`
 - `AZURE_TENANT_ID`
-- `VNET_ADDRESS_SPACE`
 - `VNET_NAME`
 - `VNET_RESOURCE_GROUP_NAME`
 
@@ -332,3 +322,15 @@ In these situations, unfortunately the only known mitigation is to perform the f
 
 A full rebuild of the infrastructure is needed, as any future apply operations collides against the divergent subnet_id.
 As of 2025-11-14, we still do not know what is the root cause of this potential divergence scenario.
+
+## Errata
+
+### Virtual Network Address Space
+
+The address space value can be found by inspecting your subscription in the Azure portal, or with
+the following command:
+
+```sh
+# Example invocation for test environment network
+az network vnet show --name 123456-test-vwan-spoke --resource-group 123456-test-networking --query "addressSpace.addressPrefixes" -o tsv
+```
