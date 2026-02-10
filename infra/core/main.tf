@@ -56,7 +56,7 @@ module "appservice" {
 
   app_name             = var.app_name
   app_service_sku_name = local.app_service_sku_name
-  enable_api_autoscale = var.enable_api_autoscale
+  enable_api_autoscale = local.enable_api_autoscale
   common_tags          = var.common_tags
   location             = var.location
   resource_group_name  = azurerm_resource_group.main.name

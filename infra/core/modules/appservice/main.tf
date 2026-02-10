@@ -24,13 +24,13 @@ resource "azurerm_monitor_autoscale_setting" "api_autoscale" {
   tags                = var.common_tags
   target_resource_id  = azurerm_service_plan.appservice.id
 
-  # This does not work if the SKU is not Premium
+  # The App Service Plan must be Premium tier to enable Autoscaling
   enabled = var.enable_api_autoscale
   profile {
     name = "default"
     capacity {
       default = 2
-      minimum = 1
+      minimum = 2
       maximum = 10
     }
     rule {
