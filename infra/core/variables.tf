@@ -20,10 +20,9 @@ variable "app_env" {
 }
 
 variable "app_service_sku_name" {
-  description = "SKU name for the App Service Plan"
+  description = "SKU name for the App Service Plan (env override)"
   type        = string
-  default     = "B2" # Basic tier
-  nullable    = false
+  default     = null
 }
 
 variable "client_id" {
@@ -103,45 +102,44 @@ variable "postgres_backup_retention_period" {
   nullable    = false
 }
 
-variable "postgres_sku_name" {
-  description = "SKU name for PostgreSQL Flexible Server"
+variable "postgresql_admin_username" {
+  description = "Administrator username for PostgreSQL server"
   type        = string
-  default     = "B_Standard_B1ms"
+  default     = "pgadmin"
   nullable    = false
 }
 
-variable "postgres_standby_availability_zone" {
+variable "postgresql_sku_name" {
+  description = "SKU name for PostgreSQL Flexible Server (env override)"
+  type        = string
+  default     = null
+}
+
+variable "postgresql_standby_availability_zone" {
   description = "Availability zone for standby replica of PostgreSQL Flexible Server"
   type        = string
   default     = "1"
   nullable    = false
 }
 
-variable "postgres_storage_mb" {
+variable "postgresql_storage_mb" {
   description = "Storage in MB for PostgreSQL Flexible Server"
   type        = number
   default     = 32768
   nullable    = false
 }
 
-variable "postgres_version" {
+variable "postgresql_version" {
   description = "Version of PostgreSQL Flexible Server"
   type        = string
   default     = "16"
   nullable    = false
 }
 
-variable "postgres_zone" {
+variable "postgresql_zone" {
   description = "Availability zone for PostgreSQL server"
   type        = string
   default     = "1"
-  nullable    = false
-}
-
-variable "postgresql_admin_username" {
-  description = "Administrator username for PostgreSQL server"
-  type        = string
-  default     = "pgadmin"
   nullable    = false
 }
 
