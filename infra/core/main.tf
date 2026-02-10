@@ -86,3 +86,21 @@ module "postgresql" {
 
   depends_on = [module.network]
 }
+
+module "chisel" {
+  source = "./modules/chisel"
+
+  app_env                         = var.app_env
+  app_name                        = var.app_name
+  app_service_plan_id             = module.appservice.api_service_plan_id
+  app_service_subnet_id           = module.network.app_service_subnet_id
+  appinsights_connection_string   = module.monitoring.appinsights_connection_string
+  appinsights_instrumentation_key = module.monitoring.appinsights_instrumentation_key
+  common_tags                     = var.common_tags
+  location                        = var.location
+  log_analytics_workspace_id      = module.monitoring.log_analytics_workspace_id
+  repo_name                       = var.repo_name
+  resource_group_name             = azurerm_resource_group.main.name
+
+  depends_on = [module.appservice]
+}

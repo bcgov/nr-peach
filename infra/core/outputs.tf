@@ -1,3 +1,9 @@
+output "chisel_app_url" {
+  description = "The URL of the Chisel App Service"
+  value       = module.chisel.chisel_app_url
+  sensitive   = true
+}
+
 output "database_host" {
   description = "The FQDN of the PostgreSQL server."
   value       = module.postgresql.database_host
