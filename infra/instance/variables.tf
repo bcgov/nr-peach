@@ -86,13 +86,6 @@ variable "database_host" {
   sensitive   = true
 }
 
-variable "enable_cloudbeaver" {
-  description = "Whether to enable the CloudBeaver database management container"
-  type        = bool
-  default     = false
-  nullable    = false
-}
-
 variable "instance_name" {
   description = "Name of the instance"
   type        = string
@@ -103,13 +96,6 @@ variable "location" {
   description = "Azure region for resources"
   type        = string
   default     = "Canada Central"
-  nullable    = false
-}
-
-variable "private_endpoints_subnet_name" {
-  description = "Name of the subnet for private endpoints"
-  type        = string
-  default     = "privateendpoints-subnet"
   nullable    = false
 }
 
