@@ -54,6 +54,21 @@ module "appservice" {
   depends_on = [module.network]
 }
 
+module "frontdoor" {
+  count  = local.enable_frontdoor ? 1 : 0
+  source = "./modules/frontdoor"
+
+  app_name                       = var.app_name
+  common_tags                    = var.common_tags
+  frontdoor_firewall_mode        = var.frontdoor_firewall_mode
+  frontdoor_sku_name             = var.frontdoor_sku_name
+  rate_limit_duration_in_minutes = var.rate_limit_duration_in_minutes
+  rate_limit_threshold           = var.rate_limit_threshold
+  resource_group_name            = azurerm_resource_group.main.name
+
+  depends_on = [module.network]
+}
+
 module "postgresql" {
   source = "./modules/postgresql"
 
