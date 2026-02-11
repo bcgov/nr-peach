@@ -7,11 +7,6 @@ data "azurerm_resource_group" "core" {
   name = "${var.resource_group_name}-core-rg"
 }
 
-data "azurerm_user_assigned_identity" "app_service_identity" {
-  name                = "${var.app_name}-as-identity"
-  resource_group_name = data.azurerm_resource_group.core.name
-}
-
 # Core App Service
 data "azurerm_service_plan" "api" {
   name                = "${var.app_name}-appservice-asp"
@@ -71,26 +66,24 @@ resource "azurerm_postgresql_flexible_server_database" "postgres_database" {
 module "api" {
   source = "./modules/api"
 
-  container_image                  = var.api_image
-  app_env                          = var.app_env
-  app_service_plan_id              = data.azurerm_service_plan.api.id
-  appinsights_connection_string    = data.azurerm_application_insights.main.connection_string
-  appinsights_instrumentation_key  = data.azurerm_application_insights.main.instrumentation_key
-  api_subnet_id                    = data.azapi_resource.app_service_subnet.output.id
-  auth_audience                    = var.auth_audience
-  auth_issuer                      = var.auth_issuer
-  auth_mode                        = var.auth_mode
-  common_tags                      = var.common_tags
-  database_admin_password          = var.database_admin_password
-  database_admin_username          = var.database_admin_username
-  database_host                    = local.database_host
-  database_name                    = local.database_name
-  instance_name                    = var.instance_name
-  location                         = var.location
-  repo_name                        = var.repo_name
-  resource_group_name              = azurerm_resource_group.main.name
-  user_assigned_identity_client_id = data.azurerm_user_assigned_identity.app_service_identity.client_id
-  user_assigned_identity_id        = data.azurerm_user_assigned_identity.app_service_identity.id
+  container_image                 = var.api_image
+  app_env                         = var.app_env
+  app_service_plan_id             = data.azurerm_service_plan.api.id
+  appinsights_connection_string   = data.azurerm_application_insights.main.connection_string
+  appinsights_instrumentation_key = data.azurerm_application_insights.main.instrumentation_key
+  api_subnet_id                   = data.azapi_resource.app_service_subnet.output.id
+  auth_audience                   = var.auth_audience
+  auth_issuer                     = var.auth_issuer
+  auth_mode                       = var.auth_mode
+  common_tags                     = var.common_tags
+  database_admin_password         = var.database_admin_password
+  database_admin_username         = var.database_admin_username
+  database_host                   = local.database_host
+  database_name                   = local.database_name
+  instance_name                   = var.instance_name
+  location                        = var.location
+  repo_name                       = var.repo_name
+  resource_group_name             = azurerm_resource_group.main.name
 
   depends_on = [azurerm_postgresql_flexible_server_database.postgres_database]
 }

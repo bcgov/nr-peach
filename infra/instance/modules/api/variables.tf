@@ -149,15 +149,3 @@ variable "resource_group_name" {
   type        = string
   nullable    = false
 }
-
-variable "user_assigned_identity_client_id" {
-  description = "The client ID of the user-assigned managed identity for the api."
-  type        = string
-  nullable    = false
-}
-
-variable "user_assigned_identity_id" {
-  description = "The resource ID of the user-assigned managed identity for the api."
-  type        = string
-  nullable    = false
-}
