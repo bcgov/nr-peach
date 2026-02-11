@@ -3,12 +3,6 @@ output "api_app_service_url" {
   value       = module.api.api_app_service_url
 }
 
-output "cloudbeaver_app_service_url" {
-  description = "The URL of the CloudBeaver App Service"
-  value       = local.cloudbeaver_count == 1 ? module.cloudbeaver[0].cloudbeaver_app_service_url : null
-  sensitive   = true
-}
-
 output "database_host" {
   description = "The FQDN of the PostgreSQL server."
   value       = local.database_host

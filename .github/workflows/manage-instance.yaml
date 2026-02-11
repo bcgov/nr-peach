@@ -11,7 +11,7 @@ on:
         options:
           - dev
           - test
-          # - prod # TODO: Uncomment when we have prod provisioned
+          - prod
       manage_action:
         description: 'The management action to perform on the core infrastructure.'
         required: true
