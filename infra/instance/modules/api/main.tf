@@ -10,16 +10,13 @@ resource "azurerm_linux_web_app" "api" {
   https_only                = true
   virtual_network_subnet_id = var.api_subnet_id
   identity {
-    type         = "UserAssigned"
-    identity_ids = [var.user_assigned_identity_id]
+    type = "SystemAssigned"
   }
   site_config {
-    always_on                                     = true
-    container_registry_use_managed_identity       = true
-    container_registry_managed_identity_client_id = var.user_assigned_identity_client_id
-    health_check_path                             = "/ready"
-    health_check_eviction_time_in_min             = 2
-    minimum_tls_version                           = "1.3"
+    always_on                         = true
+    health_check_path                 = "/ready"
+    health_check_eviction_time_in_min = 2
+    minimum_tls_version               = "1.3"
     application_stack {
       docker_image_name   = var.container_image
       docker_registry_url = var.container_registry_url
