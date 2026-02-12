@@ -63,21 +63,55 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "main_firewall_policy" {
     }
   }
 
-  # Simple baseline rate limit
+  # Simple baseline rate limiter
   custom_rule {
-    name                           = "RateLimitByIP"
+    action                         = "Block"
     enabled                        = true
-    priority                       = 1
-    type                           = "RateLimitRule"
+    name                           = "RateLimitByIP"
+    priority                       = 100
     rate_limit_duration_in_minutes = var.rate_limit_duration_in_minutes
     rate_limit_threshold           = var.rate_limit_threshold
-    action                         = "Block"
-
+    type                           = "RateLimitRule"
     match_condition {
-      match_variable     = "RemoteAddr"
-      operator           = "IPMatch"
-      negation_condition = false
       match_values       = ["0.0.0.0/0"]
+      match_variable     = "RemoteAddr"
+      negation_condition = false
+      operator           = "IPMatch"
+    }
+  }
+  # Block Non-Canadian requests
+  custom_rule {
+    action   = "Block"
+    enabled  = true
+    name     = "BlockByNonCAGeoMatch"
+    priority = 101
+    type     = "MatchRule"
+    match_condition {
+      match_values       = ["CA"]
+      match_variable     = "SocketAddr"
+      negation_condition = true
+      operator           = "GeoMatch"
+    }
+  }
+  # Block API requests without Authorization header
+  custom_rule {
+    action   = "Block"
+    enabled  = true
+    name     = "BlockByAPIWithoutAuthHeader"
+    priority = 200
+    type     = "MatchRule"
+    match_condition {
+      match_values       = ["^https?://[^/]+/api/v1/[^?].+$"]
+      match_variable     = "RequestUri"
+      negation_condition = false
+      operator           = "RegEx"
+    }
+    match_condition {
+      match_values       = ["Bearer "]
+      match_variable     = "RequestHeader"
+      negation_condition = true
+      operator           = "BeginsWith"
+      selector           = "Authorization"
     }
   }
 
