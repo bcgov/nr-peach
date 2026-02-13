@@ -20,7 +20,7 @@ resource "azurerm_cdn_frontdoor_profile" "main" {
 # Front Door Firewall Policy
 # Applies baseline protection at the edge, including managed rule sets and a simple rate limit rule.
 resource "azurerm_cdn_frontdoor_firewall_policy" "main_firewall_policy" {
-  name                = "${replace(var.app_name, "/[^a-zA-Z0-9]/", "")}frontdoorfirewall"
+  name                = "${replace(var.app_name, "/[^a-zA-Z0-9]/", "")}${var.app_env}frontdoorfirewall"
   resource_group_name = var.resource_group_name
   sku_name            = var.frontdoor_sku_name
   mode                = var.frontdoor_firewall_mode

@@ -59,6 +59,7 @@ module "frontdoor" {
   source = "./modules/frontdoor"
 
   app_name                       = var.app_name
+  app_env                        = var.app_env
   common_tags                    = var.common_tags
   frontdoor_firewall_mode        = var.frontdoor_firewall_mode
   frontdoor_sku_name             = var.frontdoor_sku_name
