@@ -165,6 +165,12 @@ variable "location" {
   nullable    = false
 }
 
+variable "log_analytics_workspace_id" {
+  description = "The resource ID of the Log Analytics workspace for diagnostics."
+  type        = string
+  nullable    = false
+}
+
 variable "module_name" {
   description = "Name of the module"
   type        = string
@@ -175,12 +181,6 @@ variable "node_env" {
   description = "The Node.js environment (e.g., production, development)."
   type        = string
   default     = "production"
-}
-
-variable "repo_name" {
-  description = "The repository name, used for resource naming."
-  type        = string
-  nullable    = false
 }
 
 variable "resource_group_name" {

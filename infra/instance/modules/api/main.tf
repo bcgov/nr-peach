@@ -3,7 +3,7 @@
 # ----------------------------------
 
 resource "azurerm_linux_web_app" "api" {
-  name                      = "${var.repo_name}-${var.app_env}-${var.instance_name}-${var.module_name}"
+  name                      = "${var.app_name}-${var.app_env}-${var.instance_name}-${var.module_name}"
   resource_group_name       = var.resource_group_name
   location                  = var.location
   service_plan_id           = var.app_service_plan_id
@@ -68,6 +68,26 @@ resource "azurerm_linux_web_app" "api" {
   lifecycle {
     ignore_changes = [tags]
   }
+}
+
+resource "azurerm_monitor_diagnostic_setting" "api_diagnostics" {
+  name                       = "${var.app_name}-${var.app_env}-${var.instance_name}-${var.module_name}-diagnostics"
+  target_resource_id         = azurerm_linux_web_app.api.id
+  log_analytics_workspace_id = var.log_analytics_workspace_id
+  enabled_log {
+    category = "AppServiceHTTPLogs"
+  }
+  enabled_log {
+    category = "AppServiceConsoleLogs"
+  }
+  enabled_log {
+    category = "AppServiceAppLogs"
+  }
+  enabled_log {
+    category = "AppServicePlatformLogs"
+  }
+
+  depends_on = [azurerm_linux_web_app.api]
 }
 
 # Front Door Endpoint
