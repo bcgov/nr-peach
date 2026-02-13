@@ -116,13 +116,6 @@ variable "location" {
   nullable    = false
 }
 
-variable "repo_name" {
-  description = "Name of the repository, used for resource naming"
-  type        = string
-  default     = "nr-peach"
-  nullable    = false
-}
-
 variable "resource_group_name" {
   description = "Name of the resource group"
   type        = string

@@ -26,6 +26,18 @@ data "azurerm_cdn_frontdoor_firewall_policy" "frontdoor_firewall_policy" {
   resource_group_name = data.azurerm_resource_group.core.name
 }
 
+# Core Log Analytics
+data "azurerm_log_analytics_workspace" "monitoring" {
+  name                = "${var.app_name}-log-analytics-workspace"
+  resource_group_name = data.azurerm_resource_group.core.name
+}
+
+# Core Monitoring
+data "azurerm_application_insights" "monitoring" {
+  name                = "${var.app_name}-appinsights"
+  resource_group_name = data.azurerm_resource_group.core.name
+}
+
 # Core Networking
 data "azurerm_virtual_network" "main" {
   name                = var.vnet_name
@@ -36,12 +48,6 @@ data "azapi_resource" "app_service_subnet" {
   type      = "Microsoft.Network/virtualNetworks/subnets@2024-07-01"
   name      = var.app_service_subnet_name
   parent_id = data.azurerm_virtual_network.main.id
-}
-
-# Core Monitoring
-data "azurerm_application_insights" "main" {
-  name                = "${var.app_name}-appinsights"
-  resource_group_name = data.azurerm_resource_group.core.name
 }
 
 # Core Postgresql
@@ -83,8 +89,8 @@ module "api" {
   app_env                         = var.app_env
   app_name                        = var.app_name
   app_service_plan_id             = data.azurerm_service_plan.api.id
-  appinsights_connection_string   = data.azurerm_application_insights.main.connection_string
-  appinsights_instrumentation_key = data.azurerm_application_insights.main.instrumentation_key
+  appinsights_connection_string   = data.azurerm_application_insights.monitoring.connection_string
+  appinsights_instrumentation_key = data.azurerm_application_insights.monitoring.instrumentation_key
   api_subnet_id                   = data.azapi_resource.app_service_subnet.output.id
   auth_audience                   = var.auth_audience
   auth_issuer                     = var.auth_issuer
@@ -99,8 +105,8 @@ module "api" {
   frontdoor_firewall_policy_id    = try(data.azurerm_cdn_frontdoor_firewall_policy.frontdoor_firewall_policy[0].id, null)
   frontdoor_profile_id            = data.azurerm_cdn_frontdoor_profile.frontdoor[0].id
   instance_name                   = var.instance_name
+  log_analytics_workspace_id      = data.azurerm_log_analytics_workspace.monitoring.id
   location                        = var.location
-  repo_name                       = var.repo_name
   resource_group_name             = azurerm_resource_group.main.name
 
   depends_on = [azurerm_postgresql_flexible_server_database.postgres_database]
