@@ -13,6 +13,19 @@ data "azurerm_service_plan" "api" {
   resource_group_name = data.azurerm_resource_group.core.name
 }
 
+# Core Front Door Profile
+data "azurerm_cdn_frontdoor_profile" "frontdoor" {
+  count               = local.enable_frontdoor ? 1 : 0
+  name                = "${var.app_name}-frontdoor"
+  resource_group_name = data.azurerm_resource_group.core.name
+}
+
+data "azurerm_cdn_frontdoor_firewall_policy" "frontdoor_firewall_policy" {
+  count               = local.enable_frontdoor ? 1 : 0
+  name                = "${replace(var.app_name, "/[^a-zA-Z0-9]/", "")}${var.app_env}frontdoorfirewall"
+  resource_group_name = data.azurerm_resource_group.core.name
+}
+
 # Core Networking
 data "azurerm_virtual_network" "main" {
   name                = var.vnet_name
@@ -66,8 +79,8 @@ resource "azurerm_postgresql_flexible_server_database" "postgres_database" {
 module "api" {
   source = "./modules/api"
 
-  container_image                 = var.api_image
   app_env                         = var.app_env
+  app_name                        = var.app_name
   app_service_plan_id             = data.azurerm_service_plan.api.id
   appinsights_connection_string   = data.azurerm_application_insights.main.connection_string
   appinsights_instrumentation_key = data.azurerm_application_insights.main.instrumentation_key
@@ -76,10 +89,14 @@ module "api" {
   auth_issuer                     = var.auth_issuer
   auth_mode                       = var.auth_mode
   common_tags                     = var.common_tags
+  container_image                 = var.api_image
   database_admin_password         = var.database_admin_password
   database_admin_username         = var.database_admin_username
   database_host                   = local.database_host
   database_name                   = local.database_name
+  enable_frontdoor                = local.enable_frontdoor
+  frontdoor_firewall_policy_id    = try(data.azurerm_cdn_frontdoor_firewall_policy.frontdoor_firewall_policy[0].id, null)
+  frontdoor_profile_id            = data.azurerm_cdn_frontdoor_profile.frontdoor[0].id
   instance_name                   = var.instance_name
   location                        = var.location
   repo_name                       = var.repo_name

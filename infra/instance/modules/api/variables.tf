@@ -1,3 +1,9 @@
+variable "api_subnet_id" {
+  description = "The subnet ID for the API App Service."
+  type        = string
+  nullable    = false
+}
+
 variable "app_automigrate" {
   description = "The deployment environment (e.g., dev, test, prod)."
   type        = string
@@ -16,6 +22,12 @@ variable "app_env" {
   }
 }
 
+variable "app_name" {
+  description = "Name of the application."
+  type        = string
+  nullable    = false
+}
+
 variable "app_service_plan_id" {
   description = "Azure App Service Plan ID"
   type        = string
@@ -30,12 +42,6 @@ variable "appinsights_connection_string" {
 
 variable "appinsights_instrumentation_key" {
   description = "The Application Insights instrumentation key."
-  type        = string
-  nullable    = false
-}
-
-variable "api_subnet_id" {
-  description = "The subnet ID for the api App Service."
   type        = string
   nullable    = false
 }
@@ -114,6 +120,33 @@ variable "database_ssl_mode" {
   default     = "require"
 }
 
+variable "enable_frontdoor" {
+  description = "Whether Front Door is enabled. When false, API is exposed directly via its default hostname."
+  type        = bool
+  nullable    = false
+}
+
+variable "frontdoor_firewall_policy_id" {
+  description = "The resource id for the Front Door firewall policy."
+  type        = string
+  nullable    = true
+  default     = null
+}
+
+variable "frontdoor_profile_id" {
+  description = "The resource id for the Front Door profile."
+  type        = string
+  nullable    = false
+}
+
+
+variable "health_probe_path" {
+  description = "Health probe path for origin group."
+  type        = string
+  nullable    = false
+  default     = "/ready"
+}
+
 variable "instance_name" {
   description = "Name of the instance"
   type        = string
@@ -148,4 +181,16 @@ variable "resource_group_name" {
   description = "The name of the resource group in which to create resources."
   type        = string
   nullable    = false
+}
+
+variable "sample_size" {
+  description = "Sample size amount for front door origin group load balancing probing."
+  type        = number
+  default     = 4
+}
+
+variable "successful_samples_required" {
+  description = "Successful samples needed for front door origin group load balancing probing."
+  type        = number
+  default     = 3
 }
