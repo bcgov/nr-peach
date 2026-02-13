@@ -4,20 +4,26 @@
 
 # App Service Plan
 resource "azurerm_service_plan" "appservice" {
-  name                = "${var.app_name}-${var.module_name}-asp"
-  location            = var.location
-  resource_group_name = var.resource_group_name
-  os_type             = "Linux"
-  sku_name            = var.app_service_sku_name
-  tags                = var.common_tags
+  name                            = "${var.app_name}-${var.module_name}-asp"
+  location                        = var.location
+  resource_group_name             = var.resource_group_name
+  maximum_elastic_worker_count    = var.enable_api_autoscale && startswith(var.app_service_sku_name, "P") ? 10 : null
+  os_type                         = "Linux"
+  premium_plan_auto_scale_enabled = var.enable_api_autoscale && startswith(var.app_service_sku_name, "P")
+  sku_name                        = var.app_service_sku_name
+  worker_count                    = var.enable_api_autoscale && startswith(var.app_service_sku_name, "P") ? 2 : 1
+  zone_balancing_enabled          = var.enable_api_autoscale && startswith(var.app_service_sku_name, "P")
+  tags                            = var.common_tags
 
   lifecycle {
     ignore_changes = [tags]
   }
 }
 
-# API Autoscaler
+# Rules Based API Autoscaler
 resource "azurerm_monitor_autoscale_setting" "api_autoscale" {
+  count = 0
+  # count               = var.enable_api_autoscale && startswith(var.app_service_sku_name, "P") ? 1 : 0
   name                = "${var.app_name}-${var.module_name}-autoscale"
   location            = var.location
   resource_group_name = var.resource_group_name
@@ -25,7 +31,7 @@ resource "azurerm_monitor_autoscale_setting" "api_autoscale" {
   target_resource_id  = azurerm_service_plan.appservice.id
 
   # The App Service Plan must be Premium tier to enable Autoscaling
-  enabled = var.enable_api_autoscale
+  enabled = var.enable_api_autoscale && startswith(var.app_service_sku_name, "P")
   profile {
     name = "default"
     capacity {

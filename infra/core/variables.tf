@@ -42,8 +42,7 @@ variable "common_tags" {
 variable "enable_api_autoscale" {
   description = "Whether autoscaling is enabled for the api App Service plan."
   type        = bool
-  default     = false
-  nullable    = false
+  default     = null
 }
 
 variable "enable_frontdoor" {
