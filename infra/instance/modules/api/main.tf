@@ -16,15 +16,24 @@ resource "azurerm_linux_web_app" "api" {
     always_on                         = true
     health_check_path                 = var.health_probe_path
     health_check_eviction_time_in_min = 2
+    ip_restriction_default_action     = var.enable_frontdoor ? "Deny" : "Allow"
     minimum_tls_version               = "1.3"
     application_stack {
       docker_image_name   = var.container_image
       docker_registry_url = var.container_registry_url
     }
-    # cors {
-    #   allowed_origins     = ["*"]
-    #   support_credentials = false
-    # }
+    dynamic "ip_restriction" {
+      for_each = var.enable_frontdoor ? [1] : []
+      content {
+        name        = "AllowFrontDoor"
+        action      = "Allow"
+        priority    = 100
+        service_tag = "AzureFrontDoor.Backend"
+        headers {
+          x_azure_fdid = [var.api_frontdoor_resource_guid]
+        }
+      }
+    }
   }
   app_settings = {
     APP_AUTOMIGRATE                       = var.app_automigrate

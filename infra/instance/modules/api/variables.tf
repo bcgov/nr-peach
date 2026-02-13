@@ -1,3 +1,9 @@
+variable "api_frontdoor_resource_guid" {
+  description = "The resource GUID of the Front Door profile for the API."
+  type        = string
+  nullable    = true
+}
+
 variable "api_subnet_id" {
   description = "The subnet ID for the API App Service."
   type        = string
