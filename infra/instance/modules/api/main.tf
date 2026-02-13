@@ -14,7 +14,7 @@ resource "azurerm_linux_web_app" "api" {
   }
   site_config {
     always_on                         = true
-    health_check_path                 = "/ready"
+    health_check_path                 = var.health_probe_path
     health_check_eviction_time_in_min = 2
     minimum_tls_version               = "1.3"
     application_stack {
@@ -24,13 +24,6 @@ resource "azurerm_linux_web_app" "api" {
     # cors {
     #   allowed_origins     = ["*"]
     #   support_credentials = false
-    # }
-    # ip_restriction {
-    #   name        = "DenyAll"
-    #   action      = "Deny"
-    #   priority    = 500
-    #   ip_address  = "0.0.0.0/0"
-    #   description = "Deny all other traffic"
     # }
   }
   app_settings = {
@@ -66,4 +59,96 @@ resource "azurerm_linux_web_app" "api" {
   lifecycle {
     ignore_changes = [tags]
   }
+}
+
+# Front Door Endpoint
+# Creates the Front Door endpoint (the *.azurefd.net domain). Routes attach here.
+resource "azurerm_cdn_frontdoor_endpoint" "api_fd_endpoint" {
+  count                    = var.enable_frontdoor ? 1 : 0
+  name                     = "${var.app_name}-${var.app_env}-${var.instance_name}-${var.module_name}-fd"
+  cdn_frontdoor_profile_id = var.frontdoor_profile_id
+
+  tags = var.common_tags
+  lifecycle {
+    ignore_changes = [tags]
+  }
+}
+
+# Front Door Origin Group
+# Groups one or more origins and defines how Front Door probes them and decides
+# whether they're healthy. Even with a single origin, this is required by AFD.
+resource "azurerm_cdn_frontdoor_origin_group" "api_fd_origin_group" {
+  count                    = var.enable_frontdoor ? 1 : 0
+  name                     = "${var.app_name}-${var.app_env}-${var.instance_name}-${var.module_name}-fd-og"
+  cdn_frontdoor_profile_id = var.frontdoor_profile_id
+
+  load_balancing {
+    sample_size                 = var.sample_size
+    successful_samples_required = var.successful_samples_required
+  }
+  health_probe {
+    interval_in_seconds = 120
+    path                = var.health_probe_path
+    protocol            = "Https"
+    request_type        = "GET"
+  }
+}
+
+# Front Door Origin
+resource "azurerm_cdn_frontdoor_origin" "api_fd_origin" {
+  count                         = var.enable_frontdoor ? 1 : 0
+  name                          = "${var.app_name}-${var.app_env}-${var.instance_name}-${var.module_name}-fd-origin"
+  cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.api_fd_origin_group[0].id
+
+  certificate_name_check_enabled = true
+  enabled                        = true
+  host_name                      = azurerm_linux_web_app.api.default_hostname
+  http_port                      = 80
+  https_port                     = 443
+  origin_host_header             = azurerm_linux_web_app.api.default_hostname
+
+  depends_on = [azurerm_cdn_frontdoor_origin_group.api_fd_origin_group[0]]
+}
+
+# Front Door Route
+resource "azurerm_cdn_frontdoor_route" "api_fd_route" {
+  count                         = var.enable_frontdoor ? 1 : 0
+  name                          = "${var.app_name}-${var.app_env}-${var.instance_name}-${var.module_name}-fd-route"
+  cdn_frontdoor_endpoint_id     = azurerm_cdn_frontdoor_endpoint.api_fd_endpoint[0].id
+  cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.api_fd_origin_group[0].id
+  cdn_frontdoor_origin_ids      = [azurerm_cdn_frontdoor_origin.api_fd_origin[0].id]
+
+  supported_protocols    = ["Http", "Https"]
+  patterns_to_match      = ["/*"]
+  forwarding_protocol    = "HttpsOnly"
+  link_to_default_domain = true
+  https_redirect_enabled = true
+
+  depends_on = [
+    azurerm_cdn_frontdoor_endpoint.api_fd_endpoint[0],
+    azurerm_cdn_frontdoor_origin.api_fd_origin[0]
+  ]
+}
+
+# Front Door Security Policy
+# Associates the firewall policy to the Front Door endpoint domain and path patterns.
+resource "azurerm_cdn_frontdoor_security_policy" "api_fd_security_policy" {
+  count                    = var.enable_frontdoor ? 1 : 0
+  name                     = "${var.app_name}-${var.app_env}-${var.instance_name}-${var.module_name}-fd-security-policy"
+  cdn_frontdoor_profile_id = var.frontdoor_profile_id
+
+  security_policies {
+    firewall {
+      cdn_frontdoor_firewall_policy_id = var.frontdoor_firewall_policy_id
+
+      association {
+        patterns_to_match = ["/*"]
+        domain {
+          cdn_frontdoor_domain_id = azurerm_cdn_frontdoor_endpoint.api_fd_endpoint[0].id
+        }
+      }
+    }
+  }
+
+  depends_on = [azurerm_cdn_frontdoor_endpoint.api_fd_endpoint[0]]
 }

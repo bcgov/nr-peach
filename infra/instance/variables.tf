@@ -96,6 +96,13 @@ variable "database_host" {
   sensitive   = true
 }
 
+variable "enable_frontdoor" {
+  description = "Whether Front Door is enabled. When false, API is exposed directly via its default hostname."
+  type        = bool
+  nullable    = true
+  default     = null
+}
+
 variable "instance_name" {
   description = "Name of the instance"
   type        = string
