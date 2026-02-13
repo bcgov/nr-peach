@@ -79,6 +79,7 @@ resource "azurerm_postgresql_flexible_server_database" "postgres_database" {
 module "api" {
   source = "./modules/api"
 
+  api_frontdoor_resource_guid     = data.azurerm_cdn_frontdoor_profile.frontdoor[0].resource_guid
   app_env                         = var.app_env
   app_name                        = var.app_name
   app_service_plan_id             = data.azurerm_service_plan.api.id
