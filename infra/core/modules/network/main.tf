@@ -19,8 +19,8 @@ resource "azurerm_network_security_group" "privateendpoints" {
   tags                = var.common_tags
 
   security_rule {
-    name                       = "AllowInboundFromApp"
-    priority                   = 100
+    name                       = "AllowAppServiceInBound"
+    priority                   = 200
     direction                  = "Inbound"
     access                     = "Allow"
     protocol                   = "*"
@@ -30,8 +30,8 @@ resource "azurerm_network_security_group" "privateendpoints" {
     destination_port_range     = "*"
   }
   security_rule {
-    name                       = "AllowOutboundToApp"
-    priority                   = 101
+    name                       = "AllowAppServiceOutBound"
+    priority                   = 210
     direction                  = "Outbound"
     access                     = "Allow"
     protocol                   = "*"
@@ -56,30 +56,8 @@ resource "azurerm_network_security_group" "app_service" {
   tags                = var.common_tags
 
   security_rule {
-    name                       = "AllowAppFromPrivateEndpoint"
-    priority                   = 102
-    direction                  = "Inbound"
-    access                     = "Allow"
-    protocol                   = "*"
-    source_address_prefix      = local.private_endpoints_subnet_cidr
-    source_port_range          = "*"
-    destination_address_prefix = local.app_service_subnet_cidr
-    destination_port_range     = "*"
-  }
-  security_rule {
-    name                       = "AllowAppToPrivateEndpoint"
-    priority                   = 103
-    direction                  = "Outbound"
-    access                     = "Allow"
-    protocol                   = "*"
-    source_address_prefix      = local.app_service_subnet_cidr
-    source_port_range          = "*"
-    destination_address_prefix = local.private_endpoints_subnet_cidr
-    destination_port_range     = "*"
-  }
-  security_rule {
-    name                       = "AllowAppFromInternet"
-    priority                   = 110
+    name                       = "AllowInternetInBound"
+    priority                   = 100
     direction                  = "Inbound"
     access                     = "Allow"
     protocol                   = "Tcp"
@@ -89,8 +67,8 @@ resource "azurerm_network_security_group" "app_service" {
     destination_port_ranges    = ["80", "443"]
   }
   security_rule {
-    name                       = "AllowAppOutboundToInternet"
-    priority                   = 120
+    name                       = "AllowInternetOutBound"
+    priority                   = 110
     direction                  = "Outbound"
     access                     = "Allow"
     protocol                   = "Tcp"
@@ -99,11 +77,31 @@ resource "azurerm_network_security_group" "app_service" {
     destination_address_prefix = "*"
     destination_port_ranges    = ["80", "443"]
   }
+  security_rule {
+    name                       = "AllowPrivateEndpointInBound"
+    priority                   = 200
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "*"
+    source_address_prefix      = local.private_endpoints_subnet_cidr
+    source_port_range          = "*"
+    destination_address_prefix = local.app_service_subnet_cidr
+    destination_port_range     = "*"
+  }
+  security_rule {
+    name                       = "AllowPrivateEndpointOutBound"
+    priority                   = 210
+    direction                  = "Outbound"
+    access                     = "Allow"
+    protocol                   = "*"
+    source_address_prefix      = local.app_service_subnet_cidr
+    source_port_range          = "*"
+    destination_address_prefix = local.private_endpoints_subnet_cidr
+    destination_port_range     = "*"
+  }
 
   lifecycle {
-    ignore_changes = [
-      tags
-    ]
+    ignore_changes = [tags]
   }
 }
 
