@@ -14,7 +14,7 @@ locals {
     }
     prod = {
       api_autoscale    = true   # app_service_sku must be Premium tier to enable
-      app_service_sku  = "P1v3" # Premium tier
+      app_service_sku  = "P0v3" # Premium tier
       enable_frontdoor = true
       postgresql_sku   = "GP_Standard_D2s_v3"
     }
