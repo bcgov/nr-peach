@@ -57,3 +57,20 @@ jobs:
       command: apply
       environment: test
       tag: ${{ github.sha }}
+
+  deploy-prod:
+    name: Deploy to Prod
+    needs: deploy-dev
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    concurrency:
+      group: deploy-prod-${{ github.workflow }}-${{ github.ref_name }}
+      cancel-in-progress: true # Do not manually interrupt terraform deployments
+    uses: ./.github/workflows/.instance-deployer.yaml
+    permissions:
+      contents: write
+      id-token: write
+    secrets: inherit
+    with:
+      command: apply
+      environment: prod
+      tag: ${{ github.sha }}
