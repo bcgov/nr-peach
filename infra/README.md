@@ -334,3 +334,41 @@ the following command:
 # Example invocation for test environment network
 az network vnet show --name 123456-test-vwan-spoke --resource-group 123456-test-networking --query "addressSpace.addressPrefixes" -o tsv
 ```
+
+## Style Conventions
+
+### Network Rules
+
+#### Naming
+
+Rule names should attempt to match Microsoft style conventions where possible. In general, a rule will be Pascal Case
+with the general format of `<AccessPolicy><Subnet/Resource><Direction>`:
+
+- AccessPolicy typically is an an `Allow` or `Deny`
+- Subnet/Resource refers to the virtual subnet or cluster of resources
+- Direction typically refers to the flow of traffic, usually either `InBound` or `OutBound`
+
+Some examples of policy names:
+
+- `AllowInternetInBound`
+- `AllowPrivateEndpointOutBound`
+- `DenyAllInBound`
+
+Ref: <https://learn.microsoft.com/en-us/azure/virtual-network/network-security-groups-overview#default-security-rules>
+
+#### Priority
+
+Network Rule Priorities should be set as follows:
+
+| Purpose                                                                     | Recommended Priority | Reason                                                                         |
+| --------------------------------------------------------------------------- | -------------------- | ------------------------------------------------------------------------------ |
+| Critical allow rules (i.e. Azure Front Door)                                | 100–199              | You want AFD (especially health probes) to be allowed before deny rules apply. |
+| Service-to-service allow rules (i.e. APIM -> App Service, internal systems) | 200–299              | Clear separation from AFD and still above any default deny-like rules.         |
+| DevOps / corporate IP allowlists                                            | 300–399              | Typically less critical than core platform traffic.                            |
+| Temporary troubleshooting IP rules                                          | 400–499              | Easy to add/remove without conflicting with permanent rules.                   |
+| Catch-all denies (if ever explicitly needed)                                | 800–900              | Keep at the bottom.                                                            |
+
+When numbering network rules, you should always start by the dividing by 10 pattern (i.e. number 200, 210, 220, etc.)
+as this allows for easy addition or removal of future rules without affecting existing orderings. In Azure App Service,
+strongly consider setting `ip_restriction_default_action` to deny by default to prevent unexpected traffic from passing
+through.

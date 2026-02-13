@@ -84,7 +84,7 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "main_firewall_policy" {
     action   = "Block"
     enabled  = true
     name     = "BlockByNonCAGeoMatch"
-    priority = 101
+    priority = 110
     type     = "MatchRule"
     match_condition {
       match_values       = ["CA"]
