@@ -9,11 +9,8 @@ resource "azurerm_cdn_frontdoor_profile" "main" {
   sku_name            = var.frontdoor_sku_name
 
   tags = var.common_tags
-
   lifecycle {
-    ignore_changes = [
-      tags
-    ]
+    ignore_changes = [tags]
   }
 }
 
@@ -116,10 +113,7 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "main_firewall_policy" {
   }
 
   tags = var.common_tags
-
   lifecycle {
-    ignore_changes = [
-      tags
-    ]
+    ignore_changes = [tags]
   }
 }

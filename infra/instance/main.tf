@@ -60,11 +60,10 @@ data "azurerm_postgresql_flexible_server" "postgresql" {
 resource "azurerm_resource_group" "main" {
   name     = "${var.resource_group_name}-${var.instance_name}-rg"
   location = var.location
-  tags     = var.common_tags
+
+  tags = var.common_tags
   lifecycle {
-    ignore_changes = [
-      tags
-    ]
+    ignore_changes = [tags]
   }
 }
 
@@ -74,6 +73,7 @@ resource "azurerm_postgresql_flexible_server_database" "postgres_database" {
   server_id = data.azurerm_postgresql_flexible_server.postgresql.id
   collation = "en_US.utf8"
   charset   = "utf8"
+
   lifecycle {
     prevent_destroy = false
   }

@@ -42,9 +42,7 @@ resource "azurerm_network_security_group" "privateendpoints" {
   }
 
   lifecycle {
-    ignore_changes = [
-      tags
-    ]
+    ignore_changes = [tags]
   }
 }
 
@@ -53,7 +51,6 @@ resource "azurerm_network_security_group" "app_service" {
   name                = "${var.resource_group_name}-as-nsg"
   location            = var.location
   resource_group_name = var.vnet_resource_group_name
-  tags                = var.common_tags
 
   security_rule {
     name                       = "AllowInternetInBound"
@@ -100,6 +97,7 @@ resource "azurerm_network_security_group" "app_service" {
     destination_port_range     = "*"
   }
 
+  tags = var.common_tags
   lifecycle {
     ignore_changes = [tags]
   }
