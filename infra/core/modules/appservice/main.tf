@@ -9,29 +9,36 @@ resource "azurerm_service_plan" "appservice" {
   resource_group_name = var.resource_group_name
   os_type             = "Linux"
   sku_name            = var.app_service_sku_name
-  tags                = var.common_tags
 
+  # Autoscale properties
+  maximum_elastic_worker_count    = local.scale_out_method == "Auto" ? var.max_instances : null
+  premium_plan_auto_scale_enabled = local.scale_out_method == "Auto"
+  worker_count                    = local.enable_autoscale ? 2 : 1
+  zone_balancing_enabled          = local.enable_autoscale # worker_count requires 2 or more to enable
+
+  tags = var.common_tags
   lifecycle {
     ignore_changes = [tags]
   }
 }
 
-# API Autoscaler
+# Rules Based API Autoscaler
 resource "azurerm_monitor_autoscale_setting" "api_autoscale" {
+  count               = local.scale_out_method == "Rules" ? 1 : 0
   name                = "${var.app_name}-${var.module_name}-autoscale"
   location            = var.location
   resource_group_name = var.resource_group_name
   tags                = var.common_tags
   target_resource_id  = azurerm_service_plan.appservice.id
 
-  # This does not work if the SKU is not Premium
-  enabled = var.enable_api_autoscale
+  # The App Service Plan must be Premium tier to enable Autoscaling
+  enabled = local.enable_autoscale
   profile {
     name = "default"
     capacity {
       default = 2
-      minimum = 1
-      maximum = 10
+      minimum = 2
+      maximum = var.max_instances
     }
     rule {
       metric_trigger {

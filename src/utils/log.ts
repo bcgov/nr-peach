@@ -9,7 +9,7 @@ import type { TransportStreamOptions } from 'winston-transport';
 import type { LocalContext } from '../types/index.d.ts';
 
 const DEFAULT_LOG_LEVEL = 'http';
-const USER_AGENTS = ['AlwaysOn', 'HealthCheck', 'kube-probe', 'ReadyForRequest'];
+const USER_AGENTS = ['AlwaysOn', 'Edge Health Probe', 'HealthCheck', 'kube-probe', 'ReadyForRequest'];
 
 /**
  * Class representing a winston transport writing to null
@@ -79,11 +79,9 @@ export function dynamicMeta(
   req: Request,
   res: Response<unknown, LocalContext> & { responseTime?: number }
 ): Record<string, unknown> {
+  const claims = { azp: res.locals?.claims?.azp, sub: res.locals?.claims?.sub };
   return {
-    claims: {
-      azp: res.locals?.claims?.azp,
-      sub: res.locals?.claims?.sub
-    },
+    claims: Object.keys(claims).length ? claims : undefined,
     contentLength: res.get('content-length'),
     httpVersion: req.httpVersion,
     ip: req.ip,

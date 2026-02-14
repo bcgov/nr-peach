@@ -50,7 +50,7 @@ export async function loadSchema(schema: string): Promise<AnySchemaObject> {
       schemaCache[schema] = (await res.json()) as AnySchemaObject;
     } catch (error) {
       log.error('loadSchema', { error });
-      throw new Error(`Failed to load schema ${schema}`);
+      throw new Error(`Failed to load schema ${schema}`, { cause: error });
     }
   }
 

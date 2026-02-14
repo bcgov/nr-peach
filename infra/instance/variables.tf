@@ -12,6 +12,11 @@ variable "app_env" {
   description = "Application environment (dev, test, prod)"
   type        = string
   nullable    = false
+
+  validation {
+    condition     = contains(["dev", "test", "prod"], var.app_env)
+    error_message = "app_env must be dev, test or prod."
+  }
 }
 
 variable "app_name" {
@@ -44,6 +49,11 @@ variable "auth_mode" {
   type        = string
   nullable    = false
   default     = "authz"
+
+  validation {
+    condition     = contains(["none", "authn", "authz"], var.auth_mode)
+    error_message = "auth_mode must be none, authn or authz."
+  }
 }
 
 variable "client_id" {
@@ -86,6 +96,13 @@ variable "database_host" {
   sensitive   = true
 }
 
+variable "enable_frontdoor" {
+  description = "Whether Front Door is enabled. When false, API is exposed directly via its default hostname."
+  type        = bool
+  nullable    = true
+  default     = null
+}
+
 variable "instance_name" {
   description = "Name of the instance"
   type        = string
@@ -96,13 +113,6 @@ variable "location" {
   description = "Azure region for resources"
   type        = string
   default     = "Canada Central"
-  nullable    = false
-}
-
-variable "repo_name" {
-  description = "Name of the repository, used for resource naming"
-  type        = string
-  default     = "nr-peach"
   nullable    = false
 }
 
