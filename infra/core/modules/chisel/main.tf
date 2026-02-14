@@ -46,6 +46,7 @@ resource "azurerm_linux_web_app" "chisel" {
       }
     }
   }
+
   tags = var.common_tags
   lifecycle {
     ignore_changes = [

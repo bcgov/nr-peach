@@ -6,11 +6,10 @@
 resource "azurerm_resource_group" "main" {
   name     = "${var.resource_group_name}-${var.lifecycle_name}-rg"
   location = var.location
-  tags     = var.common_tags
+
+  tags = var.common_tags
   lifecycle {
-    ignore_changes = [
-      tags
-    ]
+    ignore_changes = [tags]
   }
 }
 

@@ -337,6 +337,14 @@ az network vnet show --name 123456-test-vwan-spoke --resource-group 123456-test-
 
 ## Style Conventions
 
+All Terraform related files should be styled and modelled as described in the official style guide at
+<https://developer.hashicorp.com/terraform/language/style>
+
+### File Naming
+
+The Terraform HCL files should be split up and named as described in the official style guide at
+<https://developer.hashicorp.com/terraform/language/style#file-names>
+
 ### Network Rules
 
 #### Naming

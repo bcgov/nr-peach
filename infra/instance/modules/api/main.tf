@@ -64,6 +64,7 @@ resource "azurerm_linux_web_app" "api" {
       }
     }
   }
+
   tags = var.common_tags
   lifecycle {
     ignore_changes = [tags]
