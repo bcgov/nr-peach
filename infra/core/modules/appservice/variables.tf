@@ -13,7 +13,7 @@ variable "app_service_sku_name" {
 variable "enable_api_autoscale" {
   description = "Whether autoscaling is enabled for the api App Service plan."
   type        = bool
-  default     = false
+  nullable    = false
 }
 
 variable "common_tags" {
@@ -28,6 +28,12 @@ variable "location" {
   nullable    = false
 }
 
+variable "max_instances" {
+  description = "Maximum number of App Service instances to allow. Defaults to 10."
+  type        = number
+  default     = 10
+}
+
 variable "module_name" {
   description = "Name of the module"
   type        = string
@@ -38,4 +44,15 @@ variable "resource_group_name" {
   description = "The name of the resource group in which to create resources."
   type        = string
   nullable    = false
+}
+
+variable "scale_out_method" {
+  description = "The desired App Service scale out method"
+  type        = string
+  nullable    = false
+
+  validation {
+    condition     = contains(["Auto", "Manual", "Rules"], var.scale_out_method)
+    error_message = "scale_out_method must be Auto, Manual or Rules."
+  }
 }
