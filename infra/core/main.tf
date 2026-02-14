@@ -50,6 +50,7 @@ module "appservice" {
   common_tags          = var.common_tags
   location             = var.location
   resource_group_name  = azurerm_resource_group.main.name
+  scale_out_method     = local.scale_out_method
 
   depends_on = [module.network]
 }

@@ -25,6 +25,17 @@ variable "app_service_sku_name" {
   default     = null
 }
 
+variable "app_service_scale_out_method" {
+  description = "The desired App Service scale out method"
+  type        = string
+  default     = null
+
+  validation {
+    condition     = var.app_service_scale_out_method == null || contains(["Auto", "Manual", "Rules"], var.app_service_scale_out_method)
+    error_message = "app_service_scale_out_method must be Auto, Manual or Rules."
+  }
+}
+
 variable "client_id" {
   description = "Azure client ID for the service principal."
   type        = string

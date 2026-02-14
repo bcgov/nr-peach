@@ -71,4 +71,6 @@ resource "azurerm_monitor_diagnostic_setting" "chisel_diagnostics" {
   enabled_log {
     category = "AppServicePlatformLogs"
   }
+
+  depends_on = [azurerm_linux_web_app.chisel]
 }
