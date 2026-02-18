@@ -59,8 +59,8 @@ variable "auth_mode" {
 variable "client_id" {
   description = "Azure client ID for the service principal"
   type        = string
-  default     = null
   nullable    = true
+  default     = null
   sensitive   = true
 }
 
@@ -91,8 +91,8 @@ variable "database_admin_password" {
 variable "database_host" {
   description = "Hostname of the the PostgreSQL server"
   type        = string
-  default     = null
   nullable    = true
+  default     = null
   sensitive   = true
 }
 

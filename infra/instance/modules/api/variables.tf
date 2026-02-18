@@ -2,6 +2,7 @@ variable "api_frontdoor_resource_guid" {
   description = "The resource GUID of the Front Door profile for the API."
   type        = string
   nullable    = true
+  default     = null
 }
 
 variable "api_subnet_id" {
@@ -11,7 +12,7 @@ variable "api_subnet_id" {
 }
 
 variable "app_automigrate" {
-  description = "The deployment environment (e.g., dev, test, prod)."
+  description = "Automatically run migrations on startup."
   type        = string
   nullable    = true
   default     = "true"
@@ -142,7 +143,8 @@ variable "frontdoor_firewall_policy_id" {
 variable "frontdoor_profile_id" {
   description = "The resource id for the Front Door profile."
   type        = string
-  nullable    = false
+  nullable    = true
+  default     = null
 }
 
 

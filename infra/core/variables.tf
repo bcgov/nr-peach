@@ -39,8 +39,8 @@ variable "app_service_scale_out_method" {
 variable "client_id" {
   description = "Azure client ID for the service principal."
   type        = string
-  default     = null
   nullable    = true
+  default     = null
   sensitive   = true
 }
 

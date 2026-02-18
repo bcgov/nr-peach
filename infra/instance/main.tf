@@ -85,7 +85,7 @@ resource "azurerm_postgresql_flexible_server_database" "postgres_database" {
 module "api" {
   source = "./modules/api"
 
-  api_frontdoor_resource_guid     = data.azurerm_cdn_frontdoor_profile.frontdoor[0].resource_guid
+  api_frontdoor_resource_guid     = try(data.azurerm_cdn_frontdoor_profile.frontdoor[0].resource_guid, null)
   app_env                         = var.app_env
   app_name                        = var.app_name
   app_service_plan_id             = data.azurerm_service_plan.api.id
@@ -103,7 +103,7 @@ module "api" {
   database_name                   = local.database_name
   enable_frontdoor                = local.enable_frontdoor
   frontdoor_firewall_policy_id    = try(data.azurerm_cdn_frontdoor_firewall_policy.frontdoor_firewall_policy[0].id, null)
-  frontdoor_profile_id            = data.azurerm_cdn_frontdoor_profile.frontdoor[0].id
+  frontdoor_profile_id            = try(data.azurerm_cdn_frontdoor_profile.frontdoor[0].id, null)
   instance_name                   = var.instance_name
   log_analytics_workspace_id      = data.azurerm_log_analytics_workspace.monitoring.id
   location                        = var.location
