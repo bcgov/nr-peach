@@ -60,7 +60,7 @@ jobs:
 
   deploy-prod:
     name: Deploy to Prod
-    needs: deploy-dev
+    needs: deploy-test
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     concurrency:
       group: deploy-prod-${{ github.workflow }}-${{ github.ref_name }}
