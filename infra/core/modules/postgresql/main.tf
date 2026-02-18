@@ -12,17 +12,16 @@ resource "azurerm_postgresql_flexible_server" "postgresql" {
   name                = "${var.app_name}-${var.app_env}-${var.module_name}"
   resource_group_name = var.resource_group_name
   location            = var.location
-  tags                = var.common_tags
 
-  administrator_login    = var.postgresql_admin_username
-  administrator_password = random_password.postgres_master_password.result
-
-  sku_name                     = var.postgresql_sku_name
-  version                      = var.postgres_version
-  zone                         = var.zone
-  storage_mb                   = var.postgresql_storage_mb
+  administrator_login          = var.postgresql_admin_username
+  administrator_password       = random_password.postgres_master_password.result
+  auto_grow_enabled            = var.enable_auto_grow # Auto-scaling configuration
   backup_retention_days        = var.backup_retention_period
   geo_redundant_backup_enabled = var.enable_geo_redundant_backup
+  sku_name                     = var.postgresql_sku_name
+  storage_mb                   = var.postgresql_storage_mb
+  version                      = var.postgres_version
+  zone                         = var.zone
 
   # Not allowed to be public in Azure Landing Zone
   # Public network access is disabled to comply with Azure Landing Zone security requirements
@@ -37,14 +36,9 @@ resource "azurerm_postgresql_flexible_server" "postgresql" {
     }
   }
 
-  # Auto-scaling configuration
-  auto_grow_enabled = var.enable_auto_grow
-
-  # Lifecycle block to handle automatic DNS zone associations by Azure Policy
+  tags = var.common_tags
   lifecycle {
-    ignore_changes = [
-      tags
-    ]
+    ignore_changes = [tags]
   }
 }
 
@@ -66,10 +60,9 @@ resource "azurerm_private_endpoint" "postgresql" {
     is_manual_connection           = false
   }
 
-  # Lifecycle block to ignore DNS zone group changes managed by Azure Policy
   lifecycle {
     ignore_changes = [
-      private_dns_zone_group,
+      private_dns_zone_group, # Ignore DNS zone group changes managed by Azure Policy
       tags
     ]
   }

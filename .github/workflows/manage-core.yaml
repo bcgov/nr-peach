@@ -24,10 +24,24 @@ on:
           - destroy
 
 jobs:
+  gate:
+    name: Gate to ${{ github.event.inputs.environment }}
+    environment:
+      name: gate-${{ github.event.inputs.environment }}
+    concurrency:
+      group: gate-core-${{ github.event.inputs.environment }}-${{ github.workflow }}-${{ github.ref_name }}
+      cancel-in-progress: true # Allows newer job instances to take precedence
+    runs-on: ubuntu-latest
+    permissions: {}
+    steps:
+      - name: Log Gate
+        run: echo "Proceeding to deploy ${{ github.event.inputs.environment }}..."
+
   infra:
     name: Core Infra ${{ github.event.inputs.manage_action }}
+    needs: gate
     concurrency:
-      group: core-infra-${{ github.workflow }}-${{ github.ref_name }}
+      group: core-infra-${{ github.event.inputs.environment }}-${{ github.workflow }}-${{ github.ref_name }}
       cancel-in-progress: false # Do not interrupt terraform deployments
     uses: ./.github/workflows/.core-deployer.yaml
     permissions:

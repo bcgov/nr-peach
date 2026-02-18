@@ -1,19 +1,3 @@
-terraform {
-  required_version = ">= 1.12.0"
-  backend "azurerm" {
-    resource_group_name  = ""
-    storage_account_name = ""
-    container_name       = "tfstate"
-    key                  = "core.tfstate"
-  }
-  required_providers {
-    azurerm = {
-      source  = "hashicorp/azurerm"
-      version = "4.60.0"
-    }
-  }
-}
-
 provider "azurerm" {
   features {
     key_vault {
@@ -21,8 +5,7 @@ provider "azurerm" {
       recover_soft_deleted_key_vaults = true
     }
     resource_group {
-      # TODO: set to true later; Allow deletion of resource groups with resources, since we are in exploration.
-      prevent_deletion_if_contains_resources = false
+      prevent_deletion_if_contains_resources = true
     }
   }
   client_id       = var.client_id

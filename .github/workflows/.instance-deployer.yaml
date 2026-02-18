@@ -22,6 +22,7 @@ on:
 env:
   AZURE_REGION: Canada Central
   INPUT_COMMAND: ${{ inputs.command }}
+  INPUT_ENVIRONMENT: ${{ inputs.environment }}
   TF_LOG: ERROR
 
 jobs:
@@ -29,7 +30,7 @@ jobs:
     name: ${{ inputs.environment }} ${{ inputs.command }}
     environment:
       name: ${{ inputs.environment }}
-      url: ${{ steps.result.outputs.api_app_service_url }}
+      url: ${{ steps.result.outputs.api_url }}
     permissions:
       contents: write # This is required for actions/checkout
       id-token: write # This is required for requesting the JWT
@@ -188,7 +189,11 @@ jobs:
           terraform $INPUT_COMMAND $args
 
           if [[ "$INPUT_COMMAND" == "apply" ]]; then
-            echo "api_app_service_url=$(terraform output -raw api_app_service_url)" >> $GITHUB_OUTPUT
+            if [[ "$INPUT_ENVIRONMENT" == "prod" ]]; then
+              echo "api_url=$(terraform output -raw api_frontdoor_endpoint_url)" >> $GITHUB_OUTPUT
+            else
+              echo "api_url=$(terraform output -raw api_app_service_url)" >> $GITHUB_OUTPUT
+            fi
           fi
 
           if [[ "$INPUT_COMMAND" == "destroy" ]]; then

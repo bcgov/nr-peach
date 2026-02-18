@@ -6,22 +6,11 @@
 resource "azurerm_resource_group" "main" {
   name     = "${var.resource_group_name}-${var.lifecycle_name}-rg"
   location = var.location
-  tags     = var.common_tags
+
+  tags = var.common_tags
   lifecycle {
-    ignore_changes = [
-      tags
-    ]
+    ignore_changes = [tags]
   }
-}
-
-# User Assigned Managed Identity
-resource "azurerm_user_assigned_identity" "app_service_identity" {
-  name                = "${var.app_name}-as-identity"
-  location            = var.location
-  resource_group_name = azurerm_resource_group.main.name
-  tags                = var.common_tags
-
-  depends_on = [azurerm_resource_group.main]
 }
 
 # -----------------------------
@@ -55,11 +44,28 @@ module "appservice" {
   source = "./modules/appservice"
 
   app_name             = var.app_name
-  app_service_sku_name = var.app_service_sku_name
-  enable_api_autoscale = var.enable_api_autoscale
+  app_service_sku_name = local.app_service_sku_name
+  enable_api_autoscale = local.enable_api_autoscale
   common_tags          = var.common_tags
   location             = var.location
   resource_group_name  = azurerm_resource_group.main.name
+  scale_out_method     = local.scale_out_method
+
+  depends_on = [module.network]
+}
+
+module "frontdoor" {
+  count  = local.enable_frontdoor ? 1 : 0
+  source = "./modules/frontdoor"
+
+  app_name                       = var.app_name
+  app_env                        = var.app_env
+  common_tags                    = var.common_tags
+  frontdoor_firewall_mode        = var.frontdoor_firewall_mode
+  frontdoor_sku_name             = var.frontdoor_sku_name
+  rate_limit_duration_in_minutes = var.rate_limit_duration_in_minutes
+  rate_limit_threshold           = var.rate_limit_threshold
+  resource_group_name            = azurerm_resource_group.main.name
 
   depends_on = [module.network]
 }
@@ -75,14 +81,14 @@ module "postgresql" {
   enable_geo_redundant_backup = var.enable_postgres_geo_redundant_backup
   enable_ha                   = var.enable_postgres_ha
   location                    = var.location
-  postgres_version            = var.postgres_version
+  postgres_version            = var.postgresql_version
   postgresql_admin_username   = var.postgresql_admin_username
-  postgresql_sku_name         = var.postgres_sku_name
-  postgresql_storage_mb       = var.postgres_storage_mb
+  postgresql_sku_name         = local.postgresql_sku_name
+  postgresql_storage_mb       = var.postgresql_storage_mb
   private_endpoint_subnet_id  = module.network.private_endpoint_subnet_id
   resource_group_name         = azurerm_resource_group.main.name
-  standby_availability_zone   = var.postgres_standby_availability_zone
-  zone                        = var.postgres_zone
+  standby_availability_zone   = var.postgresql_standby_availability_zone
+  zone                        = var.postgresql_zone
 
   depends_on = [module.network]
 }

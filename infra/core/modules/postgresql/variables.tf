@@ -8,6 +8,11 @@ variable "app_env" {
   description = "Application environment (dev, test, prod)"
   type        = string
   nullable    = false
+
+  validation {
+    condition     = contains(["dev", "test", "prod"], var.app_env)
+    error_message = "app_env must be dev, test or prod."
+  }
 }
 
 variable "enable_auto_grow" {
