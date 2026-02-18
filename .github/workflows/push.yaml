@@ -41,13 +41,28 @@ jobs:
       environment: dev
       tag: ${{ github.sha }}
 
-  deploy-test:
-    name: Deploy to Test
+  gate-test:
+    name: Gate to Test
+    environment:
+      name: gate-test
     needs: deploy-dev
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     concurrency:
+      group: gate-test-${{ github.workflow }}-${{ github.ref_name }}
+      cancel-in-progress: true # Allows newer job instances to take precedence
+    runs-on: ubuntu-latest
+    permissions: {}
+    steps:
+      - name: Log Gate
+        run: echo "Proceeding to deploy Test..."
+
+  deploy-test:
+    name: Deploy to Test
+    needs: gate-test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    concurrency:
       group: deploy-test-${{ github.workflow }}-${{ github.ref_name }}
-      cancel-in-progress: true # Do not manually interrupt terraform deployments
+      cancel-in-progress: false # Do not interrupt terraform deployments
     uses: ./.github/workflows/.instance-deployer.yaml
     permissions:
       contents: write
@@ -58,13 +73,28 @@ jobs:
       environment: test
       tag: ${{ github.sha }}
 
-  deploy-prod:
-    name: Deploy to Prod
+  gate-prod:
+    name: Gate to Prod
+    environment:
+      name: gate-prod
     needs: deploy-test
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     concurrency:
+      group: gate-prod-${{ github.workflow }}-${{ github.ref_name }}
+      cancel-in-progress: true # Allows newer job instances to take precedence
+    runs-on: ubuntu-latest
+    permissions: {}
+    steps:
+      - name: Log Gate
+        run: echo "Proceeding to deploy Prod..."
+
+  deploy-prod:
+    name: Deploy to Prod
+    needs: gate-prod
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    concurrency:
       group: deploy-prod-${{ github.workflow }}-${{ github.ref_name }}
-      cancel-in-progress: true # Do not manually interrupt terraform deployments
+      cancel-in-progress: false # Do not interrupt terraform deployments
     uses: ./.github/workflows/.instance-deployer.yaml
     permissions:
       contents: write
