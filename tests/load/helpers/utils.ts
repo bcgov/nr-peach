@@ -1,3 +1,19 @@
+//  * Fetches an OAuth2 bearer token using client credentials.
+//  * @param clientId - The client identifier issued by the authorization server.
+//  * @param secret - The client secret used for authentication.
+//  * @param token_endpoint - The URL of the authorization server's token endpoint.
+//  * @returns The bearer token as a string, or null if the token could not be fetched.
+//  */
+// export function fetchBearerToken(clientId: string, secret: string, token_endpoint: string): string | null {
+/**
+ * Fetches an OAuth2 bearer token using client credentials.
+ * @returns The bearer token as a string, or null if the token could not be fetched.
+ */
+export function fetchBearerToken(): string | null {
+  const bearerToken = '';
+  return bearerToken;
+}
+
 /**
  * Generates a random integer between the specified `min` and `max` values, inclusive.
  * @param min - The minimum integer value that can be returned.
@@ -86,7 +102,7 @@ export function uuidv7(): string {
     '7' +
     rand12.slice(0, 3) +
     '-' +
-    ((parseInt(rand62[0], 16) & 0x3) | 0x8).toString(16) +
+    ((Number.parseInt(rand62[0], 16) & 0x3) | 0x8).toString(16) +
     rand62.slice(1, 4) +
     '-' +
     rand62.slice(4, 16);

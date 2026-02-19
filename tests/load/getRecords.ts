@@ -1,7 +1,7 @@
 import { check } from 'k6';
 import http from 'k6/http';
 
-import { options as k6opts } from './helpers/index.ts';
+import { fetchBearerToken } from './helpers/index.ts';
 
 /**
  * 1. Initialization
@@ -11,7 +11,7 @@ const BASE_URL = 'http://localhost:3000';
 const RECORD_ID = '06bc53dc-3e4f-420b-801c-bd9cc0ea01b2';
 const SYSTEM_ID = 'ITSM-5917';
 
-export const options = k6opts;
+export { options } from './helpers/index.ts';
 
 /** @see https://raw.githubusercontent.com/bcgov/nr-pies/refs/heads/main/docs/spec/element/message/record.example.json */
 const testRecord = {
@@ -77,26 +77,43 @@ const testRecord = {
 
 /**
  * 2. Setup
+ * @returns - Data created in setup to be used by VU execution
  */
 export function setup() {
   // Initialize test data or state
-  const res = http.get(`${BASE_URL}${API_PROCESS_EVENT}?record_id=${RECORD_ID}&system_id=${SYSTEM_ID}`);
+  const token = fetchBearerToken();
+
+  const res = http.get(`${BASE_URL}${API_PROCESS_EVENT}?record_id=${RECORD_ID}&system_id=${SYSTEM_ID}`, {
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`
+    }
+  });
   if (res.status === 404) {
     http.put(`${BASE_URL}${API_PROCESS_EVENT}`, JSON.stringify(testRecord), {
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`
       }
     });
   }
 
   console.log('Test setup complete'); // eslint-disable-line no-console
+  return { token };
 }
 
 /**
  * 3. VU Execution
+ * @param data - Data defined in setup()
+ * @param data.token - Bearer token for authorization
  */
-export default function () {
-  const res = http.get(`${BASE_URL}${API_PROCESS_EVENT}?record_id=${RECORD_ID}&system_id=${SYSTEM_ID}`);
+export default function main(data: { token: string }) {
+  const res = http.get(`${BASE_URL}${API_PROCESS_EVENT}?record_id=${RECORD_ID}&system_id=${SYSTEM_ID}`, {
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${data.token}`
+    }
+  });
   if (!check(res, { 'status is 200': (res) => res.status === 200 })) {
     console.error(`Request failed with status ${res.status}`, res.body); // eslint-disable-line no-console
   }
@@ -105,7 +122,7 @@ export default function () {
 /**
  * 4. Teardown
  */
-// export function teardown() {
-//   // Cleanup actions after the test
-//   console.log('Test teardown complete'); // eslint-disable-line no-console
-// }
+export function teardown() {
+  // Cleanup actions after the test
+  console.log('Test teardown complete'); // eslint-disable-line no-console
+}
