@@ -35,10 +35,18 @@ const pool = new Pool({
 });
 
 pool.on('error', onPoolError);
-pool.on('connect', () => log.silly('Database has connected a client', { clientCount: pool.totalCount }));
-pool.on('acquire', () => log.silly('Database has acquired a client', { clientCount: pool.totalCount }));
-pool.on('release', () => log.silly('Database has released a client', { clientCount: pool.totalCount }));
-pool.on('remove', () => log.silly('Database has removed a client', { clientCount: pool.totalCount }));
+pool.on('connect', () =>
+  log.silly('Database client connected', { clientCount: pool.totalCount, waitingCount: pool.waitingCount })
+);
+pool.on('acquire', () =>
+  log.silly('Database client acquired', { clientCount: pool.totalCount, waitingCount: pool.waitingCount })
+);
+pool.on('release', () =>
+  log.silly('Database client released', { clientCount: pool.totalCount, waitingCount: pool.waitingCount })
+);
+pool.on('remove', () =>
+  log.silly('Database client removed', { clientCount: pool.totalCount, waitingCount: pool.waitingCount })
+);
 
 let healthCheckPromise: Promise<boolean> | null = null;
 let lastHealthCheckTime = 0;
