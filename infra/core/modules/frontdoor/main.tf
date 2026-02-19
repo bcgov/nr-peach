@@ -62,7 +62,7 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "main_firewall_policy" {
 
   # Simple baseline rate limiter
   custom_rule {
-    action                         = "Block"
+    action                         = "Log"
     enabled                        = true
     name                           = "RateLimitByIP"
     priority                       = 100
@@ -98,7 +98,7 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "main_firewall_policy" {
     priority = 200
     type     = "MatchRule"
     match_condition {
-      match_values       = ["^https?://[^/]+/api/v1/[^?].+$"]
+      match_values       = ["^https?://[^/]+/api/v1/[^?].*$"]
       match_variable     = "RequestUri"
       negation_condition = false
       operator           = "RegEx"

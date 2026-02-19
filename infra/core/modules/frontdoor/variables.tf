@@ -56,7 +56,7 @@ variable "rate_limit_threshold" {
   description = "Firewall rate limit threshold."
   type        = number
   nullable    = false
-  default     = 100
+  default     = 1000
 }
 
 variable "resource_group_name" {
