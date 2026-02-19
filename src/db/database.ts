@@ -35,17 +35,11 @@ const pool = new Pool({
 });
 
 pool.on('error', onPoolError);
-pool.on('connect', () =>
-  log.silly('Database client connected', { clientCount: pool.totalCount, waitingCount: pool.waitingCount })
-);
-pool.on('acquire', () =>
-  log.silly('Database client acquired', { clientCount: pool.totalCount, waitingCount: pool.waitingCount })
-);
-pool.on('release', () =>
-  log.silly('Database client released', { clientCount: pool.totalCount, waitingCount: pool.waitingCount })
-);
-pool.on('remove', () =>
-  log.silly('Database client removed', { clientCount: pool.totalCount, waitingCount: pool.waitingCount })
+const events: readonly ('acquire' | 'connect' | 'release' | 'remove')[] = ['acquire', 'connect', 'release', 'remove'];
+events.forEach((event) =>
+  pool.on(event, () =>
+    log.silly(`Database client ${event}`, { clientCount: pool.totalCount, waitingCount: pool.waitingCount })
+  )
 );
 
 let healthCheckPromise: Promise<boolean> | null = null;
@@ -189,7 +183,7 @@ export function onLogEvent(event: LogEvent): void {
  * @param err The error object emitted by the pool.
  */
 export function onPoolError(err: Error): void {
-  log.error(`Database has errored: ${err.message}`, { clientCount: pool.totalCount });
+  log.error(`Database has errored: ${err.message}`, { clientCount: pool.totalCount, waitingCount: pool.waitingCount });
   state.ready = false;
 }
 
