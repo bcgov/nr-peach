@@ -1,4 +1,8 @@
-import { config } from 'dotenv';
+import { existsSync } from 'node:fs';
+import { loadEnvFile } from 'node:process';
+
+import type { PathLike } from 'node:fs';
 
 // Load environment variables, prioritizing .env over .env.default
-config({ path: ['.env', '.env.default'], quiet: true });
+const envFiles: readonly PathLike[] = ['./.env', './.env.default'];
+envFiles.forEach((envFile) => (existsSync(envFile) ? loadEnvFile(envFile) : null));
