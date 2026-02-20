@@ -80,7 +80,7 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "frontdoor_firewall_policy" {
     rate_limit_threshold           = var.rate_limit_threshold
     type                           = "RateLimitRule"
     match_condition {
-      match_values       = ["0.0.0.0/0"]
+      match_values       = ["0.0.0.0/0", "::/0"]
       match_variable     = "RemoteAddr"
       negation_condition = false
       operator           = "IPMatch"
