@@ -71,6 +71,12 @@ variable "log_analytics_workspace_id" {
   nullable    = false
 }
 
+variable "module_name" {
+  description = "Name of the module"
+  type        = string
+  default     = "chisel"
+}
+
 variable "repo_name" {
   description = "The repository name, used for resource naming."
   type        = string
