@@ -68,27 +68,22 @@ export function mergeDateAndTimeToISOString(date: Date, time: string): string {
   const year = date.getUTCFullYear();
   const month = date.getUTCMonth();
   const day = date.getUTCDate();
-  // Split the time string into components, dropping the timezone offset if present
-  const timeParts = time.split(/[+-]/)[0].split(':');
-  if (timeParts.length < 2 || timeParts.length > 3) {
-    throw new Error(`Invalid time format: ${time}`);
+
+  // Strip anything after the time (Z, +00:00, etc.) and split
+  const cleanTime = time.split(/[Z+-]/)[0];
+  const timeParts = cleanTime.split(':');
+  if (timeParts.length < 2) throw new Error(`Invalid time format: ${time}`);
+
+  const hour = Number.parseInt(timeParts[0], 10);
+  const minute = Number.parseInt(timeParts[1], 10);
+
+  // Handle optional seconds and milliseconds
+  const secondsPart = timeParts[2]?.split('.') || ['0', '0'];
+  const second = Number.parseInt(secondsPart[0], 10);
+  const ms = Number.parseInt(secondsPart[1] || '0', 10);
+  if ([hour, minute, second].some((num) => Number.isNaN(num))) {
+    throw new Error(`Invalid numeric values in time: ${time}`);
   }
-  const hour = Number(timeParts[0]);
-  const minute = Number(timeParts[1]);
-  const [second, ms = 0] = timeParts[2]?.split('.') || ['0', '0'];
-  if (
-    Number.isNaN(hour) ||
-    Number.isNaN(minute) ||
-    Number.isNaN(Number(second)) ||
-    (ms && Number.isNaN(Number(ms))) ||
-    hour < 0 ||
-    hour > 23 ||
-    minute < 0 ||
-    minute > 59 ||
-    Number(second) < 0 ||
-    Number(second) > 59
-  ) {
-    throw new Error(`Invalid time format: ${time}`);
-  }
-  return new Date(Date.UTC(year, month, day, hour, minute, Number(second), Number(ms))).toISOString();
+
+  return new Date(Date.UTC(year, month, day, hour, minute, second, ms)).toISOString();
 }
