@@ -167,7 +167,7 @@ export const replaceRecordService = (data: Record, principal?: string): Promise<
       systemId: data.system_id
     });
 
-    // Handle on hold events
+    // Calculate on hold events
     const oheOld = (await new OnHoldEventRepository(trx).findBy({ systemRecordId: systemRecord.id }).execute()).map(
       (ohe) => ({
         id: ohe.id,
@@ -181,39 +181,34 @@ export const replaceRecordService = (data: Record, principal?: string): Promise<
       })
     );
 
-    const oheMatched = new Set<number>();
-    const oheAdd = (
-      await Promise.all(
-        data.on_hold_event_set?.map(async (ce) => {
-          const { id: codingId } = await cacheableUpsert(new CodingRepository(trx), {
-            code: ce.coding.code,
-            codeSystem: ce.coding.code_system,
-            versionId: data.version
-          });
-          const ceNew = { codingId, ...ce.event };
+    // Map to a union type of number | object
+    const oheResults = await Promise.all(
+      data.on_hold_event_set?.map(async (ce) => {
+        const { id: codingId } = await cacheableUpsert(new CodingRepository(trx), {
+          code: ce.coding.code,
+          codeSystem: ce.coding.code_system,
+          versionId: data.version
+        });
 
-          const matched = oheOld.find((ceOld) => compareObject(ceOld, ceNew));
-          if (matched) {
-            oheMatched.add(matched.id);
-            return null;
-          } else {
-            return {
-              codingId: codingId,
-              systemRecordId: systemRecord.id,
-              transactionId: data.transaction_id,
-              ...eventToDateTimeParts(ce.event),
-              createdBy: principal
-            };
-          }
-        }) ?? []
-      )
-    ).filter((ohe) => !!ohe);
-    if (oheAdd.length) await new OnHoldEventRepository(trx).createMany(oheAdd).execute();
+        const ceNew = { codingId, ...ce.event };
+        const oheMatched = oheOld.find((ceOld) => compareObject(ceOld, ceNew));
 
-    const oheDelete = oheOld.filter((ohe) => !oheMatched.has(ohe.id)).map((ohe) => ohe.id);
-    if (oheDelete.length) await new OnHoldEventRepository(trx).deleteMany(oheDelete).execute();
+        if (oheMatched) return oheMatched.id;
+        return {
+          codingId,
+          systemRecordId: systemRecord.id,
+          transactionId: data.transaction_id,
+          ...eventToDateTimeParts(ce.event),
+          createdBy: principal
+        };
+      }) ?? []
+    );
 
-    // Handle process events
+    const oheMatchedIds = new Set(oheResults.filter((r) => typeof r === 'number'));
+    const oheDeleteIds = oheOld.filter((old) => !oheMatchedIds.has(old.id)).map((old) => old.id);
+    const oheAdd = oheResults.filter((r) => typeof r !== 'number');
+
+    // Calculate process events
     const peOld = (await new ProcessEventRepository(trx).findBy({ systemRecordId: systemRecord.id }).execute()).map(
       (pe) => ({
         id: pe.id,
@@ -230,45 +225,50 @@ export const replaceRecordService = (data: Record, principal?: string): Promise<
       })
     );
 
-    const peMatched = new Set<number>();
-    const peAdd = (
-      await Promise.all(
-        data.process_event_set?.map(async (pe) => {
-          const { id: codingId } = await cacheableUpsert(new CodingRepository(trx), {
-            code: pe.process.code,
-            codeSystem: pe.process.code_system,
-            versionId: data.version
-          });
-          const peNew = {
-            codingId,
-            status: pe.process.status,
-            statusCode: pe.process.status_code,
-            statusDescription: pe.process.status_description,
-            ...pe.event
-          };
+    // Map to a union type: number (matched ID) | object (new record)
+    const peResults = await Promise.all(
+      data.process_event_set?.map(async (pe) => {
+        const { id: codingId } = await cacheableUpsert(new CodingRepository(trx), {
+          code: pe.process.code,
+          codeSystem: pe.process.code_system,
+          versionId: data.version
+        });
 
-          const matched = peOld.find((peOld) => compareObject(peOld, peNew));
-          if (matched) {
-            peMatched.add(matched.id);
-            return null;
-          } else {
-            return {
-              codingId: codingId,
-              status: pe.process.status,
-              statusCode: pe.process.status_code,
-              statusDescription: pe.process.status_description,
-              systemRecordId: systemRecord.id,
-              transactionId: data.transaction_id,
-              ...eventToDateTimeParts(pe.event),
-              createdBy: principal
-            };
-          }
-        }) ?? []
-      )
-    ).filter((pe) => !!pe);
-    if (peAdd.length) await new ProcessEventRepository(trx).createMany(peAdd).execute();
+        const peNew = {
+          codingId,
+          status: pe.process.status,
+          statusCode: pe.process.status_code,
+          statusDescription: pe.process.status_description,
+          ...pe.event
+        };
+        const matched = peOld.find((old) => compareObject(old, peNew));
 
-    const peDelete = peOld.filter((pe) => !peMatched.has(pe.id)).map((pe) => pe.id);
-    if (peDelete.length) await new ProcessEventRepository(trx).deleteMany(peDelete).execute();
+        if (matched) return matched.id;
+        return {
+          codingId,
+          status: pe.process.status,
+          statusCode: pe.process.status_code,
+          statusDescription: pe.process.status_description,
+          systemRecordId: systemRecord.id,
+          transactionId: data.transaction_id,
+          ...eventToDateTimeParts(pe.event),
+          createdBy: principal
+        };
+      }) ?? []
+    );
+
+    const peMatchedIds = new Set(peResults.filter((r) => typeof r === 'number'));
+    const peDeleteIds = peOld.filter((old) => !peMatchedIds.has(old.id)).map((old) => old.id);
+    const peAdd = peResults.filter((r) => typeof r !== 'number');
+
+    // Update event tables
+    await Promise.all([
+      oheDeleteIds.length && new OnHoldEventRepository(trx).deleteMany(oheDeleteIds).execute(),
+      peDeleteIds.length && new ProcessEventRepository(trx).deleteMany(peDeleteIds).execute()
+    ]);
+    await Promise.all([
+      oheAdd.length && new OnHoldEventRepository(trx).createMany(oheAdd).execute(),
+      peAdd.length && new ProcessEventRepository(trx).createMany(peAdd).execute()
+    ]);
   });
 };
