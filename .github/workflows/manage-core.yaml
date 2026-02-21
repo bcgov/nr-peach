@@ -25,7 +25,7 @@ on:
 
 jobs:
   gate:
-    name: Gate to ${{ github.event.inputs.environment }}
+    name: Gate to ${{ github.event.inputs.manage_action }} ${{ github.event.inputs.environment }}
     environment:
       name: gate-${{ github.event.inputs.environment }}
     concurrency:
@@ -35,7 +35,7 @@ jobs:
     permissions: {}
     steps:
       - name: Log Gate
-        run: echo "Proceeding to deploy ${{ github.event.inputs.environment }}..."
+        run: echo "Proceeding to ${{ github.event.inputs.manage_action }} ${{ github.event.inputs.environment }}..."
 
   infra:
     name: Core Infra ${{ github.event.inputs.manage_action }}

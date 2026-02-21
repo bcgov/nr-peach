@@ -73,10 +73,20 @@ resource "azurerm_postgresql_flexible_server_database" "postgres_database" {
   server_id = data.azurerm_postgresql_flexible_server.postgresql.id
   collation = "en_US.utf8"
   charset   = "utf8"
+}
+
+# Prevent main database from easily being deleted
+resource "azurerm_management_lock" "postgres_database_lock" {
+  count      = var.instance_name == "main" ? 1 : 0
+  name       = "${local.database_name}-database"
+  scope      = azurerm_postgresql_flexible_server_database.postgres_database.id
+  lock_level = "CanNotDelete"
 
   lifecycle {
-    prevent_destroy = false
+    prevent_destroy = true
   }
+
+  depends_on = [azurerm_postgresql_flexible_server_database.postgres_database]
 }
 
 # -----------------------------

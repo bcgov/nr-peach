@@ -87,6 +87,9 @@ resource "azurerm_monitor_diagnostic_setting" "api_diagnostics" {
   enabled_log {
     category = "AppServicePlatformLogs"
   }
+  enabled_metric {
+    category = "allMetrics"
+  }
 
   depends_on = [azurerm_linux_web_app.api]
 }

@@ -51,6 +51,12 @@ variable "location" {
   nullable    = false
 }
 
+variable "log_analytics_workspace_id" {
+  description = "The resource ID of the Log Analytics workspace for diagnostics."
+  type        = string
+  nullable    = false
+}
+
 variable "module_name" {
   description = "Name of the module"
   type        = string

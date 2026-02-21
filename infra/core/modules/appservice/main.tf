@@ -22,8 +22,20 @@ resource "azurerm_service_plan" "appservice" {
   }
 }
 
+resource "azurerm_monitor_diagnostic_setting" "appservice_diagnostics" {
+  name                       = "${var.app_name}-${var.module_name}-diagnostics"
+  target_resource_id         = azurerm_service_plan.appservice.id
+  log_analytics_workspace_id = var.log_analytics_workspace_id
+
+  enabled_metric {
+    category = "allMetrics"
+  }
+
+  depends_on = [azurerm_service_plan.appservice]
+}
+
 # Rules Based API Autoscaler
-resource "azurerm_monitor_autoscale_setting" "api_autoscale" {
+resource "azurerm_monitor_autoscale_setting" "appservice_autoscale" {
   count               = local.scale_out_method == "Rules" ? 1 : 0
   name                = "${var.app_name}-${var.module_name}-autoscale"
   location            = var.location

@@ -28,6 +28,12 @@ variable "location" {
   nullable    = false
 }
 
+variable "log_analytics_workspace_id" {
+  description = "The resource ID of the Log Analytics workspace for diagnostics."
+  type        = string
+  nullable    = false
+}
+
 variable "max_instances" {
   description = "Maximum number of App Service instances to allow. Defaults to 10."
   type        = number

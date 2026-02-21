@@ -252,6 +252,7 @@ describe('onPoolError', () => {
     expect(state.ready).toBe(false);
   });
 });
+
 describe('runMigrations', () => {
   let migrateSpy: MockInstance;
 
