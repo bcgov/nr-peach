@@ -63,8 +63,40 @@ describe('BaseRepository', () => {
     });
   });
 
+  describe('deleteExcept', () => {
+    it('should build a delete query excluding the multiple ids', () => {
+      const data = [1, 2];
+      const compiled = repository.deleteExcept(data).compile();
+
+      expect(getDefinedOperations(compiled.query)).toEqual(['kind', 'from', 'where']);
+      expect(compiled.query.kind).toBe('DeleteQueryNode');
+      expect(compiled.sql).toBe('delete from "schema"."test_table" where "id" not in ($1, $2)');
+      expect(compiled.parameters).toEqual(data);
+    });
+
+    it('should build a scoped delete query excluding the multiple ids', () => {
+      const data = [1, 2];
+      const compiled = repository.deleteExcept(data, { foo: 'Test' }).compile();
+
+      expect(getDefinedOperations(compiled.query)).toEqual(['kind', 'from', 'where']);
+      expect(compiled.query.kind).toBe('DeleteQueryNode');
+      expect(compiled.sql).toBe('delete from "schema"."test_table" where "foo" = $1 and "id" not in ($2, $3)');
+      expect(compiled.parameters).toEqual(['Test', ...data]);
+    });
+
+    it('should build a simple scoped delete query', () => {
+      const data: readonly number[] = [];
+      const compiled = repository.deleteExcept(data, { foo: 'Test' }).compile();
+
+      expect(getDefinedOperations(compiled.query)).toEqual(['kind', 'from', 'where']);
+      expect(compiled.query.kind).toBe('DeleteQueryNode');
+      expect(compiled.sql).toBe('delete from "schema"."test_table" where "foo" = $1');
+      expect(compiled.parameters).toEqual(['Test']);
+    });
+  });
+
   describe('deleteMany', () => {
-    it('should build a delete query for the specified ids', () => {
+    it('should build a delete query for the multiple ids', () => {
       const data = [1, 2];
       const compiled = repository.deleteMany(data).compile();
 
