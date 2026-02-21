@@ -91,13 +91,37 @@ export abstract class BaseRepository<TB extends keyof DB> {
   }
 
   /**
-   * Delete multiple entities from the table by its identifiers.
-   * @param id - The array of primary key values of the records to delete.
+   * Delete multiple records from the table, excluding specific IDs and optionally
+   * scoping the operation to specific column values.
+   * @remarks If `excludeIds` is an empty array, this behaves as a simple delete where.
+   * @param excludeIds - The array of primary keys to NOT delete.
+   * @param scope - Optional object containing column/value pairs to narrow the deletion
    * @returns A query builder instance configured to delete the specified records.
    */
-  deleteMany(id: readonly OperandValueExpression<DB, TB, DB[TB]>[]): DeleteQueryBuilder<DB, TB, DB[TB]> {
+  deleteExcept(
+    excludeIds: readonly OperandValueExpression<DB, TB, DB[TB]>[],
+    scope?: Partial<Selectable<DB[TB]>>
+  ): DeleteQueryBuilder<DB, TB, DB[TB]> {
+    let builder = this.db.deleteFrom(this.tableName) as unknown as DeleteQueryBuilder<DB, TB, DB[TB]>;
+
+    if (scope) {
+      Object.entries(scope).forEach(([column, value]) => {
+        if (value !== undefined) builder = builder.where(sql.ref(column), '=', value);
+      });
+    }
+    if (excludeIds.length > 0) builder = builder.where(sql.ref(this.idColumn), 'not in', excludeIds);
+
+    return builder;
+  }
+
+  /**
+   * Delete multiple entities from the table by its identifiers.
+   * @param ids - The array of primary key values of the records to delete.
+   * @returns A query builder instance configured to delete the specified records.
+   */
+  deleteMany(ids: readonly OperandValueExpression<DB, TB, DB[TB]>[]): DeleteQueryBuilder<DB, TB, DB[TB]> {
     const builder = this.db.deleteFrom(this.tableName) as unknown as DeleteQueryBuilder<DB, TB, DB[TB]>;
-    return builder.where(sql.ref(this.idColumn), 'in', id);
+    return builder.where(sql.ref(this.idColumn), 'in', ids);
   }
 
   /**
