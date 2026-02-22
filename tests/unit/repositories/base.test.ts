@@ -11,14 +11,31 @@ declare module '../../../src/types/index.d.ts' {
   }
 }
 
+const CONSTRAINTS_ONE = ['first_constraint'] as const;
+const CONSTRAINTS_TWO = ['first_constraint', 'second_constraint'] as const;
+
 class TestRepository extends BaseRepository<'schema.test_table'> {
   constructor(db: Kysely<DB> | Transaction<DB>) {
     super('schema.test_table', db);
   }
 }
 
+class OneRepository extends BaseRepository<'schema.test_table', (typeof CONSTRAINTS_ONE)[number]> {
+  constructor(db: Kysely<DB> | Transaction<DB>) {
+    super('schema.test_table', db, CONSTRAINTS_ONE);
+  }
+}
+
+class TwoRepository extends BaseRepository<'schema.test_table', (typeof CONSTRAINTS_TWO)[number]> {
+  constructor(db: Kysely<DB> | Transaction<DB>) {
+    super('schema.test_table', db, CONSTRAINTS_TWO);
+  }
+}
+
 describe('BaseRepository', () => {
   const repository = new TestRepository(mockDb);
+  const oneRepository = new OneRepository(mockDb);
+  const twoRepository = new TwoRepository(mockDb);
 
   describe('create', () => {
     it('should build an insert query for the given entity', () => {
@@ -142,7 +159,7 @@ describe('BaseRepository', () => {
   });
 
   describe('upsert', () => {
-    it('should build an insert query for the given entity', () => {
+    it('should build an insert query with default id constraint for the given entity', () => {
       const data = { id: 1, foo: 'Test', bar: 'Data' };
       const compiled = repository.upsert(data).compile();
 
@@ -158,14 +175,56 @@ describe('BaseRepository', () => {
       expect(compiled.sql).toBe(
         'insert into "schema"."test_table" ("id", "foo", "bar") ' +
           'values ($1, $2, $3) ' +
-          'on conflict ("id") do nothing returning *, *'
+          'on conflict ("id") do nothing returning *'
+      );
+      expect(compiled.parameters).toEqual([data.id, data.foo, data.bar]);
+    });
+
+    it('should build an insert query with a default named constraint for the given entity', () => {
+      const data = { id: 1, foo: 'Test', bar: 'Data' };
+      const compiled = oneRepository.upsert(data).compile();
+
+      expect(getDefinedOperations(compiled.query)).toEqual([
+        'kind',
+        'into',
+        'columns',
+        'values',
+        'returning',
+        'onConflict'
+      ]);
+      expect(compiled.query.kind).toBe('InsertQueryNode');
+      expect(compiled.sql).toBe(
+        'insert into "schema"."test_table" ("id", "foo", "bar") ' +
+          'values ($1, $2, $3) ' +
+          'on conflict on constraint "first_constraint" do nothing returning *'
+      );
+      expect(compiled.parameters).toEqual([data.id, data.foo, data.bar]);
+    });
+
+    it('should build an insert query with a specified constraint for the given entity', () => {
+      const data = { id: 1, foo: 'Test', bar: 'Data' };
+      const compiled = twoRepository.upsert(data, 'second_constraint').compile();
+
+      expect(getDefinedOperations(compiled.query)).toEqual([
+        'kind',
+        'into',
+        'columns',
+        'values',
+        'returning',
+        'onConflict'
+      ]);
+      expect(compiled.query.kind).toBe('InsertQueryNode');
+      expect(compiled.sql).toBe(
+        'insert into "schema"."test_table" ("id", "foo", "bar") ' +
+          'values ($1, $2, $3) ' +
+          'on conflict on constraint "second_constraint" do nothing returning *'
       );
       expect(compiled.parameters).toEqual([data.id, data.foo, data.bar]);
     });
   });
 
   describe('upsertMany', () => {
-    it('should build an insert query for the multiple entities', () => {
+    it('should build an insert query with default id constraint for the multiple entities', () => {
       const data = [
         { id: 1, foo: 'Test1', bar: 'Data1' },
         { id: 2, foo: 'Test2', bar: 'Data2' }
@@ -184,7 +243,55 @@ describe('BaseRepository', () => {
       expect(compiled.sql).toBe(
         'insert into "schema"."test_table" ("id", "foo", "bar") ' +
           'values ($1, $2, $3), ($4, $5, $6) ' +
-          'on conflict ("id") do nothing returning *, *'
+          'on conflict ("id") do nothing returning *'
+      );
+      expect(compiled.parameters).toEqual([data[0].id, data[0].foo, data[0].bar, data[1].id, data[1].foo, data[1].bar]);
+    });
+
+    it('should build an insert query with a default named constraint for the multiple entities', () => {
+      const data = [
+        { id: 1, foo: 'Test1', bar: 'Data1' },
+        { id: 2, foo: 'Test2', bar: 'Data2' }
+      ];
+      const compiled = oneRepository.upsertMany(data).compile();
+
+      expect(getDefinedOperations(compiled.query)).toEqual([
+        'kind',
+        'into',
+        'columns',
+        'values',
+        'returning',
+        'onConflict'
+      ]);
+      expect(compiled.query.kind).toBe('InsertQueryNode');
+      expect(compiled.sql).toBe(
+        'insert into "schema"."test_table" ("id", "foo", "bar") ' +
+          'values ($1, $2, $3), ($4, $5, $6) ' +
+          'on conflict on constraint "first_constraint" do nothing returning *'
+      );
+      expect(compiled.parameters).toEqual([data[0].id, data[0].foo, data[0].bar, data[1].id, data[1].foo, data[1].bar]);
+    });
+
+    it('should build an insert query with a specified constraint for the multiple entities', () => {
+      const data = [
+        { id: 1, foo: 'Test1', bar: 'Data1' },
+        { id: 2, foo: 'Test2', bar: 'Data2' }
+      ];
+      const compiled = twoRepository.upsertMany(data, 'second_constraint').compile();
+
+      expect(getDefinedOperations(compiled.query)).toEqual([
+        'kind',
+        'into',
+        'columns',
+        'values',
+        'returning',
+        'onConflict'
+      ]);
+      expect(compiled.query.kind).toBe('InsertQueryNode');
+      expect(compiled.sql).toBe(
+        'insert into "schema"."test_table" ("id", "foo", "bar") ' +
+          'values ($1, $2, $3), ($4, $5, $6) ' +
+          'on conflict on constraint "second_constraint" do nothing returning *'
       );
       expect(compiled.parameters).toEqual([data[0].id, data[0].foo, data[0].bar, data[1].id, data[1].foo, data[1].bar]);
     });

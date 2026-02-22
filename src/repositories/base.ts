@@ -20,6 +20,7 @@ import type { DB } from '../types/index.d.ts';
  * Abstract base class for repository implementations.
  * Provides a common structure for schema building and database interaction.
  * @template TB - Table name type, must be a key of the `DB` schema.
+ * @template C - Optional table constraint identifiers.
  * @example
  * ```typescript
  * class UserRepository extends BaseRepository<'users'> {
@@ -28,10 +29,20 @@ import type { DB } from '../types/index.d.ts';
  *   }
  * }
  * ```
+ * @example
+ * ```
+ * const CONSTRAINTS = ['first_constraint', 'second_constraint'] as const;
+ *
+ * class UserRepository extends BaseRepository<'users', (typeof CONSTRAINTS)[number]> {
+ *   constructor(db: Kysely<DB> | Transaction<DB>) {
+ *     super('users', db, CONSTRAINTS);
+ *   }
+ * }
+ * ```
  */
-export abstract class BaseRepository<TB extends keyof DB> {
+export abstract class BaseRepository<TB extends keyof DB, C extends string = string> {
   /** The column constraints associated with the table. */
-  protected readonly constraints: readonly string[];
+  protected readonly constraints: readonly C[];
 
   /** The Kysely database instance or transaction used for executing queries. */
   protected readonly db: Kysely<DB> | Transaction<DB>;
@@ -53,7 +64,7 @@ export abstract class BaseRepository<TB extends keyof DB> {
   constructor(
     tableName: TB,
     dbInstance?: Kysely<DB> | Transaction<DB>,
-    constraints?: readonly string[],
+    constraints?: readonly C[],
     idColumn?: AnyColumn<DB, TB>
   ) {
     this.constraints = constraints ?? [];
@@ -93,7 +104,7 @@ export abstract class BaseRepository<TB extends keyof DB> {
   /**
    * Delete multiple records from the table, excluding specific IDs and optionally
    * scoping the operation to specific column values.
-   * @remarks If `excludeIds` is an empty array, this behaves as a simple delete where.
+   * @remarks If `excludeIds` is an empty array, this collapses to an unrestricted delete operation.
    * @param excludeIds - The array of primary keys to NOT delete.
    * @param scope - Optional object containing column/value pairs to narrow the deletion
    * @returns A query builder instance configured to delete the specified records.
@@ -156,22 +167,26 @@ export abstract class BaseRepository<TB extends keyof DB> {
   /**
    * Upsert an entity into the table, with conflict resolution set to do nothing if a conflict occurs.
    * @param data - The data to upsert.
+   * @param constraint - Optional conflict constraint; defaults to the first registered constraint or the table id.
    * @returns A query builder for the upsert operation.
    */
-  upsert(data: InsertObject<DB, TB>): InsertQueryBuilder<DB, TB, Selectable<DB[TB]>> {
-    const builder = this.create(data).onConflict((oc) => oc.column(this.idColumn).doNothing());
-    this.constraints.forEach((constraint) => builder.onConflict((oc) => oc.constraint(constraint).doNothing()));
-    return builder.returningAll();
+  upsert(data: InsertObject<DB, TB>, constraint?: C): InsertQueryBuilder<DB, TB, Selectable<DB[TB]>> {
+    return this.create(data).onConflict((oc) => {
+      if (this.constraints.length) return oc.constraint(constraint ?? this.constraints[0]).doNothing();
+      return oc.column(this.idColumn).doNothing();
+    });
   }
 
   /**
    * Upsert multiple entities into the table, with conflict resolution set to do nothing if a conflict occurs.
    * @param data - The data array to upsert.
+   * @param constraint - Optional conflict constraint; defaults to the first registered constraint or the table id.
    * @returns A query builder for the upsert operation.
    */
-  upsertMany(data: readonly InsertObject<DB, TB>[]): InsertQueryBuilder<DB, TB, Selectable<DB[TB]>> {
-    const builder = this.createMany(data).onConflict((oc) => oc.column(this.idColumn).doNothing());
-    this.constraints.forEach((constraint) => builder.onConflict((oc) => oc.constraint(constraint).doNothing()));
-    return builder.returningAll();
+  upsertMany(data: readonly InsertObject<DB, TB>[], constraint?: C): InsertQueryBuilder<DB, TB, Selectable<DB[TB]>> {
+    return this.createMany(data).onConflict((oc) => {
+      if (this.constraints.length) return oc.constraint(constraint ?? this.constraints[0]).doNothing();
+      return oc.column(this.idColumn).doNothing();
+    });
   }
 }
