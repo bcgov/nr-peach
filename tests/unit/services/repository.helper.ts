@@ -4,9 +4,9 @@ import type { DB } from '../../../src/types/index.d.ts';
 /** Dynamically generate mocks for all repositories except BaseRepository */
 vi.mock('../../../src/repositories/index.ts', async () => {
   const actual = await vi.importActual('../../../src/repositories/index.ts');
-  return Object.assign(
-    { ...actual },
-    Object.fromEntries(
+  return {
+    ...actual,
+    ...Object.fromEntries(
       Object.keys(actual)
         .filter((key) => key !== 'BaseRepository')
         .map((key) => [
@@ -16,7 +16,7 @@ vi.mock('../../../src/repositories/index.ts', async () => {
           })
         ])
     )
-  );
+  };
 });
 
 /** Mock the service helpers so that they are observable */
@@ -39,6 +39,7 @@ export const baseRepositoryMock = {
   create: vi.fn(() => executeMock),
   createMany: vi.fn(() => executeMock),
   delete: vi.fn(() => executeMock),
+  deleteExcept: vi.fn(() => executeMock),
   deleteMany: vi.fn(() => executeMock),
   findBy: vi.fn(() => executeMock),
   read: vi.fn(() => executeMock),

@@ -204,8 +204,7 @@ export const replaceRecordService = (data: Record, principal?: string): Promise<
       }) ?? []
     );
 
-    const oheMatchedIds = new Set(oheResults.filter((r) => typeof r === 'number'));
-    const oheDeleteIds = oheOld.filter((old) => !oheMatchedIds.has(old.id)).map((old) => old.id);
+    const oheMatchedIds = oheResults.filter((r) => typeof r === 'number');
     const oheAdd = oheResults.filter((r) => typeof r !== 'number');
 
     // Calculate process events
@@ -257,14 +256,15 @@ export const replaceRecordService = (data: Record, principal?: string): Promise<
       }) ?? []
     );
 
-    const peMatchedIds = new Set(peResults.filter((r) => typeof r === 'number'));
-    const peDeleteIds = peOld.filter((old) => !peMatchedIds.has(old.id)).map((old) => old.id);
+    const peMatchedIds = peResults.filter((r) => typeof r === 'number');
     const peAdd = peResults.filter((r) => typeof r !== 'number');
 
     // Update event tables
     await Promise.all([
-      oheDeleteIds.length && new OnHoldEventRepository(trx).deleteMany(oheDeleteIds).execute(),
-      peDeleteIds.length && new ProcessEventRepository(trx).deleteMany(peDeleteIds).execute()
+      oheMatchedIds.length < oheOld.length &&
+        new OnHoldEventRepository(trx).deleteExcept(oheMatchedIds, { systemRecordId: systemRecord.id }).execute(),
+      peMatchedIds.length < peOld.length &&
+        new ProcessEventRepository(trx).deleteExcept(peMatchedIds, { systemRecordId: systemRecord.id }).execute()
     ]);
     await Promise.all([
       oheAdd.length && new OnHoldEventRepository(trx).createMany(oheAdd).execute(),
