@@ -237,6 +237,29 @@ terraform init -upgrade -reconfigure \
 terraform apply -auto-approve -var-file=<terraform.pr.tfvars>
 ```
 
+### Database Protection
+
+To prevent accidental data loss, we manually apply a `CanNotDelete` lock to the `app` database. This also implicitly
+protects the parent Flexible Server from deletion.
+
+#### Apply Lock
+
+Replace `<ENV>` with your target environment (e.g., `dev`, `prod`):
+
+```sh
+az lock create --name "app-database" --resource-group "nr-permitting-core-rg" --lock-type CanNotDelete --resource-type "Microsoft.DBforPostgreSQL/flexibleServers" --resource-name "nr-peach-<ENV>-postgresql/databases/app"
+```
+
+> [!NOTE]
+> As of February 2026, the Azure Portal cannot apply locks at the database level.
+> Use the Azure CLI for this specific granularity.
+
+#### Verify Locks
+
+```sh
+az lock list
+```
+
 ## Cleanup
 
 To clean up your Terraform environment and remove all resources, you can use the following command:
