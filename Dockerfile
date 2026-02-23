@@ -1,48 +1,53 @@
-ARG APP_ROOT=/app
-ARG APP_PORT=3000
-ARG BASE_IMAGE=docker.io/node:24.13.1-alpine
+# Global arguments
+ARG APP_ROOT=/app \
+    APP_PORT=3000
 ARG GIT_COMMIT
 
 #
-# Build the app
+# Stage 1: Build & Dependency Extraction
 #
-FROM ${BASE_IMAGE} AS build
+FROM docker.io/node:24.13.1-alpine AS build
 
 ARG APP_ROOT
-ENV NO_UPDATE_NOTIFIER=true
-WORKDIR ${APP_ROOT}
+ENV NPM_CONFIG_FUND=false NPM_CONFIG_UPDATE_NOTIFIER=false
 
-# Build App
+# Install app dependencies
+WORKDIR ${APP_ROOT}
 COPY package*.json .
-RUN npm ci --ignore-scripts --omit-dev
+RUN npm ci --ignore-scripts --omit=dev
+
+# Create minimal user/group files for the final image
+RUN echo "appuser:x:10001:10001:appuser:/:/sbin/nologin" > /etc/passwd_min && \
+    echo "appgroup:x:10001:" > /etc/group_min
 
 #
-# Compile the container image
+# Stage 2: Final Distroless Image
 #
-FROM ${BASE_IMAGE}
+FROM scratch
 
-ARG APP_ROOT
-ARG APP_PORT
-ARG GIT_COMMIT
-ENV GIT_COMMIT=${GIT_COMMIT} \
-    NODE_ENV=production \
-    NO_UPDATE_NOTIFIER=true \
-    PATH="$PATH:${APP_ROOT}/node_modules/.bin"
+ARG APP_ROOT APP_PORT GIT_COMMIT
+ENV GIT_COMMIT=${GIT_COMMIT} NODE_ENV=production
+
+# Copy minimal identity and SSL certs (required for HTTPS requests)
+COPY --from=build /etc/passwd_min /etc/passwd
+COPY --from=build /etc/group_min /etc/group
+COPY --from=build /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
+
+# Copy required Alpine musl shared libraries and Node.js binary
+COPY --from=build /lib/ld-musl-*.so.1 /lib/
+COPY --from=build /usr/lib/libgcc_s.so.1 /usr/lib/libstdc++.so.6 /usr/lib/libbrotli* /usr/lib/libz.so.1 /usr/lib/
+COPY --from=build /usr/local/bin/node /usr/local/bin/node
+
+# Copy App Code
 WORKDIR ${APP_ROOT}
+COPY --from=build --chown=10001:10001 --chmod=555 ${APP_ROOT}/node_modules ./node_modules
+COPY --chown=10001:10001 --chmod=555 src ./src
+COPY --chown=10001:10001 --chmod=555 .env.default server.ts ./
 
-# Remove npm to reduce image size and attack surface. Use a non-root user and group (appuser:appgroup)
-RUN rm -rf /usr/local/lib/node_modules/npm /usr/local/bin/npm /usr/local/bin/npx \
- && addgroup -S appgroup && adduser -S appuser -G appgroup
-
-# Install File Structure
-COPY --chown=appuser:appgroup --chmod=555 --from=build ${APP_ROOT}/node_modules ${APP_ROOT}/node_modules
-COPY --chown=appuser:appgroup --chmod=555 . ${APP_ROOT}
-# Copying .git directory is unnecessary if GIT_COMMIT is defined
-# COPY --chown=appuser:appgroup --chmod=555 .git ${APP_ROOT}/.git
-
-# Run the app as appuser and limit heap size to 50 MB
-USER appuser:appgroup
+# Security & Port configuration
+USER 10001:10001
 EXPOSE ${APP_PORT}
-# Healthcheck is unsupported for OCI images
-# HEALTHCHECK --interval=10s --timeout=3s CMD wget --quiet --spider http://localhost:${APP_PORT}/live || exit 1
-CMD ["node", "server.ts"]
+
+# Enter using the binary directly (no shell available in scratch)
+ENTRYPOINT ["/usr/local/bin/node"]
+CMD ["server.ts"]

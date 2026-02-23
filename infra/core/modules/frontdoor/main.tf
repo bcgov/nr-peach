@@ -2,9 +2,19 @@
 # Front Door Module Terraform Configuration
 # -----------------------------------------
 
+moved {
+  from = azurerm_cdn_frontdoor_profile.main
+  to   = azurerm_cdn_frontdoor_profile.frontdoor
+}
+
+moved {
+  from = azurerm_cdn_frontdoor_firewall_policy.main_firewall_policy
+  to   = azurerm_cdn_frontdoor_firewall_policy.frontdoor_firewall_policy
+}
+
 # Front Door Profile
-resource "azurerm_cdn_frontdoor_profile" "main" {
-  name                = "${var.app_name}-frontdoor"
+resource "azurerm_cdn_frontdoor_profile" "frontdoor" {
+  name                = "${var.app_name}-${var.module_name}"
   resource_group_name = var.resource_group_name
   sku_name            = var.frontdoor_sku_name
 
@@ -16,8 +26,8 @@ resource "azurerm_cdn_frontdoor_profile" "main" {
 
 # Front Door Firewall Policy
 # Applies baseline protection at the edge, including managed rule sets and a simple rate limit rule.
-resource "azurerm_cdn_frontdoor_firewall_policy" "main_firewall_policy" {
-  name                = "${replace(var.app_name, "/[^a-zA-Z0-9]/", "")}${var.app_env}frontdoorfirewall"
+resource "azurerm_cdn_frontdoor_firewall_policy" "frontdoor_firewall_policy" {
+  name                = "${replace(var.app_name, "/[^a-zA-Z0-9]/", "")}${var.app_env}${var.module_name}firewall"
   resource_group_name = var.resource_group_name
   sku_name            = var.frontdoor_sku_name
   mode                = var.frontdoor_firewall_mode
@@ -70,7 +80,7 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "main_firewall_policy" {
     rate_limit_threshold           = var.rate_limit_threshold
     type                           = "RateLimitRule"
     match_condition {
-      match_values       = ["0.0.0.0/0"]
+      match_values       = ["0.0.0.0/0", "::/0"]
       match_variable     = "RemoteAddr"
       negation_condition = false
       operator           = "IPMatch"
@@ -116,4 +126,18 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "main_firewall_policy" {
   lifecycle {
     ignore_changes = [tags]
   }
+}
+
+resource "azurerm_monitor_diagnostic_setting" "frontdoor_diagnostics" {
+  name                       = "${var.app_name}-${var.module_name}-diagnostics"
+  target_resource_id         = azurerm_cdn_frontdoor_profile.frontdoor.id
+  log_analytics_workspace_id = var.log_analytics_workspace_id
+  enabled_log {
+    category_group = "allLogs"
+  }
+  enabled_metric {
+    category = "allMetrics"
+  }
+
+  depends_on = [azurerm_cdn_frontdoor_profile.frontdoor]
 }

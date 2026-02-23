@@ -43,13 +43,14 @@ module "network" {
 module "appservice" {
   source = "./modules/appservice"
 
-  app_name             = var.app_name
-  app_service_sku_name = local.app_service_sku_name
-  enable_api_autoscale = local.enable_api_autoscale
-  common_tags          = var.common_tags
-  location             = var.location
-  resource_group_name  = azurerm_resource_group.main.name
-  scale_out_method     = local.scale_out_method
+  app_name                   = var.app_name
+  app_service_sku_name       = local.app_service_sku_name
+  enable_api_autoscale       = local.enable_api_autoscale
+  common_tags                = var.common_tags
+  location                   = var.location
+  log_analytics_workspace_id = module.monitoring.log_analytics_workspace_id
+  resource_group_name        = azurerm_resource_group.main.name
+  scale_out_method           = local.scale_out_method
 
   depends_on = [module.network]
 }
@@ -63,6 +64,7 @@ module "frontdoor" {
   common_tags                    = var.common_tags
   frontdoor_firewall_mode        = var.frontdoor_firewall_mode
   frontdoor_sku_name             = var.frontdoor_sku_name
+  log_analytics_workspace_id     = module.monitoring.log_analytics_workspace_id
   rate_limit_duration_in_minutes = var.rate_limit_duration_in_minutes
   rate_limit_threshold           = var.rate_limit_threshold
   resource_group_name            = azurerm_resource_group.main.name
@@ -81,6 +83,7 @@ module "postgresql" {
   enable_geo_redundant_backup = var.enable_postgres_geo_redundant_backup
   enable_ha                   = var.enable_postgres_ha
   location                    = var.location
+  log_analytics_workspace_id  = module.monitoring.log_analytics_workspace_id
   postgres_version            = var.postgresql_version
   postgresql_admin_username   = var.postgresql_admin_username
   postgresql_sku_name         = local.postgresql_sku_name

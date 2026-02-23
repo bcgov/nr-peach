@@ -8,7 +8,7 @@ resource "random_password" "chisel_password" {
 }
 
 resource "azurerm_linux_web_app" "chisel" {
-  name                      = "${var.repo_name}-${var.app_env}-chisel"
+  name                      = "${var.repo_name}-${var.app_env}-${var.module_name}"
   resource_group_name       = var.resource_group_name
   location                  = var.location
   https_only                = true
@@ -57,7 +57,7 @@ resource "azurerm_linux_web_app" "chisel" {
 }
 
 resource "azurerm_monitor_diagnostic_setting" "chisel_diagnostics" {
-  name                       = "${var.app_name}-chisel-diagnostics"
+  name                       = "${var.app_name}-${var.module_name}-diagnostics"
   target_resource_id         = azurerm_linux_web_app.chisel.id
   log_analytics_workspace_id = var.log_analytics_workspace_id
   enabled_log {
@@ -71,6 +71,9 @@ resource "azurerm_monitor_diagnostic_setting" "chisel_diagnostics" {
   }
   enabled_log {
     category = "AppServicePlatformLogs"
+  }
+  enabled_metric {
+    category = "allMetrics"
   }
 
   depends_on = [azurerm_linux_web_app.chisel]

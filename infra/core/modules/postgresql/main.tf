@@ -42,6 +42,21 @@ resource "azurerm_postgresql_flexible_server" "postgresql" {
   }
 }
 
+resource "azurerm_monitor_diagnostic_setting" "postgresql_diagnostics" {
+  name                       = "${var.app_name}-${var.module_name}-diagnostics"
+  target_resource_id         = azurerm_postgresql_flexible_server.postgresql.id
+  log_analytics_workspace_id = var.log_analytics_workspace_id
+  enabled_log {
+    category_group = "allLogs"
+  }
+  enabled_metric {
+    category = "allMetrics"
+  }
+
+  depends_on = [azurerm_postgresql_flexible_server.postgresql]
+}
+
+
 # Private Endpoint for PostgreSQL Flexible Server
 # Private DNS Zone association is automatically managed by Azure Landing Zone Policy
 # The Landing Zone automation will automatically associate the private endpoint
@@ -54,7 +69,7 @@ resource "azurerm_private_endpoint" "postgresql" {
   tags                = var.common_tags
 
   private_service_connection {
-    name                           = "${var.app_name}-postgresql-psc"
+    name                           = "${var.app_name}-${var.module_name}-psc"
     private_connection_resource_id = azurerm_postgresql_flexible_server.postgresql.id
     subresource_names              = ["postgresqlServer"]
     is_manual_connection           = false
