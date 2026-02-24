@@ -1,19 +1,23 @@
 import { check } from 'k6';
 import http from 'k6/http';
 
-import { fetchBearerToken } from './helpers/index.ts';
+import { fetchBearerToken, parseEnv } from './helpers/index.ts';
+
+const env = parseEnv();
 
 /**
  * 1. Initialization
  */
-const API_PROCESS_EVENT = '/api/v1/records';
-const BASE_URL = 'http://localhost:3000';
-const RECORD_ID = '06bc53dc-3e4f-420b-801c-bd9cc0ea01b2';
+const API_PATH = '/api/v1/records';
+const BASE_URL = __ENV.BASE_URL ?? env.BASE_URL ?? 'http://localhost:3000';
+const RECORD_ID = 'k6-test-1';
 const SYSTEM_ID = 'ITSM-5917';
 
 export { options } from './helpers/index.ts';
 
-/** @see https://raw.githubusercontent.com/bcgov/nr-pies/refs/heads/main/docs/spec/element/message/record.example.json */
+/**
+ * @see https://raw.githubusercontent.com/bcgov/nr-pies/refs/heads/main/docs/spec/element/message/record.example.json
+ */
 const testRecord = {
   transaction_id: '01950719-b154-72f5-8437-5572df032a69',
   version: '0.1.0',
@@ -83,17 +87,17 @@ export function setup() {
   // Initialize test data or state
   const token = fetchBearerToken();
 
-  const res = http.get(`${BASE_URL}${API_PROCESS_EVENT}?record_id=${RECORD_ID}&system_id=${SYSTEM_ID}`, {
+  const res = http.get(`${BASE_URL}${API_PATH}?record_id=${RECORD_ID}&system_id=${SYSTEM_ID}`, {
     headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json'
     }
   });
   if (res.status === 404) {
-    http.put(`${BASE_URL}${API_PROCESS_EVENT}`, JSON.stringify(testRecord), {
+    http.put(`${BASE_URL}${API_PATH}`, JSON.stringify(testRecord), {
       headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json'
       }
     });
   }
@@ -108,10 +112,10 @@ export function setup() {
  * @param data.token - Bearer token for authorization
  */
 export default function main(data: { token: string }) {
-  const res = http.get(`${BASE_URL}${API_PROCESS_EVENT}?record_id=${RECORD_ID}&system_id=${SYSTEM_ID}`, {
+  const res = http.get(`${BASE_URL}${API_PATH}?record_id=${RECORD_ID}&system_id=${SYSTEM_ID}`, {
     headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${data.token}`
+      Authorization: `Bearer ${data.token}`,
+      'Content-Type': 'application/json'
     }
   });
   if (!check(res, { 'status is 200': (res) => res.status === 200 })) {

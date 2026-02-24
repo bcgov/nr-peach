@@ -1,6 +1,10 @@
+import { parseEnv } from './utils.ts';
+
 import type { Options } from 'k6/options';
 
-const MAX_VU = 10; // Maximum number of virtual users; 10 is a reasonable amount as it matches the pgpool default size
+const env = parseEnv();
+
+const MAX_VU = +(__ENV.MAX_VU ?? env.MAX_VU ?? 10); // Maximum number of virtual users
 
 /**
  * Common k6 load test options configuration.

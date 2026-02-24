@@ -101,6 +101,6 @@ export function generateRecord(itsm?: number): Record {
     record_id: uuidv7(),
     record_kind: 'Permit',
     on_hold_event_set: uniqByKeepFirst(onHoldEvents, (item) => item.coding.code),
-    process_event_set: uniqByKeepFirst(processEvents, (item) => item.process.code) as [ProcessEvent, ...ProcessEvent[]]
+    process_event_set: uniqByKeepFirst(processEvents, (item) => item.process.code)
   };
 }
