@@ -8,7 +8,8 @@ const env = parseEnv();
 /**
  * 1. Initialization
  */
-const API_PATH = '/api/v1/records';
+const API_RECORD = '/api/v1/records';
+const API_SYSTEM_RECORD = '/api/v1/system-records';
 const BASE_URL = __ENV.BASE_URL ?? env.BASE_URL ?? 'http://localhost:3000';
 const CLIENT_ID = __ENV.CLIENT_ID ?? env.CLIENT_ID;
 const CLIENT_SECRET = __ENV.CLIENT_SECRET ?? env.CLIENT_SECRET;
@@ -83,21 +84,20 @@ const testRecord = {
 };
 
 /**
- * 2. Setup
+ * 2. Setup - initialize test data or state
  * @returns - Data created in setup to be used by VU execution
  */
 export function setup() {
-  // Initialize test data or state
   const token = fetchBearerToken(CLIENT_ID, CLIENT_SECRET, TOKEN_ENDPOINT);
 
-  const res = http.get(`${BASE_URL}${API_PATH}?record_id=${RECORD_ID}&system_id=${SYSTEM_ID}`, {
+  const res = http.get(`${BASE_URL}${API_RECORD}?record_id=${RECORD_ID}&system_id=${SYSTEM_ID}`, {
     headers: {
       Authorization: `Bearer ${token}`,
       'Content-Type': 'application/json'
     }
   });
   if (res.status === 404) {
-    http.put(`${BASE_URL}${API_PATH}`, JSON.stringify(testRecord), {
+    http.put(`${BASE_URL}${API_RECORD}`, JSON.stringify(testRecord), {
       headers: {
         Authorization: `Bearer ${token}`,
         'Content-Type': 'application/json'
@@ -115,7 +115,7 @@ export function setup() {
  * @param data.token - Bearer token for authorization
  */
 export default function main(data: { token: string }) {
-  const res = http.get(`${BASE_URL}${API_PATH}?record_id=${RECORD_ID}&system_id=${SYSTEM_ID}`, {
+  const res = http.get(`${BASE_URL}${API_RECORD}?record_id=${RECORD_ID}&system_id=${SYSTEM_ID}`, {
     headers: {
       Authorization: `Bearer ${data.token}`,
       'Content-Type': 'application/json'
@@ -127,14 +127,12 @@ export default function main(data: { token: string }) {
 }
 
 /**
- * 4. Teardown
+ * 4. Teardown - Cleanup actions after the test
  * @param data - Data defined in setup()
  * @param data.token - Bearer token for authorization
  */
 export function teardown(data: { token: string }) {
-  // Cleanup actions after the test
-  // TODO: Swap to DELETE /api/v1/system-records when endpoint is implemented
-  http.del(`${BASE_URL}${API_PATH}?record_id=${RECORD_ID}&system_id=${SYSTEM_ID}`, null, {
+  http.del(`${BASE_URL}${API_SYSTEM_RECORD}?record_id=${RECORD_ID}&system_id=${SYSTEM_ID}`, null, {
     headers: {
       Authorization: `Bearer ${data.token}`,
       'Content-Type': 'application/json'

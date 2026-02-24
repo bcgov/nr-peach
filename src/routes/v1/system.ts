@@ -1,5 +1,6 @@
 import { Router } from 'express';
 
+import { deleteSystemRecordController } from '../../controllers/index.ts';
 import { authz } from '../../middlewares/index.ts';
 import { Problem } from '../../utils/index.ts';
 import {
@@ -23,8 +24,6 @@ router.get('/system-records', getRecordsSchemaValidator, (req: Request, res: Res
 });
 
 /** Delete Records */
-router.delete('/system-records', authz('query'), deleteRecordsSchemaValidator, (req: Request, res: Response): void => {
-  new Problem(501).send(req, res);
-});
+router.delete('/system-records', authz('query'), deleteRecordsSchemaValidator, deleteSystemRecordController);
 
 export default router;

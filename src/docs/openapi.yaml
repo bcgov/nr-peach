@@ -310,7 +310,7 @@ paths:
     delete:
       summary: Deletes a specific system record
       description: Deletes a specific system record and all associated data
-      operationId: deleteRecords
+      operationId: deleteSystemRecords
       tags:
         - Systems
       parameters:

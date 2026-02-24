@@ -3,7 +3,34 @@ import { baseRepositoryMock, executeMock } from './repository.helper.ts';
 import { transactionWrapper } from '../../../src/services/helpers/index.ts';
 
 import { SystemRecordRepository } from '../../../src/repositories/index.ts';
-import { findSingleSystemRecordService } from '../../../src/services/systemRecord.ts';
+import { deleteSystemRecordService, findSingleSystemRecordService } from '../../../src/services/systemRecord.ts';
+
+describe('deleteSystemRecordService', () => {
+  const recordId = 'rec-123';
+  const systemId = 'sys-456';
+
+  it('returns a single system record without systemId specified', async () => {
+    const result = await deleteSystemRecordService(recordId);
+
+    expect(result).toBeUndefined();
+    expect(transactionWrapper).toHaveBeenCalledTimes(1);
+    expect(SystemRecordRepository).toHaveBeenCalledTimes(1);
+    expect(SystemRecordRepository).toHaveBeenCalledWith(expect.anything());
+    expect(baseRepositoryMock.delete).toHaveBeenCalledWith({ recordId });
+    expect(executeMock.executeTakeFirst).toHaveBeenCalledTimes(1);
+  });
+
+  it('returns a single system record with systemId specified', async () => {
+    const result = await deleteSystemRecordService(recordId, systemId);
+
+    expect(result).toBeUndefined();
+    expect(transactionWrapper).toHaveBeenCalledTimes(1);
+    expect(SystemRecordRepository).toHaveBeenCalledTimes(1);
+    expect(SystemRecordRepository).toHaveBeenCalledWith(expect.anything());
+    expect(baseRepositoryMock.delete).toHaveBeenCalledWith({ recordId, systemId });
+    expect(executeMock.executeTakeFirst).toHaveBeenCalledTimes(1);
+  });
+});
 
 describe('findSingleSystemRecordService', () => {
   const recordId = 'rec-123';

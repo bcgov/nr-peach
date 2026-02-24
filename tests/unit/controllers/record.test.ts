@@ -13,7 +13,7 @@ import { Problem } from '../../../src/utils/index.ts';
 import type { Selectable } from 'kysely';
 import type { PiesSystemRecord, Record } from '../../../src/types/index.js';
 
-describe('Process Controllers', () => {
+describe('Record Controllers', () => {
   const checkDuplicateTransactionHeaderServiceSpy = vi.spyOn(services, 'checkDuplicateTransactionHeaderService');
   const findRecordServiceSpy = vi.spyOn(services, 'findRecordService');
   const findSingleSystemRecordServiceSpy = vi.spyOn(services, 'findSingleSystemRecordService');
@@ -28,30 +28,30 @@ describe('Process Controllers', () => {
   beforeEach(() => {
     app = express();
     app.use(express.json());
-    app.delete('/process-events', pruneRecordController);
-    app.get('/process-events', getRecordController);
-    app.post('/process-events', postRecordController);
-    app.put('/process-events', putRecordController);
+    app.delete('/records', pruneRecordController);
+    app.get('/records', getRecordController);
+    app.post('/records', postRecordController);
+    app.put('/records', putRecordController);
   });
 
-  describe('DELETE /process-events', () => {
+  describe('DELETE /records', () => {
     it('should call services and respond with 204', async () => {
       findSingleSystemRecordServiceSpy.mockResolvedValue(fakeSystemRecord);
       pruneRecordServiceSpy.mockResolvedValue([]);
 
-      await request(app).delete('/process-events').query({ record_id: 'rec1', system_id: 'sys1' }).expect(204);
+      await request(app).delete('/records').query({ record_id: 'rec1', system_id: 'sys1' }).expect(204);
 
       expect(findSingleSystemRecordServiceSpy).toHaveBeenCalledWith('rec1', 'sys1');
       expect(pruneRecordServiceSpy).toHaveBeenCalledWith(fakeSystemRecord);
     });
   });
 
-  describe('GET /process-events', () => {
+  describe('GET /records', () => {
     it('should call services and respond with 200 and result', async () => {
       findSingleSystemRecordServiceSpy.mockResolvedValue(fakeSystemRecord);
       findRecordServiceSpy.mockResolvedValue(fakeResult);
 
-      const res = await request(app).get('/process-events').query({ record_id: 'rec2', system_id: 'sys2' }).expect(200);
+      const res = await request(app).get('/records').query({ record_id: 'rec2', system_id: 'sys2' }).expect(200);
 
       expect(findSingleSystemRecordServiceSpy).toHaveBeenCalledWith('rec2', 'sys2');
       expect(findRecordServiceSpy).toHaveBeenCalledWith(fakeSystemRecord);
@@ -59,12 +59,12 @@ describe('Process Controllers', () => {
     });
   });
 
-  describe('POST /process-events', () => {
+  describe('POST /records', () => {
     it('should check for duplicate and replace, respond with 202', async () => {
       checkDuplicateTransactionHeaderServiceSpy.mockResolvedValue([]);
       replaceRecordServiceSpy.mockResolvedValue();
 
-      await request(app).post('/process-events').send({ transaction_id: 'tx1', data: 'abc' }).expect(202);
+      await request(app).post('/records').send({ transaction_id: 'tx1', data: 'abc' }).expect(202);
 
       expect(checkDuplicateTransactionHeaderServiceSpy).toHaveBeenCalledWith('tx1');
       // TODO: Swap to mergeRecordService when implemented
@@ -80,7 +80,7 @@ describe('Process Controllers', () => {
       });
       replaceRecordServiceSpy.mockResolvedValue();
 
-      await request(app).post('/process-events').send({ transaction_id: 'tx1', data: 'abc' }).expect(409);
+      await request(app).post('/records').send({ transaction_id: 'tx1', data: 'abc' }).expect(409);
 
       expect(checkDuplicateTransactionHeaderServiceSpy).toHaveBeenCalledWith('tx1');
       // TODO: Swap to mergeRecordService when implemented
@@ -88,12 +88,12 @@ describe('Process Controllers', () => {
     });
   });
 
-  describe('PUT /process-events', () => {
+  describe('PUT /records', () => {
     it('should check for duplicate and merge, respond with 201', async () => {
       checkDuplicateTransactionHeaderServiceSpy.mockResolvedValue([]);
       replaceRecordServiceSpy.mockResolvedValue();
 
-      await request(app).put('/process-events').send({ transaction_id: 'tx2', data: 'xyz' }).expect(201);
+      await request(app).put('/records').send({ transaction_id: 'tx2', data: 'xyz' }).expect(201);
 
       expect(checkDuplicateTransactionHeaderServiceSpy).toHaveBeenCalledWith('tx2');
       expect(replaceRecordServiceSpy).toHaveBeenCalledWith(
@@ -108,7 +108,7 @@ describe('Process Controllers', () => {
       });
       replaceRecordServiceSpy.mockResolvedValue();
 
-      await request(app).post('/process-events').send({ transaction_id: 'tx1', data: 'abc' }).expect(409);
+      await request(app).post('/records').send({ transaction_id: 'tx1', data: 'abc' }).expect(409);
 
       expect(checkDuplicateTransactionHeaderServiceSpy).toHaveBeenCalledWith('tx1');
       expect(replaceRecordServiceSpy).not.toHaveBeenCalled();
