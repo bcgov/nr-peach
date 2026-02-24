@@ -128,8 +128,18 @@ export default function main(data: { token: string }) {
 
 /**
  * 4. Teardown
+ * @param data - Data defined in setup()
+ * @param data.token - Bearer token for authorization
  */
-export function teardown() {
+export function teardown(data: { token: string }) {
   // Cleanup actions after the test
+  // TODO: Swap to DELETE /api/v1/system-records when endpoint is implemented
+  http.del(`${BASE_URL}${API_PATH}?record_id=${RECORD_ID}&system_id=${SYSTEM_ID}`, null, {
+    headers: {
+      Authorization: `Bearer ${data.token}`,
+      'Content-Type': 'application/json'
+    }
+  });
+
   console.log('Test teardown complete'); // eslint-disable-line no-console
 }

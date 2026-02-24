@@ -12,6 +12,9 @@ const API_PATH = '/api/v1/records';
 const BASE_URL = __ENV.BASE_URL ?? env.BASE_URL ?? 'http://localhost:3000';
 const CLIENT_ID = __ENV.CLIENT_ID ?? env.CLIENT_ID;
 const CLIENT_SECRET = __ENV.CLIENT_SECRET ?? env.CLIENT_SECRET;
+const MAX_RECORD_ID = +(__ENV.MAX_RECORD_ID ?? env.MAX_RECORD_ID ?? 50);
+const RECORD_PREFIX = 'k6-test-';
+const SYSTEM_ID = 'ITSM-5917';
 const TOKEN_ENDPOINT = __ENV.CLIENT_SECRET ?? env.TOKEN_ENDPOINT;
 
 export { options } from './helpers/index.ts';
@@ -49,9 +52,20 @@ export default function main(data: { token: string }) {
 
 /**
  * 4. Teardown
+ * @param data - Data defined in setup()
+ * @param data.token - Bearer token for authorization
  */
-export function teardown() {
+export function teardown(data: { token: string }) {
   // Cleanup actions after the test
+  for (let count = 1; count <= MAX_RECORD_ID; count++) {
+    // TODO: Swap to DELETE /api/v1/system-records when endpoint is implemented
+    http.del(`${BASE_URL}${API_PATH}?record_id=${RECORD_PREFIX}${MAX_RECORD_ID}&system_id=${SYSTEM_ID}`, null, {
+      headers: {
+        Authorization: `Bearer ${data.token}`,
+        'Content-Type': 'application/json'
+      }
+    });
+  }
 
   console.log('Test teardown complete'); // eslint-disable-line no-console
 }
