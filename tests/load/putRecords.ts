@@ -10,6 +10,9 @@ const env = parseEnv();
  */
 const API_PATH = '/api/v1/records';
 const BASE_URL = __ENV.BASE_URL ?? env.BASE_URL ?? 'http://localhost:3000';
+const CLIENT_ID = __ENV.CLIENT_ID ?? env.CLIENT_ID;
+const CLIENT_SECRET = __ENV.CLIENT_SECRET ?? env.CLIENT_SECRET;
+const TOKEN_ENDPOINT = __ENV.CLIENT_SECRET ?? env.TOKEN_ENDPOINT;
 
 export { options } from './helpers/index.ts';
 
@@ -19,7 +22,7 @@ export { options } from './helpers/index.ts';
  */
 export function setup() {
   // Initialize test data or state
-  const token = fetchBearerToken();
+  const token = fetchBearerToken(CLIENT_ID, CLIENT_SECRET, TOKEN_ENDPOINT);
   console.log('Test setup complete'); // eslint-disable-line no-console
 
   return { token };

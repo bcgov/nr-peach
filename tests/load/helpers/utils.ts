@@ -1,17 +1,20 @@
-//  * Fetches an OAuth2 bearer token using client credentials.
-//  * @param clientId - The client identifier issued by the authorization server.
-//  * @param secret - The client secret used for authentication.
-//  * @param token_endpoint - The URL of the authorization server's token endpoint.
-//  * @returns The bearer token as a string, or null if the token could not be fetched.
-//  */
-// export function fetchBearerToken(clientId: string, secret: string, token_endpoint: string): string | null {
+import http from 'k6/http';
+
 /**
  * Fetches an OAuth2 bearer token using client credentials.
+ * @param clientId - The client identifier issued by the authorization server.
+ * @param secret - The client secret used for authentication.
+ * @param tokenEndpoint - The URL of the authorization server's token endpoint.
  * @returns The bearer token as a string, or null if the token could not be fetched.
  */
-export function fetchBearerToken(): string | null {
-  const bearerToken = '';
-  return bearerToken;
+export function fetchBearerToken(clientId: string, secret: string, tokenEndpoint: string): string | null {
+  const payload = { grant_type: 'client_credentials', client_id: clientId, client_secret: secret };
+
+  const res = http.post(tokenEndpoint, payload, {
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+  });
+
+  return (res?.json() as { access_token?: string })?.access_token ?? null;
 }
 
 /**

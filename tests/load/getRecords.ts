@@ -10,8 +10,11 @@ const env = parseEnv();
  */
 const API_PATH = '/api/v1/records';
 const BASE_URL = __ENV.BASE_URL ?? env.BASE_URL ?? 'http://localhost:3000';
+const CLIENT_ID = __ENV.CLIENT_ID ?? env.CLIENT_ID;
+const CLIENT_SECRET = __ENV.CLIENT_SECRET ?? env.CLIENT_SECRET;
 const RECORD_ID = 'k6-test-1';
 const SYSTEM_ID = 'ITSM-5917';
+const TOKEN_ENDPOINT = __ENV.CLIENT_SECRET ?? env.TOKEN_ENDPOINT;
 
 export { options } from './helpers/index.ts';
 
@@ -85,7 +88,7 @@ const testRecord = {
  */
 export function setup() {
   // Initialize test data or state
-  const token = fetchBearerToken();
+  const token = fetchBearerToken(CLIENT_ID, CLIENT_SECRET, TOKEN_ENDPOINT);
 
   const res = http.get(`${BASE_URL}${API_PATH}?record_id=${RECORD_ID}&system_id=${SYSTEM_ID}`, {
     headers: {
