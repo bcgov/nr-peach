@@ -28,7 +28,7 @@ vi.mock('../../../src/services/helpers/index.ts', async () => {
     cacheableUpsert: vi.fn(),
     dateTimePartsToEvent: vi.fn(),
     eventToDateTimeParts: vi.fn(),
-    findByThenUpsert: vi.fn(),
+    findWhereOrUpsert: vi.fn(),
     /** Spy on the transactionWrapper method to directly test its callback behaviour */
     transactionWrapper: vi.fn((operation: <T>(trx?: Transaction<DB>) => Promise<T>) => operation({} as Transaction<DB>))
   };
@@ -39,10 +39,10 @@ export const baseRepositoryMock = {
   create: vi.fn(() => executeMock),
   createMany: vi.fn(() => executeMock),
   delete: vi.fn(() => executeMock),
-  deleteBy: vi.fn(() => executeMock),
   deleteExcept: vi.fn(() => executeMock),
   deleteMany: vi.fn(() => executeMock),
-  findBy: vi.fn(() => executeMock),
+  deleteWhere: vi.fn(() => executeMock),
+  findWhere: vi.fn(() => executeMock),
   read: vi.fn(() => executeMock),
   upsert: vi.fn(() => executeMock),
   upsertMany: vi.fn(() => executeMock)

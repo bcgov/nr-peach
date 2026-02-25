@@ -17,7 +17,7 @@ export const deleteSystemRecordService = async (
   systemId?: string
 ): Promise<SimplifySingleResult<PiesSystemRecord>> => {
   return transactionWrapper(async (trx) => {
-    return await new SystemRecordRepository(trx).deleteBy({ recordId, systemId }).executeTakeFirst();
+    return await new SystemRecordRepository(trx).deleteWhere({ recordId, systemId }).executeTakeFirst();
   });
 };
 
@@ -34,7 +34,7 @@ export const findSingleSystemRecordService = async (
 ): Promise<Selectable<PiesSystemRecord>> => {
   return transactionWrapper(
     async (trx) => {
-      const systemRecords = await new SystemRecordRepository(trx).findBy({ recordId, systemId }).execute();
+      const systemRecords = await new SystemRecordRepository(trx).findWhere({ recordId, systemId }).execute();
 
       if (!systemRecords.length) {
         const params: Record<string, string> = { record_id: recordId };

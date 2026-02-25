@@ -2,7 +2,7 @@ import { DatabaseError } from 'pg';
 
 import { db } from '../../../../src/db/database.ts';
 import { BaseRepository } from '../../../../src/repositories/base.ts';
-import { findByThenUpsert, transactionWrapper } from '../../../../src/services/helpers/repo.ts';
+import { findWhereOrUpsert, transactionWrapper } from '../../../../src/services/helpers/repo.ts';
 
 import type { Kysely, Transaction } from 'kysely';
 import type { Mock, MockInstance } from 'vitest';
@@ -14,16 +14,16 @@ class MockRepository extends BaseRepository<'pies.version'> {
   }
 
   upsert = vi.fn();
-  findBy = vi.fn();
+  findWhere = vi.fn();
 }
 const mockData = { id: '0.1.0' };
 
-describe('findByThenUpsert', () => {
+describe('findWhereOrUpsert', () => {
   const repo = new MockRepository();
 
   it('returns the found row if find returns a row', async () => {
     const upsertResult = { ...mockData, updated: true };
-    repo.findBy.mockReturnValue({
+    repo.findWhere.mockReturnValue({
       executeTakeFirst: vi.fn().mockResolvedValue(upsertResult)
     });
 
@@ -32,14 +32,14 @@ describe('findByThenUpsert', () => {
       executeTakeFirstOrThrow: vi.fn()
     });
 
-    const result = await findByThenUpsert(repo, mockData);
+    const result = await findWhereOrUpsert(repo, mockData);
     expect(result).toEqual(upsertResult);
-    expect(repo.findBy).toHaveBeenCalledWith(mockData);
+    expect(repo.findWhere).toHaveBeenCalledWith(mockData);
     expect(repo.upsert).not.toHaveBeenCalled();
   });
 
   it('calls upsert and returns the found row if find returns undefined', async () => {
-    repo.findBy.mockReturnValue({
+    repo.findWhere.mockReturnValue({
       executeTakeFirst: vi.fn().mockResolvedValue(undefined)
     });
 
@@ -48,14 +48,14 @@ describe('findByThenUpsert', () => {
       executeTakeFirstOrThrow: vi.fn().mockResolvedValue(foundRow)
     });
 
-    const result = await findByThenUpsert(repo, mockData);
+    const result = await findWhereOrUpsert(repo, mockData);
     expect(result).toEqual(foundRow);
-    expect(repo.findBy).toHaveBeenCalledWith(mockData);
+    expect(repo.findWhere).toHaveBeenCalledWith(mockData);
     expect(repo.upsert).toHaveBeenCalledWith(mockData);
   });
 
   it('throws if both upsert and find fail', async () => {
-    repo.findBy.mockReturnValue({
+    repo.findWhere.mockReturnValue({
       executeTakeFirst: vi.fn().mockResolvedValue(undefined)
     });
 
@@ -63,8 +63,8 @@ describe('findByThenUpsert', () => {
       executeTakeFirstOrThrow: vi.fn().mockRejectedValue(new Error('Not found'))
     });
 
-    await expect(findByThenUpsert(repo, mockData)).rejects.toThrow('Not found');
-    expect(repo.findBy).toHaveBeenCalledWith(mockData);
+    await expect(findWhereOrUpsert(repo, mockData)).rejects.toThrow('Not found');
+    expect(repo.findWhere).toHaveBeenCalledWith(mockData);
     expect(repo.upsert).toHaveBeenCalledWith(mockData);
   });
 });

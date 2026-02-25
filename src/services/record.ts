@@ -5,7 +5,7 @@ import {
   cacheableUpsert,
   dateTimePartsToEvent,
   eventToDateTimeParts,
-  findByThenUpsert,
+  findWhereOrUpsert,
   transactionWrapper
 } from './helpers/index.ts';
 import {
@@ -42,11 +42,11 @@ export const findRecordService = (systemRecord: Selectable<PiesSystemRecord>): P
       );
 
       const processEventsRaw = await new ProcessEventRepository(trx)
-        .findBy({ systemRecordId: systemRecord.id })
+        .findWhere({ systemRecordId: systemRecord.id })
         .execute();
 
       const onHoldEventsRaw = await new OnHoldEventRepository(trx)
-        .findBy({ systemRecordId: systemRecord.id })
+        .findWhere({ systemRecordId: systemRecord.id })
         .execute();
 
       let onHoldEvents: CodingEvent[] | undefined;
@@ -161,14 +161,14 @@ export const replaceRecordService = (data: Record, principal?: string): Promise<
       kind: data.record_kind,
       versionId: data.version
     });
-    const systemRecord = await findByThenUpsert(new SystemRecordRepository(trx), {
+    const systemRecord = await findWhereOrUpsert(new SystemRecordRepository(trx), {
       recordId: data.record_id,
       recordKindId: recordKind.id,
       systemId: data.system_id
     });
 
     // Calculate on hold events
-    const oheOld = (await new OnHoldEventRepository(trx).findBy({ systemRecordId: systemRecord.id }).execute()).map(
+    const oheOld = (await new OnHoldEventRepository(trx).findWhere({ systemRecordId: systemRecord.id }).execute()).map(
       (ohe) => ({
         id: ohe.id,
         codingId: ohe.codingId,
@@ -208,7 +208,7 @@ export const replaceRecordService = (data: Record, principal?: string): Promise<
     const oheAdd = oheResults.filter((r) => typeof r !== 'number');
 
     // Calculate process events
-    const peOld = (await new ProcessEventRepository(trx).findBy({ systemRecordId: systemRecord.id }).execute()).map(
+    const peOld = (await new ProcessEventRepository(trx).findWhere({ systemRecordId: systemRecord.id }).execute()).map(
       (pe) => ({
         id: pe.id,
         codingId: pe.codingId,

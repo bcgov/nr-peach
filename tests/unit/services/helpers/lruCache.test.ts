@@ -12,7 +12,7 @@ class MockRepo extends BaseRepository<'pies.version'> {
     super('pies.version', db);
   }
 
-  findBy = vi.fn();
+  findWhere = vi.fn();
   read = vi.fn();
   upsert = vi.fn();
 }
@@ -72,7 +72,7 @@ describe('cacheableUpsert', () => {
 
   it('calls findThenUpsert when cache is disabled', async () => {
     const upsertResult = { ...mockData, updated: true };
-    repo.findBy.mockReturnValue({
+    repo.findWhere.mockReturnValue({
       executeTakeFirst: vi.fn().mockResolvedValue(upsertResult)
     });
 
@@ -83,13 +83,13 @@ describe('cacheableUpsert', () => {
 
     const result = await cacheableUpsert(repo, mockData, false);
     expect(result).toEqual(upsertResult);
-    expect(repo.findBy).toHaveBeenCalledWith(mockData);
+    expect(repo.findWhere).toHaveBeenCalledWith(mockData);
     expect(repo.upsert).not.toHaveBeenCalled();
   });
 
   it('caches the result when cache is enabled', async () => {
     const upsertResult = { ...mockData, cached: true };
-    repo.findBy.mockReturnValue({
+    repo.findWhere.mockReturnValue({
       executeTakeFirst: vi.fn().mockResolvedValue(undefined)
     });
     repo.upsert.mockReturnValue({
@@ -98,7 +98,7 @@ describe('cacheableUpsert', () => {
 
     const result = await cacheableUpsert(repo, mockData, true);
     expect(result).toEqual(upsertResult);
-    expect(repo.findBy).toHaveBeenCalledWith(mockData);
+    expect(repo.findWhere).toHaveBeenCalledWith(mockData);
     expect(repo.upsert).toHaveBeenCalledWith(mockData);
 
     // Check cache

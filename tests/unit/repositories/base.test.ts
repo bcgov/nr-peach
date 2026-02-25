@@ -80,10 +80,10 @@ describe('BaseRepository', () => {
     });
   });
 
-  describe('deleteBy', () => {
+  describe('deleteWhere', () => {
     it('should build a delete query by filtering', () => {
       const filter = { foo: 'Test' };
-      const compiled = repository.deleteBy(filter).compile();
+      const compiled = repository.deleteWhere(filter).compile();
 
       expect(getDefinedOperations(compiled.query)).toEqual(['kind', 'from', 'where']);
       expect(compiled.query.kind).toBe('DeleteQueryNode');
@@ -93,7 +93,7 @@ describe('BaseRepository', () => {
 
     it('should build a delete query with multiple filters', () => {
       const filter = { foo: 'Test', bar: 'Data' };
-      const compiled = repository.deleteBy(filter).compile();
+      const compiled = repository.deleteWhere(filter).compile();
 
       expect(getDefinedOperations(compiled.query)).toEqual(['kind', 'from', 'where']);
       expect(compiled.query.kind).toBe('DeleteQueryNode');
@@ -146,10 +146,10 @@ describe('BaseRepository', () => {
     });
   });
 
-  describe('findBy', () => {
+  describe('findWhere', () => {
     it('should build a select query by filtering', () => {
       const filter = { foo: 'Test' };
-      const compiled = repository.findBy(filter).compile();
+      const compiled = repository.findWhere(filter).compile();
 
       expect(getDefinedOperations(compiled.query)).toEqual(['kind', 'from', 'selections', 'where']);
       expect(compiled.query.kind).toBe('SelectQueryNode');
@@ -159,7 +159,7 @@ describe('BaseRepository', () => {
 
     it('should build a select query with multiple filters', () => {
       const filter = { foo: 'Test', bar: 'Data' };
-      const compiled = repository.findBy(filter).compile();
+      const compiled = repository.findWhere(filter).compile();
 
       expect(getDefinedOperations(compiled.query)).toEqual(['kind', 'from', 'selections', 'where']);
       expect(compiled.query.kind).toBe('SelectQueryNode');

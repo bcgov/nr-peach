@@ -16,7 +16,7 @@ describe('deleteSystemRecordService', () => {
     expect(transactionWrapper).toHaveBeenCalledTimes(1);
     expect(SystemRecordRepository).toHaveBeenCalledTimes(1);
     expect(SystemRecordRepository).toHaveBeenCalledWith(expect.anything());
-    expect(baseRepositoryMock.deleteBy).toHaveBeenCalledWith({ recordId });
+    expect(baseRepositoryMock.deleteWhere).toHaveBeenCalledWith({ recordId });
     expect(executeMock.executeTakeFirst).toHaveBeenCalledTimes(1);
   });
 
@@ -27,7 +27,7 @@ describe('deleteSystemRecordService', () => {
     expect(transactionWrapper).toHaveBeenCalledTimes(1);
     expect(SystemRecordRepository).toHaveBeenCalledTimes(1);
     expect(SystemRecordRepository).toHaveBeenCalledWith(expect.anything());
-    expect(baseRepositoryMock.deleteBy).toHaveBeenCalledWith({ recordId, systemId });
+    expect(baseRepositoryMock.deleteWhere).toHaveBeenCalledWith({ recordId, systemId });
     expect(executeMock.executeTakeFirst).toHaveBeenCalledTimes(1);
   });
 });
@@ -46,7 +46,7 @@ describe('findSingleSystemRecordService', () => {
     expect(transactionWrapper).toHaveBeenCalledTimes(1);
     expect(SystemRecordRepository).toHaveBeenCalledTimes(1);
     expect(SystemRecordRepository).toHaveBeenCalledWith(expect.anything());
-    expect(baseRepositoryMock.findBy).toHaveBeenCalledWith({ recordId });
+    expect(baseRepositoryMock.findWhere).toHaveBeenCalledWith({ recordId });
     expect(executeMock.execute).toHaveBeenCalledTimes(1);
   });
 
@@ -59,7 +59,7 @@ describe('findSingleSystemRecordService', () => {
     expect(transactionWrapper).toHaveBeenCalledTimes(1);
     expect(SystemRecordRepository).toHaveBeenCalledTimes(1);
     expect(SystemRecordRepository).toHaveBeenCalledWith(expect.anything());
-    expect(baseRepositoryMock.findBy).toHaveBeenCalledWith({ recordId, systemId });
+    expect(baseRepositoryMock.findWhere).toHaveBeenCalledWith({ recordId, systemId });
     expect(executeMock.execute).toHaveBeenCalledTimes(1);
   });
 

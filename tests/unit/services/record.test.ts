@@ -5,7 +5,7 @@ import {
   cacheableUpsert,
   dateTimePartsToEvent,
   eventToDateTimeParts,
-  findByThenUpsert,
+  findWhereOrUpsert,
   transactionWrapper
 } from '../../../src/services/helpers/index.ts';
 
@@ -270,7 +270,7 @@ describe('recordService', () => {
         start_datetime: '2024-01-01T00:00:00Z',
         end_datetime: '2024-01-01T01:00:00Z'
       });
-      (findByThenUpsert as Mock).mockResolvedValue({ id: 1 });
+      (findWhereOrUpsert as Mock).mockResolvedValue({ id: 1 });
       (eventToDateTimeParts as Mock).mockReturnValue({
         startDate: '2024-01-01',
         startTime: '00:00:00',
@@ -281,7 +281,7 @@ describe('recordService', () => {
 
     it('should replace the record successfully', async () => {
       const createMock = vi.fn().mockImplementation(() => executeMock);
-      const findByMock = vi.fn().mockImplementation(() => executeMock);
+      const findWhereMock = vi.fn().mockImplementation(() => executeMock);
       const createManyMock = vi.fn().mockImplementation(() => executeMock);
       const deleteExceptMock = vi.fn().mockImplementation(() => executeMock);
 
@@ -302,14 +302,14 @@ describe('recordService', () => {
       });
       (OnHoldEventRepository as Mock).mockImplementation(function () {
         return {
-          findBy: findByMock,
+          findWhere: findWhereMock,
           createMany: createManyMock,
           deleteExcept: deleteExceptMock
         };
       });
       (ProcessEventRepository as Mock).mockImplementation(function () {
         return {
-          findBy: findByMock,
+          findWhere: findWhereMock,
           createMany: createManyMock,
           deleteExcept: deleteExceptMock
         };
@@ -320,25 +320,25 @@ describe('recordService', () => {
       expect(transactionWrapper).toHaveBeenCalledTimes(1);
       expect(cacheableUpsert).toHaveBeenCalledTimes(5);
       expect(createMock).toHaveBeenCalledWith({ id: recordData.transaction_id });
-      expect(findByMock).toHaveBeenCalledTimes(2);
+      expect(findWhereMock).toHaveBeenCalledTimes(2);
       expect(createManyMock).toHaveBeenCalledTimes(2);
       expect(deleteExceptMock).toHaveBeenCalledTimes(0);
     });
 
     it('should add new on hold events', async () => {
-      const findByMock = vi.fn().mockImplementation(() => executeMock);
+      const findWhereMock = vi.fn().mockImplementation(() => executeMock);
       const createManyMock = vi.fn().mockImplementation(() => executeMock);
 
       (OnHoldEventRepository as Mock).mockImplementation(function () {
         return {
-          findBy: findByMock,
+          findWhere: findWhereMock,
           createMany: createManyMock
         };
       });
 
       await replaceRecordService(recordData);
 
-      expect(findByMock).toHaveBeenCalledWith({ systemRecordId: 1 });
+      expect(findWhereMock).toHaveBeenCalledWith({ systemRecordId: 1 });
       expect(createManyMock).toHaveBeenCalledWith([
         {
           codingId: 1,
@@ -353,7 +353,7 @@ describe('recordService', () => {
     });
 
     it('should delete unmatched on hold events', async () => {
-      const findByMock = vi.fn().mockImplementation(() => ({
+      const findWhereMock = vi.fn().mockImplementation(() => ({
         execute: vi.fn().mockResolvedValue([
           {
             id: 2,
@@ -370,7 +370,7 @@ describe('recordService', () => {
 
       (OnHoldEventRepository as Mock).mockImplementation(function () {
         return {
-          findBy: findByMock,
+          findWhere: findWhereMock,
           createMany: createManyMock,
           deleteExcept: deleteExceptMock
         };
@@ -378,12 +378,12 @@ describe('recordService', () => {
 
       await replaceRecordService(recordData);
 
-      expect(findByMock).toHaveBeenCalledWith({ systemRecordId: 1 });
+      expect(findWhereMock).toHaveBeenCalledWith({ systemRecordId: 1 });
       expect(deleteExceptMock).toHaveBeenCalledWith([], { systemRecordId: 1 });
     });
 
     it('should preserve matched on hold events', async () => {
-      const findByMock = vi.fn().mockImplementation(() => ({
+      const findWhereMock = vi.fn().mockImplementation(() => ({
         execute: vi.fn().mockResolvedValue([
           {
             id: 1,
@@ -400,7 +400,7 @@ describe('recordService', () => {
 
       (OnHoldEventRepository as Mock).mockImplementation(function () {
         return {
-          findBy: findByMock,
+          findWhere: findWhereMock,
           createMany: createManyMock,
           deleteExcept: deleteExceptMock
         };
@@ -408,24 +408,24 @@ describe('recordService', () => {
 
       await replaceRecordService(recordData);
 
-      expect(findByMock).toHaveBeenCalledWith({ systemRecordId: 1 });
+      expect(findWhereMock).toHaveBeenCalledWith({ systemRecordId: 1 });
       expect(deleteExceptMock).toHaveBeenCalledTimes(0);
     });
 
     it('should add new process events', async () => {
-      const findByMock = vi.fn().mockImplementation(() => executeMock);
+      const findWhereMock = vi.fn().mockImplementation(() => executeMock);
       const createManyMock = vi.fn().mockImplementation(() => executeMock);
 
       (ProcessEventRepository as Mock).mockImplementation(function () {
         return {
-          findBy: findByMock,
+          findWhere: findWhereMock,
           createMany: createManyMock
         };
       });
 
       await replaceRecordService(recordData);
 
-      expect(findByMock).toHaveBeenCalledWith({ systemRecordId: 1 });
+      expect(findWhereMock).toHaveBeenCalledWith({ systemRecordId: 1 });
       expect(createManyMock).toHaveBeenCalledWith([
         {
           codingId: 1,
@@ -443,7 +443,7 @@ describe('recordService', () => {
     });
 
     it('should delete unmatched process events', async () => {
-      const findByMock = vi.fn().mockImplementation(() => ({
+      const findWhereMock = vi.fn().mockImplementation(() => ({
         execute: vi.fn().mockResolvedValue([
           {
             id: 2,
@@ -463,7 +463,7 @@ describe('recordService', () => {
 
       (ProcessEventRepository as Mock).mockImplementation(function () {
         return {
-          findBy: findByMock,
+          findWhere: findWhereMock,
           createMany: createManyMock,
           deleteExcept: deleteExceptMock
         };
@@ -471,12 +471,12 @@ describe('recordService', () => {
 
       await replaceRecordService(recordData);
 
-      expect(findByMock).toHaveBeenCalledWith({ systemRecordId: 1 });
+      expect(findWhereMock).toHaveBeenCalledWith({ systemRecordId: 1 });
       expect(deleteExceptMock).toHaveBeenCalledWith([], { systemRecordId: 1 });
     });
 
     it('should preserve matched process events', async () => {
-      const findByMock = vi.fn().mockImplementation(() => ({
+      const findWhereMock = vi.fn().mockImplementation(() => ({
         execute: vi.fn().mockResolvedValue([
           {
             id: 1,
@@ -496,7 +496,7 @@ describe('recordService', () => {
 
       (ProcessEventRepository as Mock).mockImplementation(function () {
         return {
-          findBy: findByMock,
+          findWhere: findWhereMock,
           createMany: createManyMock,
           deleteExcept: deleteExceptMock
         };
@@ -504,7 +504,7 @@ describe('recordService', () => {
 
       await replaceRecordService(recordData);
 
-      expect(findByMock).toHaveBeenCalledWith({ systemRecordId: 1 });
+      expect(findWhereMock).toHaveBeenCalledWith({ systemRecordId: 1 });
       expect(deleteExceptMock).toHaveBeenCalledTimes(0);
     });
   });
