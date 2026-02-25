@@ -1,7 +1,7 @@
 import { LRUCache } from 'lru-cache';
 import { createHash } from 'node:crypto';
 
-import { findByThenUpsert } from './repo.ts';
+import { findWhereOrUpsert } from './repo.ts';
 import { BaseRepository } from '../../repositories/index.ts';
 import { getLogger, sortObject } from '../../utils/index.ts';
 
@@ -39,6 +39,7 @@ export async function cacheableRead<TB extends keyof DB, ID extends OperandValue
 
 /**
  * Performs an upsert operation on the specified repository and optionally caches the result.
+ * @remarks Ensure the `data` filters are constrained enough to select only one record
  * @template TB - The table name type, which is a key of the database schema `DB`.
  * @param repo - The repository instance where the upsert operation will be performed.
  * @param data - The data object containing both filter and insert properties for the upsert operation.
@@ -51,11 +52,11 @@ export function cacheableUpsert<TB extends keyof DB>(
   data: FilterObject<DB, TB> & InsertObject<DB, TB>,
   cacheEnabled = true
 ): Promise<Selectable<DB[TB]>> {
-  if (!cacheEnabled) return findByThenUpsert(repo, data);
+  if (!cacheEnabled) return findWhereOrUpsert(repo, data);
 
   const sortedData = sortObject(data);
   const hash = createHash('sha256').update(JSON.stringify(sortedData)).digest('hex');
-  return cacheWrapper(`${repo.tableName}:${hash}`, findByThenUpsert, repo, data);
+  return cacheWrapper(`${repo.tableName}:${hash}`, findWhereOrUpsert, repo, data);
 }
 
 /**
@@ -69,7 +70,7 @@ export function cacheableUpsert<TB extends keyof DB>(
  * @returns A promise that resolves to the cached or freshly computed result.
  * @throws {unknown} Propagates errors after clearing the cache entry.
  */
-export async function cacheWrapper<T extends object, A extends unknown[]>(
+export async function cacheWrapper<T, A extends unknown[]>(
   cacheKey: `${keyof DB}:${string}`,
   callback: (...args: A) => Promise<T>,
   ...args: A

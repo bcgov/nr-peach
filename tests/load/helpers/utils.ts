@@ -1,3 +1,61 @@
+import http from 'k6/http';
+
+/**
+ * Fetches an OAuth2 bearer token using client credentials.
+ * @param clientId - The client identifier issued by the authorization server.
+ * @param secret - The client secret used for authentication.
+ * @param tokenEndpoint - The URL of the authorization server's token endpoint.
+ * @returns The bearer token as a string, or null if the token could not be fetched.
+ */
+export function fetchBearerToken(clientId: string, secret: string, tokenEndpoint: string): string | null {
+  const payload = { grant_type: 'client_credentials', client_id: clientId, client_secret: secret };
+
+  const res = http.post(tokenEndpoint, payload, {
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+  });
+
+  return (res?.json() as { access_token?: string })?.access_token ?? null;
+}
+
+/**
+ * Parses the .env file
+ * @returns An object containing environment variables.
+ * @throws {Error} If the .env file is not found
+ */
+export function parseEnv(): Record<string, string> {
+  const env: Record<string, string> = {};
+  const data = open(import.meta.resolve('../.env'));
+  const lines = data.split(/\r?\n/); // Handles Windows (\r\n) and Unix (\n)
+
+  lines.forEach((line) => {
+    const l = line.trim();
+
+    // Skip empty lines or full-line comments
+    if (!l || l.startsWith('#')) return;
+
+    // Split into Key and Value at the first "="
+    const firstEq = l.indexOf('=');
+    if (firstEq === -1) return;
+
+    const key = l.substring(0, firstEq).trim();
+    let value = l.substring(firstEq + 1).trim();
+
+    // Handle Trailing Comments. If the value is NOT quoted, we split at the first "#" found
+    // eslint-disable-next-line quotes
+    if (!value.startsWith('"') && !value.startsWith("'")) {
+      const commentIdx = value.indexOf('#');
+      if (commentIdx !== -1) value = value.substring(0, commentIdx).trim();
+    } else {
+      // If quoted, strip the quotes and ignore any "#" inside them
+      value = value.replace(/^(['"])(.*)\1$/, '$2');
+    }
+
+    env[key] = value;
+  });
+
+  return env;
+}
+
 /**
  * Generates a random integer between the specified `min` and `max` values, inclusive.
  * @param min - The minimum integer value that can be returned.
@@ -86,7 +144,7 @@ export function uuidv7(): string {
     '7' +
     rand12.slice(0, 3) +
     '-' +
-    ((parseInt(rand62[0], 16) & 0x3) | 0x8).toString(16) +
+    ((Number.parseInt(rand62[0], 16) & 0x3) | 0x8).toString(16) +
     rand62.slice(1, 4) +
     '-' +
     rand62.slice(4, 16);

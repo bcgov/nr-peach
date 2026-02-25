@@ -3,8 +3,10 @@ import { BaseRepository } from './base.ts';
 import type { Kysely, Transaction } from 'kysely';
 import type { DB } from '../types/index.d.ts';
 
-export class RecordKindRepository extends BaseRepository<'pies.recordKind'> {
+const CONSTRAINTS = ['record_kind_version_id_kind_unique'] as const;
+
+export class RecordKindRepository extends BaseRepository<'pies.recordKind', (typeof CONSTRAINTS)[number]> {
   constructor(db?: Kysely<DB> | Transaction<DB>) {
-    super('pies.recordKind', db, ['record_kind_version_id_kind_unique']);
+    super('pies.recordKind', db, CONSTRAINTS);
   }
 }

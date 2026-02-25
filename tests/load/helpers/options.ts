@@ -1,6 +1,13 @@
+import { parseEnv } from './utils.ts';
+
 import type { Options } from 'k6/options';
 
-const MAX_VU = 10; // Maximum number of virtual users; 10 is a reasonable amount as it matches the pgpool default size
+const env = parseEnv();
+
+const MAX_VU = +(__ENV.MAX_VU ?? env.MAX_VU ?? 10);
+const RAMP_DOWN_TIME = __ENV.RAMP_DOWN_TIME ?? env.RAMP_DOWN_TIME ?? '5s';
+const RAMP_UP_TIME = __ENV.RAMP_UP_TIME ?? env.RAMP_UP_TIME ?? '5s';
+const SUSTAIN_TIME = __ENV.SUSTAIN_TIME ?? env.SUSTAIN_TIME ?? '20s';
 
 /**
  * Common k6 load test options configuration.
@@ -11,9 +18,9 @@ const MAX_VU = 10; // Maximum number of virtual users; 10 is a reasonable amount
  */
 export const options: Options = {
   stages: [
-    { duration: '5s', target: MAX_VU }, // ramp up virtual users
-    { duration: '20s', target: MAX_VU }, // hold virtual users
-    { duration: '5s', target: 0 } // ramp down virtual users
+    { duration: RAMP_UP_TIME, target: MAX_VU }, // ramp up virtual users
+    { duration: SUSTAIN_TIME, target: MAX_VU }, // hold virtual users
+    { duration: RAMP_DOWN_TIME, target: 0 } // ramp down virtual users
   ],
   thresholds: {
     http_req_duration: ['p(95)<200'], // 95% of requests should be below 200ms

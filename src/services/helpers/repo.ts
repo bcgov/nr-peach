@@ -12,17 +12,18 @@ const log = getLogger(import.meta.filename);
 /**
  * Finds a record in the database using the provided filter criteria. If no record is found,
  * inserts a new record with the given data. Returns the found or newly inserted record.
+ * @remarks Ensure the `data` filters are constrained enough to select only one record
  * @template TB - The table name in the database schema.
  * @param repo - The repository instance used to interact with the database.
  * @param data - An object containing both filter criteria and data for insertion.
  * @returns A promise that resolves to the found or newly inserted record.
  * @throws {unknown} If the upsert operation fails to insert a new record.
  */
-export async function findByThenUpsert<TB extends keyof DB>(
+export async function findWhereOrUpsert<TB extends keyof DB>(
   repo: BaseRepository<TB>,
   data: FilterObject<DB, TB> & InsertObject<DB, TB>
 ): Promise<Selectable<DB[TB]>> {
-  const findRow = await repo.findBy(data).executeTakeFirst();
+  const findRow = await repo.findWhere(data).executeTakeFirst();
   return findRow ?? (await repo.upsert(data).executeTakeFirstOrThrow());
 }
 

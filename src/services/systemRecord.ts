@@ -2,8 +2,24 @@ import { transactionWrapper } from './helpers/index.ts';
 import { SystemRecordRepository } from '../repositories/index.ts';
 import { Problem } from '../utils/index.ts';
 
-import type { Selectable } from 'kysely';
+import type { Selectable, SimplifySingleResult } from 'kysely';
 import type { PiesSystemRecord } from '../types/index.d.ts';
+
+/**
+ * Deletes a single system record by its record ID and optionally by system ID.
+ * @param recordId - The unique identifier of the record to find.
+ * @param systemId - (Optional) The system ID to further filter the search.
+ * @returns A promise that resolves if the system record is deleted.
+ * @throws {Problem} If no record is found (404) or if multiple records are found without a `systemId` (409).
+ */
+export const deleteSystemRecordService = async (
+  recordId: string,
+  systemId?: string
+): Promise<SimplifySingleResult<PiesSystemRecord>> => {
+  return transactionWrapper(async (trx) => {
+    return await new SystemRecordRepository(trx).deleteWhere({ recordId, systemId }).executeTakeFirst();
+  });
+};
 
 /**
  * Finds a single system record by its record ID and optionally by system ID.
@@ -18,7 +34,7 @@ export const findSingleSystemRecordService = async (
 ): Promise<Selectable<PiesSystemRecord>> => {
   return transactionWrapper(
     async (trx) => {
-      const systemRecords = await new SystemRecordRepository(trx).findBy({ recordId, systemId }).execute();
+      const systemRecords = await new SystemRecordRepository(trx).findWhere({ recordId, systemId }).execute();
 
       if (!systemRecords.length) {
         const params: Record<string, string> = { record_id: recordId };

@@ -19,18 +19,19 @@ const log = getLogger(import.meta.filename);
 
 export const app = express();
 app.disable('x-powered-by');
-app.use(
-  rateLimit({
-    handler: (req: Request, res: Response): void => {
-      new Problem(429, { detail: 'Too many requests, please try again later.' }).send(req, res);
-    },
-    legacyHeaders: true,
-    limit: +(process.env.APP_RATELIMIT ?? 1000),
-    /** @see https://datatracker.ietf.org/doc/html/draft-ietf-httpapi-ratelimit-headers-08 */
-    standardHeaders: 'draft-8',
-    windowMs: +(process.env.APP_RATEWINDOWMS ?? 60000) // 1 minute
-  })
-);
+if (process.env.APP_RATEENABLE?.toLowerCase() === 'true')
+  app.use(
+    rateLimit({
+      handler: (req: Request, res: Response): void => {
+        new Problem(429, { detail: 'Too many requests, please try again later.' }).send(req, res);
+      },
+      legacyHeaders: true,
+      limit: +(process.env.APP_RATELIMIT ?? 1000),
+      /** @see https://datatracker.ietf.org/doc/html/draft-ietf-httpapi-ratelimit-headers-08 */
+      standardHeaders: 'draft-8',
+      windowMs: +(process.env.APP_RATEWINDOWMS ?? 60000) // 1 minute
+    })
+  );
 app.use(compression());
 app.use(cors());
 app.use(express.json());

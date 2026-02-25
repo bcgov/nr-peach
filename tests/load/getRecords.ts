@@ -1,19 +1,27 @@
 import { check } from 'k6';
 import http from 'k6/http';
 
-import { options as k6opts } from './helpers/index.ts';
+import { fetchBearerToken, parseEnv } from './helpers/index.ts';
+
+const env = parseEnv();
 
 /**
  * 1. Initialization
  */
-const API_PROCESS_EVENT = '/api/v1/records';
-const BASE_URL = 'http://localhost:3000';
-const RECORD_ID = '06bc53dc-3e4f-420b-801c-bd9cc0ea01b2';
+const API_RECORD = '/api/v1/records';
+const API_SYSTEM_RECORD = '/api/v1/system-records';
+const BASE_URL = __ENV.BASE_URL ?? env.BASE_URL ?? 'http://localhost:3000';
+const CLIENT_ID = __ENV.CLIENT_ID ?? env.CLIENT_ID;
+const CLIENT_SECRET = __ENV.CLIENT_SECRET ?? env.CLIENT_SECRET;
+const RECORD_ID = 'k6-test-1';
 const SYSTEM_ID = 'ITSM-5917';
+const TOKEN_ENDPOINT = __ENV.CLIENT_SECRET ?? env.TOKEN_ENDPOINT;
 
-export const options = k6opts;
+export { options } from './helpers/index.ts';
 
-/** @see https://raw.githubusercontent.com/bcgov/nr-pies/refs/heads/main/docs/spec/element/message/record.example.json */
+/**
+ * @see https://raw.githubusercontent.com/bcgov/nr-pies/refs/heads/main/docs/spec/element/message/record.example.json
+ */
 const testRecord = {
   transaction_id: '01950719-b154-72f5-8437-5572df032a69',
   version: '0.1.0',
@@ -76,36 +84,60 @@ const testRecord = {
 };
 
 /**
- * 2. Setup
+ * 2. Setup - initialize test data or state
+ * @returns - Data created in setup to be used by VU execution
  */
 export function setup() {
-  // Initialize test data or state
-  const res = http.get(`${BASE_URL}${API_PROCESS_EVENT}?record_id=${RECORD_ID}&system_id=${SYSTEM_ID}`);
+  const token = fetchBearerToken(CLIENT_ID, CLIENT_SECRET, TOKEN_ENDPOINT);
+
+  const res = http.get(`${BASE_URL}${API_RECORD}?record_id=${RECORD_ID}&system_id=${SYSTEM_ID}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    }
+  });
   if (res.status === 404) {
-    http.put(`${BASE_URL}${API_PROCESS_EVENT}`, JSON.stringify(testRecord), {
+    http.put(`${BASE_URL}${API_RECORD}`, JSON.stringify(testRecord), {
       headers: {
+        Authorization: `Bearer ${token}`,
         'Content-Type': 'application/json'
       }
     });
   }
 
   console.log('Test setup complete'); // eslint-disable-line no-console
+  return { token };
 }
 
 /**
  * 3. VU Execution
+ * @param data - Data defined in setup()
+ * @param data.token - Bearer token for authorization
  */
-export default function () {
-  const res = http.get(`${BASE_URL}${API_PROCESS_EVENT}?record_id=${RECORD_ID}&system_id=${SYSTEM_ID}`);
+export default function main(data: { token: string }) {
+  const res = http.get(`${BASE_URL}${API_RECORD}?record_id=${RECORD_ID}&system_id=${SYSTEM_ID}`, {
+    headers: {
+      Authorization: `Bearer ${data.token}`,
+      'Content-Type': 'application/json'
+    }
+  });
   if (!check(res, { 'status is 200': (res) => res.status === 200 })) {
     console.error(`Request failed with status ${res.status}`, res.body); // eslint-disable-line no-console
   }
 }
 
 /**
- * 4. Teardown
+ * 4. Teardown - Cleanup actions after the test
+ * @param data - Data defined in setup()
+ * @param data.token - Bearer token for authorization
  */
-// export function teardown() {
-//   // Cleanup actions after the test
-//   console.log('Test teardown complete'); // eslint-disable-line no-console
-// }
+export function teardown(data: { token: string }) {
+  http.del(`${BASE_URL}${API_SYSTEM_RECORD}?record_id=${RECORD_ID}&system_id=${SYSTEM_ID}`, null, {
+    headers: {
+      Authorization: `Bearer ${data.token}`,
+      'Content-Type': 'application/json'
+    }
+  });
+
+  console.log('Test teardown complete'); // eslint-disable-line no-console
+}

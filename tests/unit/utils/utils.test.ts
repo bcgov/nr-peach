@@ -1,7 +1,7 @@
 import { existsSync, readFileSync, statSync } from 'node:fs';
 
 import { testSystemTime } from '../vitest.setup.ts';
-import { compareObject, getGitRevision, getUUIDv7Timestamp, sortObject } from '../../../src/utils/utils.ts';
+import { containsSubset, getGitRevision, getUUIDv7Timestamp, sortObject } from '../../../src/utils/utils.ts';
 
 import type { Mock } from 'vitest';
 
@@ -11,54 +11,100 @@ vi.mock('node:fs', () => ({
   statSync: vi.fn()
 }));
 
-describe('compareObject', () => {
+describe('containsSubset', () => {
   it('should return true if all keys and values in rhs exist in lhs', () => {
     const lhs = { a: 1, b: 2, c: 3 };
     const rhs = { a: 1, b: 2 };
 
-    expect(compareObject(lhs, rhs)).toBe(true);
+    expect(containsSubset(lhs, rhs)).toBe(true);
   });
 
   it('should return false if any key in rhs does not exist in lhs', () => {
     const lhs = { a: 1, b: 2, c: 3 };
     const rhs = { a: 1, d: 4 };
 
-    expect(compareObject(lhs, rhs)).toBe(false);
+    expect(containsSubset(lhs, rhs)).toBe(false);
   });
 
   it('should return false if any value in rhs does not match the value in lhs', () => {
     const lhs = { a: 1, b: 2, c: 3 };
     const rhs = { a: 1, b: 3 };
 
-    expect(compareObject(lhs, rhs)).toBe(false);
+    expect(containsSubset(lhs, rhs)).toBe(false);
   });
 
   it('should return true if rhs is an empty object', () => {
     const lhs = { a: 1, b: 2, c: 3 };
     const rhs = {};
 
-    expect(compareObject(lhs, rhs)).toBe(true);
+    expect(containsSubset(lhs, rhs)).toBe(true);
   });
 
   it('should return false if lhs is empty and rhs is not', () => {
     const lhs = {};
     const rhs = { a: 1 };
 
-    expect(compareObject(lhs, rhs)).toBe(false);
+    expect(containsSubset(lhs, rhs)).toBe(false);
   });
 
-  it('should handle nested objects correctly', () => {
-    const lhs = { a: { x: 1, y: 2 }, b: 2 };
-    const rhs = { a: { x: 1 } };
+  it('should return false if rhs expects a key that is missing from lhs', () => {
+    const lhs = { a: 1 };
+    const rhs = { a: 1, b: 2 };
 
-    expect(compareObject(lhs, rhs)).toBe(false); // Shallow comparison, not deep
+    expect(containsSubset(lhs, rhs)).toBe(false);
   });
 
   it('should return true if both lhs and rhs are empty objects', () => {
     const lhs = {};
     const rhs = {};
 
-    expect(compareObject(lhs, rhs)).toBe(true);
+    expect(containsSubset(lhs, rhs)).toBe(true);
+  });
+
+  it('should return true when comparing null to undefined (nullish equivalence)', () => {
+    const lhs = { status: null, code: 200 };
+    const rhs = { status: undefined, code: 200 };
+    const rhsMissing = { code: 200 };
+
+    expect(containsSubset(lhs, rhs)).toBe(true);
+    expect(containsSubset(lhs, rhsMissing)).toBe(true);
+  });
+
+  it('should return true for date strings with different millisecond resolutions', () => {
+    const lhs = { start_datetime: '2020-06-24T00:00:00.000Z' };
+    const rhs = { start_datetime: '2020-06-24T00:00:00Z' };
+
+    expect(containsSubset(lhs, rhs)).toBe(true);
+  });
+
+  it('should return false for different dates', () => {
+    const lhs = { start_datetime: '2020-06-24T00:00:00Z' };
+    const rhs = { start_datetime: '2020-06-25T00:00:00Z' };
+
+    expect(containsSubset(lhs, rhs)).toBe(false);
+  });
+
+  it('should not treat non-date numeric strings as dates', () => {
+    const lhs = { version: '1.0' };
+    const rhs = { version: '1' };
+
+    expect(containsSubset(lhs, rhs)).toBe(false);
+  });
+
+  it('should return true for deep nested objects when functionally equal', () => {
+    const lhs = {
+      user: {
+        id: 1,
+        meta: { created: '2020-06-24T00:00:00.000Z' }
+      }
+    };
+    const rhs = {
+      user: {
+        meta: { created: '2020-06-24T00:00:00Z' }
+      }
+    };
+
+    expect(containsSubset(lhs, rhs)).toBe(true);
   });
 });
 
@@ -94,13 +140,13 @@ describe('getGitRevision', () => {
         path.endsWith('.git') ||
         path.endsWith('HEAD') ||
         path.endsWith('refs/heads/main') ||
-        path.endsWith('refs\\heads\\main')
+        path.endsWith(String.raw`refs\heads\main`)
       );
     });
     (statSync as Mock).mockReturnValue(mockStat(false)); // .git is a directory
     (readFileSync as Mock).mockImplementation((path: string) => {
       if (path.endsWith('HEAD')) return 'ref: refs/heads/main\n';
-      if (path.endsWith('refs/heads/main') || path.endsWith('refs\\heads\\main')) return '1234567890abcdef\n';
+      if (path.endsWith('refs/heads/main') || path.endsWith(String.raw`refs\heads\main`)) return '1234567890abcdef\n';
       return '';
     });
 
@@ -157,7 +203,7 @@ describe('getGitRevision', () => {
         path.endsWith('.git') ||
         path.endsWith('HEAD') ||
         path.endsWith('refs/heads/feature') ||
-        path.endsWith('refs\\heads\\feature')
+        path.endsWith(String.raw`refs\heads\feature`)
       );
     });
     (statSync as Mock).mockImplementation((path: string) => {
@@ -167,7 +213,8 @@ describe('getGitRevision', () => {
     (readFileSync as Mock).mockImplementation((path: string) => {
       if (path.endsWith('.git')) return 'gitdir: .git/worktrees/feature\n';
       if (path.endsWith('HEAD')) return 'ref: refs/heads/feature\n';
-      if (path.endsWith('refs/heads/feature') || path.endsWith('refs\\heads\\feature')) return 'cafebabe12345678\n';
+      if (path.endsWith('refs/heads/feature') || path.endsWith(String.raw`refs\heads\feature`))
+        return 'cafebabe12345678\n';
       return '';
     });
 

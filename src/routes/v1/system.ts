@@ -1,10 +1,11 @@
 import { Router } from 'express';
 
+import { deleteSystemRecordController } from '../../controllers/index.ts';
 import { authz } from '../../middlewares/index.ts';
 import { Problem } from '../../utils/index.ts';
 import {
-  deleteRecordsSchemaValidator,
-  getRecordsSchemaValidator,
+  deleteSystemRecordsSchemaValidator,
+  getSystemRecordsSchemaValidator,
   getSystemsSchemaValidator
 } from '../../validators/index.ts';
 
@@ -18,13 +19,11 @@ router.get('/systems', getSystemsSchemaValidator, (req: Request, res: Response):
 });
 
 /** Get Records */
-router.get('/system-records', getRecordsSchemaValidator, (req: Request, res: Response): void => {
+router.get('/system-records', getSystemRecordsSchemaValidator, (req: Request, res: Response): void => {
   new Problem(501).send(req, res);
 });
 
 /** Delete Records */
-router.delete('/system-records', authz('query'), deleteRecordsSchemaValidator, (req: Request, res: Response): void => {
-  new Problem(501).send(req, res);
-});
+router.delete('/system-records', authz('query'), deleteSystemRecordsSchemaValidator, deleteSystemRecordController);
 
 export default router;

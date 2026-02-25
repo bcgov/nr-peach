@@ -5,7 +5,7 @@ import {
   cacheableUpsert,
   dateTimePartsToEvent,
   eventToDateTimeParts,
-  findByThenUpsert,
+  findWhereOrUpsert,
   transactionWrapper
 } from './helpers/index.ts';
 import {
@@ -18,7 +18,7 @@ import {
   TransactionRepository,
   VersionRepository
 } from '../repositories/index.ts';
-import { CodingDictionary, compareObject, getLogger, Problem } from '../utils/index.ts';
+import { CodingDictionary, containsSubset, getLogger, Problem } from '../utils/index.ts';
 
 import type { DeleteResult, Selectable } from 'kysely';
 import type { Coding, CodingEvent, Header, PiesSystemRecord, Process, ProcessEvent, Record } from '../types/index.d.ts';
@@ -42,11 +42,11 @@ export const findRecordService = (systemRecord: Selectable<PiesSystemRecord>): P
       );
 
       const processEventsRaw = await new ProcessEventRepository(trx)
-        .findBy({ systemRecordId: systemRecord.id })
+        .findWhere({ systemRecordId: systemRecord.id })
         .execute();
 
       const onHoldEventsRaw = await new OnHoldEventRepository(trx)
-        .findBy({ systemRecordId: systemRecord.id })
+        .findWhere({ systemRecordId: systemRecord.id })
         .execute();
 
       let onHoldEvents: CodingEvent[] | undefined;
@@ -161,14 +161,14 @@ export const replaceRecordService = (data: Record, principal?: string): Promise<
       kind: data.record_kind,
       versionId: data.version
     });
-    const systemRecord = await findByThenUpsert(new SystemRecordRepository(trx), {
+    const systemRecord = await findWhereOrUpsert(new SystemRecordRepository(trx), {
       recordId: data.record_id,
       recordKindId: recordKind.id,
       systemId: data.system_id
     });
 
-    // Handle on hold events
-    const oheOld = (await new OnHoldEventRepository(trx).findBy({ systemRecordId: systemRecord.id }).execute()).map(
+    // Calculate on hold events
+    const oheOld = (await new OnHoldEventRepository(trx).findWhere({ systemRecordId: systemRecord.id }).execute()).map(
       (ohe) => ({
         id: ohe.id,
         codingId: ohe.codingId,
@@ -181,40 +181,34 @@ export const replaceRecordService = (data: Record, principal?: string): Promise<
       })
     );
 
-    const oheMatched = new Set<number>();
-    const oheAdd = (
-      await Promise.all(
-        data.on_hold_event_set?.map(async (ce) => {
-          const { id: codingId } = await cacheableUpsert(new CodingRepository(trx), {
-            code: ce.coding.code,
-            codeSystem: ce.coding.code_system,
-            versionId: data.version
-          });
-          const ceNew = { codingId, ...ce.event };
+    // Map to a union type of number | object
+    const oheResults = await Promise.all(
+      data.on_hold_event_set?.map(async (ce) => {
+        const { id: codingId } = await cacheableUpsert(new CodingRepository(trx), {
+          code: ce.coding.code,
+          codeSystem: ce.coding.code_system,
+          versionId: data.version
+        });
 
-          const matched = oheOld.find((ceOld) => compareObject(ceOld, ceNew));
-          if (matched) {
-            oheMatched.add(matched.id);
-            return null;
-          } else {
-            return {
-              codingId: codingId,
-              systemRecordId: systemRecord.id,
-              transactionId: data.transaction_id,
-              ...eventToDateTimeParts(ce.event),
-              createdBy: principal
-            };
-          }
-        }) ?? []
-      )
-    ).filter((ohe) => !!ohe);
-    if (oheAdd.length) await new OnHoldEventRepository(trx).createMany(oheAdd).execute();
+        const ceNew = { codingId, ...ce.event };
+        const oheMatched = oheOld.find((ceOld) => containsSubset(ceOld, ceNew));
 
-    const oheDelete = oheOld.filter((ohe) => !oheMatched.has(ohe.id)).map((ohe) => ohe.id);
-    if (oheDelete.length) await new OnHoldEventRepository(trx).deleteMany(oheDelete).execute();
+        if (oheMatched) return oheMatched.id;
+        return {
+          codingId,
+          systemRecordId: systemRecord.id,
+          transactionId: data.transaction_id,
+          ...eventToDateTimeParts(ce.event),
+          createdBy: principal
+        };
+      }) ?? []
+    );
 
-    // Handle process events
-    const peOld = (await new ProcessEventRepository(trx).findBy({ systemRecordId: systemRecord.id }).execute()).map(
+    const oheMatchedIds = oheResults.filter((r) => typeof r === 'number');
+    const oheAdd = oheResults.filter((r) => typeof r !== 'number');
+
+    // Calculate process events
+    const peOld = (await new ProcessEventRepository(trx).findWhere({ systemRecordId: systemRecord.id }).execute()).map(
       (pe) => ({
         id: pe.id,
         codingId: pe.codingId,
@@ -230,45 +224,51 @@ export const replaceRecordService = (data: Record, principal?: string): Promise<
       })
     );
 
-    const peMatched = new Set<number>();
-    const peAdd = (
-      await Promise.all(
-        data.process_event_set?.map(async (pe) => {
-          const { id: codingId } = await cacheableUpsert(new CodingRepository(trx), {
-            code: pe.process.code,
-            codeSystem: pe.process.code_system,
-            versionId: data.version
-          });
-          const peNew = {
-            codingId,
-            status: pe.process.status,
-            statusCode: pe.process.status_code,
-            statusDescription: pe.process.status_description,
-            ...pe.event
-          };
+    // Map to a union type: number (matched ID) | object (new record)
+    const peResults = await Promise.all(
+      data.process_event_set?.map(async (pe) => {
+        const { id: codingId } = await cacheableUpsert(new CodingRepository(trx), {
+          code: pe.process.code,
+          codeSystem: pe.process.code_system,
+          versionId: data.version
+        });
 
-          const matched = peOld.find((peOld) => compareObject(peOld, peNew));
-          if (matched) {
-            peMatched.add(matched.id);
-            return null;
-          } else {
-            return {
-              codingId: codingId,
-              status: pe.process.status,
-              statusCode: pe.process.status_code,
-              statusDescription: pe.process.status_description,
-              systemRecordId: systemRecord.id,
-              transactionId: data.transaction_id,
-              ...eventToDateTimeParts(pe.event),
-              createdBy: principal
-            };
-          }
-        }) ?? []
-      )
-    ).filter((pe) => !!pe);
-    if (peAdd.length) await new ProcessEventRepository(trx).createMany(peAdd).execute();
+        const peNew = {
+          codingId,
+          status: pe.process.status,
+          statusCode: pe.process.status_code,
+          statusDescription: pe.process.status_description,
+          ...pe.event
+        };
+        const matched = peOld.find((old) => containsSubset(old, peNew));
 
-    const peDelete = peOld.filter((pe) => !peMatched.has(pe.id)).map((pe) => pe.id);
-    if (peDelete.length) await new ProcessEventRepository(trx).deleteMany(peDelete).execute();
+        if (matched) return matched.id;
+        return {
+          codingId,
+          status: pe.process.status,
+          statusCode: pe.process.status_code,
+          statusDescription: pe.process.status_description,
+          systemRecordId: systemRecord.id,
+          transactionId: data.transaction_id,
+          ...eventToDateTimeParts(pe.event),
+          createdBy: principal
+        };
+      }) ?? []
+    );
+
+    const peMatchedIds = peResults.filter((r) => typeof r === 'number');
+    const peAdd = peResults.filter((r) => typeof r !== 'number');
+
+    // Update event tables
+    await Promise.all([
+      oheMatchedIds.length < oheOld.length &&
+        new OnHoldEventRepository(trx).deleteExcept(oheMatchedIds, { systemRecordId: systemRecord.id }).execute(),
+      peMatchedIds.length < peOld.length &&
+        new ProcessEventRepository(trx).deleteExcept(peMatchedIds, { systemRecordId: systemRecord.id }).execute()
+    ]);
+    await Promise.all([
+      oheAdd.length && new OnHoldEventRepository(trx).createMany(oheAdd).execute(),
+      peAdd.length && new ProcessEventRepository(trx).createMany(peAdd).execute()
+    ]);
   });
 };

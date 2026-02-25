@@ -1,7 +1,12 @@
-import { randomIntBetween, randomItem, uniqByKeepFirst, uuidv7 } from './utils.ts';
+import { parseEnv, randomIntBetween, randomItem, uniqByKeepFirst, uuidv7 } from './utils.ts';
 import { CodingDictionary } from '../../../src/utils/coding.ts';
 
 import type { Coding, CodingEvent, Event, Process, ProcessEvent, Record } from '../../../src/types/elements.d.ts';
+
+const env = parseEnv();
+
+const MAX_RECORD_ID = +(__ENV.MAX_RECORD_ID ?? env.MAX_RECORD_ID ?? 50);
+const RECORD_PREFIX = 'k6-test-';
 
 /**
  * Generates a mock `Coding` object with sample data.
@@ -98,9 +103,9 @@ export function generateRecord(itsm?: number): Record {
     version: '0.1.0',
     kind: 'Record',
     system_id: `ITSM-${itsm ? itsm.toString() : randomIntBetween(1000, 99999).toString()}`,
-    record_id: uuidv7(),
+    record_id: `${RECORD_PREFIX}${randomIntBetween(1, MAX_RECORD_ID)}`,
     record_kind: 'Permit',
     on_hold_event_set: uniqByKeepFirst(onHoldEvents, (item) => item.coding.code),
-    process_event_set: uniqByKeepFirst(processEvents, (item) => item.process.code) as [ProcessEvent, ...ProcessEvent[]]
+    process_event_set: uniqByKeepFirst(processEvents, (item) => item.process.code)
   };
 }
