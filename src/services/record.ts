@@ -18,7 +18,7 @@ import {
   TransactionRepository,
   VersionRepository
 } from '../repositories/index.ts';
-import { CodingDictionary, compareObject, getLogger, Problem } from '../utils/index.ts';
+import { CodingDictionary, containsSubset, getLogger, Problem } from '../utils/index.ts';
 
 import type { DeleteResult, Selectable } from 'kysely';
 import type { Coding, CodingEvent, Header, PiesSystemRecord, Process, ProcessEvent, Record } from '../types/index.d.ts';
@@ -191,7 +191,7 @@ export const replaceRecordService = (data: Record, principal?: string): Promise<
         });
 
         const ceNew = { codingId, ...ce.event };
-        const oheMatched = oheOld.find((ceOld) => compareObject(ceOld, ceNew));
+        const oheMatched = oheOld.find((ceOld) => containsSubset(ceOld, ceNew));
 
         if (oheMatched) return oheMatched.id;
         return {
@@ -240,7 +240,7 @@ export const replaceRecordService = (data: Record, principal?: string): Promise<
           statusDescription: pe.process.status_description,
           ...pe.event
         };
-        const matched = peOld.find((old) => compareObject(old, peNew));
+        const matched = peOld.find((old) => containsSubset(old, peNew));
 
         if (matched) return matched.id;
         return {

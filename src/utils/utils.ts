@@ -8,19 +8,28 @@ import { getLogger } from './log.ts';
 const log = getLogger(import.meta.filename);
 
 /**
- * Checks if all keys and values in the right object exist and are equivalent in the left object.
- * @param lhs - The object to compare against.
- * @param rhs - The object containing keys and values to check.
- * @returns True if all keys and values in rhs exist and are equivalent in lhs, otherwise false.
+ * Performs a deep recursive check to determine if the `rhs` object is a subset of the `lhs` object.
+ * - Returns `true` if every key in `rhs` exists in `lhs` with an equivalent value.
+ * - Supports nested objects (recursive matching).
+ * - Includes specialized string handling: if both strings contain a '-', they are
+ * parsed as dates and compared by their numeric timestamps.
+ * - `lhs` may contain additional keys not present in `rhs` without failing the check.
+ * @param lhs - The base object (Left-Hand Side) acting as the superset.
+ * @param rhs - The object (Right-Hand Side) containing the keys and values to match.
+ * @returns `true` if all properties in `rhs` are satisfied by `lhs`; otherwise `false`.
+ * @example
+ * const lhs = { id: 101, status: 'active', meta: { lastLogin: '2024-05-01' } };
+ * const rhs = { status: 'active', meta: { lastLogin: '2024-05-01T00:00:00Z' } };
+ * containsSubset(lhs, rhs); // returns true
  */
-export function compareObject(lhs: Record<string, unknown>, rhs: Record<string, unknown>): boolean {
+export function containsSubset(lhs: Record<string, unknown>, rhs: Record<string, unknown>): boolean {
   return Object.keys(rhs).every((key) => {
     const rVal = rhs[key] ?? undefined;
     const lVal = lhs[key] ?? undefined;
     if (rVal === lVal) return true;
 
     if (typeof rVal === 'object' && rVal !== null && typeof lVal === 'object' && lVal !== null) {
-      return compareObject(lVal as Record<string, unknown>, rVal as Record<string, unknown>);
+      return containsSubset(lVal as Record<string, unknown>, rVal as Record<string, unknown>);
     }
 
     if (typeof rVal === 'string' && typeof lVal === 'string') {
