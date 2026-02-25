@@ -3,15 +3,15 @@ import { validateRequestSchema } from '../middlewares/index.ts';
 
 import type { RequestHandler } from 'express';
 
-export const deleteRecordsSchemaValidator: RequestHandler = validateRequestSchema({
+export const deleteSystemRecordsSchemaValidator: RequestHandler = validateRequestSchema({
   query: {
     type: 'object',
     properties: { record_id, system_id },
-    required: ['record_id']
+    required: ['record_id', 'system_id']
   }
 });
 
-export const getRecordsSchemaValidator: RequestHandler = validateRequestSchema({
+export const getSystemRecordsSchemaValidator: RequestHandler = validateRequestSchema({
   query: {
     type: 'object',
     properties: { record_id, system_id },

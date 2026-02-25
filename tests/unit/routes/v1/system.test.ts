@@ -3,8 +3,8 @@ import request from 'supertest';
 
 import { deleteSystemRecordController } from '../../../../src/controllers/index.ts';
 import {
-  deleteRecordsSchemaValidator,
-  getRecordsSchemaValidator,
+  deleteSystemRecordsSchemaValidator,
+  getSystemRecordsSchemaValidator,
   getSystemsSchemaValidator
 } from '../../../../src/validators/index.ts';
 
@@ -40,7 +40,7 @@ describe('System Routes', () => {
   describe('GET /system-records', () => {
     it('should return 501', async () => {
       const response = await request(app).get('/system-records');
-      expect(getRecordsSchemaValidator).toHaveBeenCalled();
+      expect(getSystemRecordsSchemaValidator).toHaveBeenCalled();
       expect(response.status).toBe(501);
     });
   });
@@ -48,7 +48,7 @@ describe('System Routes', () => {
   describe('DELETE /system-records', () => {
     it('should call the schema validator and controller', async () => {
       await request(app).delete('/system-records');
-      expect(deleteRecordsSchemaValidator).toHaveBeenCalled();
+      expect(deleteSystemRecordsSchemaValidator).toHaveBeenCalled();
       expect(deleteSystemRecordController).toHaveBeenCalled();
     });
   });
