@@ -8,13 +8,32 @@ import { getLogger } from './log.ts';
 const log = getLogger(import.meta.filename);
 
 /**
- * Compares two objects to check if all keys and values in the second object exist in the first object.
+ * Checks if all keys and values in the right object exist and are equivalent in the left object.
  * @param lhs - The object to compare against.
  * @param rhs - The object containing keys and values to check.
- * @returns True if all keys and values in rhs exist in lhs, otherwise false.
+ * @returns True if all keys and values in rhs exist and are equivalent in lhs, otherwise false.
  */
 export function compareObject(lhs: Record<string, unknown>, rhs: Record<string, unknown>): boolean {
-  return Object.keys(rhs).every((key) => rhs[key] == lhs[key]);
+  return Object.keys(rhs).every((key) => {
+    const rVal = rhs[key] ?? undefined;
+    const lVal = lhs[key] ?? undefined;
+    if (rVal === lVal) return true;
+
+    if (typeof rVal === 'object' && rVal !== null && typeof lVal === 'object' && lVal !== null) {
+      return compareObject(lVal as Record<string, unknown>, rVal as Record<string, unknown>);
+    }
+
+    if (typeof rVal === 'string' && typeof lVal === 'string') {
+      if (rVal.includes('-') && lVal.includes('-')) {
+        const rTime = Date.parse(rVal);
+        const lTime = Date.parse(lVal);
+
+        if (!Number.isNaN(rTime) && !Number.isNaN(lTime)) return rTime === lTime;
+      }
+    }
+
+    return false;
+  });
 }
 
 /**

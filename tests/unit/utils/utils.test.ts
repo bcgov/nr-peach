@@ -47,16 +47,62 @@ describe('compareObject', () => {
     expect(compareObject(lhs, rhs)).toBe(false);
   });
 
-  it('should handle nested objects correctly', () => {
-    const lhs = { a: { x: 1, y: 2 }, b: 2 };
-    const rhs = { a: { x: 1 } };
+  it('should return false if rhs expects a key that is missing from lhs', () => {
+    const lhs = { a: 1 };
+    const rhs = { a: 1, b: 2 };
 
-    expect(compareObject(lhs, rhs)).toBe(false); // Shallow comparison, not deep
+    expect(compareObject(lhs, rhs)).toBe(false);
   });
 
   it('should return true if both lhs and rhs are empty objects', () => {
     const lhs = {};
     const rhs = {};
+
+    expect(compareObject(lhs, rhs)).toBe(true);
+  });
+
+  it('should return true when comparing null to undefined (nullish equivalence)', () => {
+    const lhs = { status: null, code: 200 };
+    const rhs = { status: undefined, code: 200 };
+    const rhsMissing = { code: 200 };
+
+    expect(compareObject(lhs, rhs)).toBe(true);
+    expect(compareObject(lhs, rhsMissing)).toBe(true);
+  });
+
+  it('should return true for date strings with different millisecond resolutions', () => {
+    const lhs = { start_datetime: '2020-06-24T00:00:00.000Z' };
+    const rhs = { start_datetime: '2020-06-24T00:00:00Z' };
+
+    expect(compareObject(lhs, rhs)).toBe(true);
+  });
+
+  it('should return false for different dates', () => {
+    const lhs = { start_datetime: '2020-06-24T00:00:00Z' };
+    const rhs = { start_datetime: '2020-06-25T00:00:00Z' };
+
+    expect(compareObject(lhs, rhs)).toBe(false);
+  });
+
+  it('should not treat non-date numeric strings as dates', () => {
+    const lhs = { version: '1.0' };
+    const rhs = { version: '1' };
+
+    expect(compareObject(lhs, rhs)).toBe(false);
+  });
+
+  it('should return true for deep nested objects when functionally equal', () => {
+    const lhs = {
+      user: {
+        id: 1,
+        meta: { created: '2020-06-24T00:00:00.000Z' }
+      }
+    };
+    const rhs = {
+      user: {
+        meta: { created: '2020-06-24T00:00:00Z' }
+      }
+    };
 
     expect(compareObject(lhs, rhs)).toBe(true);
   });
