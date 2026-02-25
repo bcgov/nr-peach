@@ -16,7 +16,7 @@ describe('deleteSystemRecordService', () => {
     expect(transactionWrapper).toHaveBeenCalledTimes(1);
     expect(SystemRecordRepository).toHaveBeenCalledTimes(1);
     expect(SystemRecordRepository).toHaveBeenCalledWith(expect.anything());
-    expect(baseRepositoryMock.delete).toHaveBeenCalledWith({ recordId });
+    expect(baseRepositoryMock.deleteBy).toHaveBeenCalledWith({ recordId });
     expect(executeMock.executeTakeFirst).toHaveBeenCalledTimes(1);
   });
 
@@ -27,7 +27,7 @@ describe('deleteSystemRecordService', () => {
     expect(transactionWrapper).toHaveBeenCalledTimes(1);
     expect(SystemRecordRepository).toHaveBeenCalledTimes(1);
     expect(SystemRecordRepository).toHaveBeenCalledWith(expect.anything());
-    expect(baseRepositoryMock.delete).toHaveBeenCalledWith({ recordId, systemId });
+    expect(baseRepositoryMock.deleteBy).toHaveBeenCalledWith({ recordId, systemId });
     expect(executeMock.executeTakeFirst).toHaveBeenCalledTimes(1);
   });
 });

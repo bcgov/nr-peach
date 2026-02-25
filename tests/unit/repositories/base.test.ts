@@ -80,6 +80,28 @@ describe('BaseRepository', () => {
     });
   });
 
+  describe('deleteBy', () => {
+    it('should build a delete query by filtering', () => {
+      const filter = { foo: 'Test' };
+      const compiled = repository.deleteBy(filter).compile();
+
+      expect(getDefinedOperations(compiled.query)).toEqual(['kind', 'from', 'where']);
+      expect(compiled.query.kind).toBe('DeleteQueryNode');
+      expect(compiled.sql).toBe('delete from "schema"."test_table" where "foo" = $1');
+      expect(compiled.parameters).toEqual([filter.foo]);
+    });
+
+    it('should build a delete query with multiple filters', () => {
+      const filter = { foo: 'Test', bar: 'Data' };
+      const compiled = repository.deleteBy(filter).compile();
+
+      expect(getDefinedOperations(compiled.query)).toEqual(['kind', 'from', 'where']);
+      expect(compiled.query.kind).toBe('DeleteQueryNode');
+      expect(compiled.sql).toBe('delete from "schema"."test_table" where ("foo" = $1 and "bar" = $2)');
+      expect(compiled.parameters).toEqual([filter.foo, filter.bar]);
+    });
+  });
+
   describe('deleteExcept', () => {
     it('should build a delete query excluding the multiple ids', () => {
       const data = [1, 2];
@@ -124,7 +146,7 @@ describe('BaseRepository', () => {
     });
   });
 
-  describe('findById', () => {
+  describe('findBy', () => {
     it('should build a select query by filtering', () => {
       const filter = { foo: 'Test' };
       const compiled = repository.findBy(filter).compile();

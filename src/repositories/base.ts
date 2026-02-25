@@ -102,6 +102,17 @@ export abstract class BaseRepository<TB extends keyof DB, C extends string = str
   }
 
   /**
+   * Deletes entities in the table matching all of the provided data.
+   * This performs a logical AND operation across all provided fields.
+   * @param data - The data to delete.
+   * @returns A query builder for the delete operation.
+   */
+  deleteBy(data: FilterObject<DB, TB>): DeleteQueryBuilder<DB, TB, DB[TB]> {
+    const builder = this.db.deleteFrom(this.tableName) as unknown as DeleteQueryBuilder<DB, TB, DB[TB]>;
+    return builder.where((eb) => eb.and(data));
+  }
+
+  /**
    * Delete multiple records from the table, excluding specific IDs and optionally
    * scoping the operation to specific column values.
    * @remarks If `excludeIds` is an empty array, this collapses to an unrestricted delete operation.

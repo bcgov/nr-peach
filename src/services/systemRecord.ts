@@ -17,7 +17,7 @@ export const deleteSystemRecordService = async (
   systemId?: string
 ): Promise<SimplifySingleResult<PiesSystemRecord>> => {
   return transactionWrapper(async (trx) => {
-    return await new SystemRecordRepository(trx).delete({ recordId, systemId }).executeTakeFirst();
+    return await new SystemRecordRepository(trx).deleteBy({ recordId, systemId }).executeTakeFirst();
   });
 };
 

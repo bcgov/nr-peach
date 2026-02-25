@@ -39,6 +39,7 @@ export const baseRepositoryMock = {
   create: vi.fn(() => executeMock),
   createMany: vi.fn(() => executeMock),
   delete: vi.fn(() => executeMock),
+  deleteBy: vi.fn(() => executeMock),
   deleteExcept: vi.fn(() => executeMock),
   deleteMany: vi.fn(() => executeMock),
   findBy: vi.fn(() => executeMock),
