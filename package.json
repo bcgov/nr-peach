@@ -8,11 +8,14 @@
   "type": "module",
   "main": "server.ts",
   "scripts": {
+    "commitlint": "commitlint",
     "codegen": "kysely-codegen --url $(node dburl.helper.ts)",
     "clean": "rimraf coverage",
     "debug": "node --inspect server.ts",
     "dev": "node --watch-path=./src server.ts",
-    "format": "prettier --write \"**/*.{js,json,md,ts,yaml}\"",
+    "eslint": "eslint",
+    "format": "prettier --check --write \"**/*.{js,json,md,ts,yaml}\"",
+    "kysely": "kysely",
     "lint": "eslint",
     "lint:fix": "eslint --fix",
     "migrate:down": "kysely migrate down",
@@ -25,6 +28,7 @@
     "postformat": "npm run lint:fix",
     "postinstall": "lefthook install",
     "postlint": "npm run typecheck",
+    "prettier": "prettier",
     "purge": "rimraf node_modules",
     "seed:list": "kysely seed list",
     "seed:make": "kysely seed make",
@@ -32,6 +36,7 @@
     "start": "cross-env NODE_ENV=production node server.ts",
     "test": "vitest",
     "test:shuffle": "vitest --sequence.shuffle",
+    "tsc": "tsc",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
@@ -59,6 +64,8 @@
     "winston-transport": "4.9.0"
   },
   "devDependencies": {
+    "@commitlint/cli": "20.4.2",
+    "@commitlint/config-conventional": "20.4.2",
     "@eslint/js": "10.0.1",
     "@types/compression": "1.8.1",
     "@types/cors": "2.8.19",
