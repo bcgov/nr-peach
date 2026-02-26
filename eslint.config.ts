@@ -1,10 +1,11 @@
+import { defineConfig } from 'eslint/config';
 import eslint from '@eslint/js';
 import eslintConfigPrettier from 'eslint-config-prettier';
 import eslintPluginPrettierRecommended from 'eslint-plugin-prettier/recommended';
 import jsdoc from 'eslint-plugin-jsdoc';
 import tseslint from 'typescript-eslint';
 
-export default tseslint.config(
+export default defineConfig(
   {
     ignores: ['coverage/**', 'infra/**', 'node_modules/**', 'terragrunt/**']
   },
@@ -28,17 +29,12 @@ export default tseslint.config(
     rules: {
       '@typescript-eslint/no-require-imports': 'error',
       'eol-last': ['error', 'always'],
-      indent: ['error', 2, { SwitchCase: 1 }],
       'linebreak-style': ['error', 'unix'],
       'max-len': ['warn', { code: 120, comments: 120, ignoreUrls: true }],
       'no-console': process.env.NODE_ENV === 'production' ? 'error' : 'warn',
       'no-debugger': process.env.NODE_ENV === 'production' ? 'error' : 'warn',
       quotes: ['error', 'single'],
-      semi: ['error', 'always'],
-      // TODO: Remove the following when ESLint is upgraded to 10.x
-      'no-unassigned-vars': 'error',
-      'no-useless-assignment': 'error',
-      'preserve-caught-error': ['error', { requireCatchParameter: true }]
+      semi: ['error', 'always']
     }
   }
 );
