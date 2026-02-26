@@ -52,34 +52,20 @@ Using [Winget](https://learn.microsoft.com/en-us/windows/package-manager/winget/
 winget install k6 --source winget
 ```
 
-## Running Load Tests
+## Load Testing
 
 Our load tests are written in TypeScript and use the [k6](https://k6.io/) load testing tool. The tests are located in
 the `tests/load` directory. Each endpoint with defined tests has its own file, named after the functional action the
 endpoint will perform.
 
-> [!NOTE]
-> Make sure you have the main nr-peach application running locally somewhere else before running the tests.
-
-The following tests are currently available:
-
-> [!NOTE]
-> The following commands assume your current terminal directory is at this folder (`/tests/load`).
-
-```sh
-k6 run getRecords.ts
-```
-
-```sh
-k6 run putRecords.ts
-```
-
-The tests will automatically connect to the local instance of the app.
-
 ### Configuration
 
+Before running any tests, you must first create your own `.env` file under the `tests/load` directory. You should copy
+the `.env.example` (`cp .env.example .env`) to have a scaffold to get started on. Be sure to review and modify your
+`.env` values as needed prior to running the tests.
+
 By default, our k6 load tests are configured to run with a maximum of 10 virtual users (VUs). You can adjust this
-number by setting the `MAX_VU` environment variable in the `/tests/load/helpers/options.ts` file. By default, our load
+number by setting the `MAX_VU` environment variable in your personal `.env` file. By default, our load
 test options will have the following behaviour:
 
 - The load test runs in three stages:
@@ -87,10 +73,26 @@ test options will have the following behaviour:
   - Hold at `MAX_VU` users for 20 seconds.
   - Ramp down to 0 users over 5 seconds.
 - Thresholds:
-  - 95% of HTTP requests must complete in under 100ms.
+  - 95% of HTTP requests must complete in under 200ms.
   - HTTP request failure rate must stay below 0.1%; if exceeded, the test aborts after 1 second.
 - The test will throw an error if any threshold is breached.
 
 If you want to change or extend the k6 testing behaviour, visit the
 [k6 Options reference guide](https://grafana.com/docs/k6/latest/using-k6/k6-options/reference/) for more details on how
 to configure the tests.
+
+### Running Tests
+
+The following tests are currently available:
+
+- getRecord.ts
+- putRecord.ts
+
+```sh
+cd /tests/load
+k6 run <scriptName>.ts
+```
+
+These scripts are generally designed to set up whatever is needed for the test, perform the load test, and then clean
+up the auto-generated records from the database when complete. Remember to monitor the `audit.logged_actions` table as
+this will log all update and delete actions performed on the database and grow over time.
