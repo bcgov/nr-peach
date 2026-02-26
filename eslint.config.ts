@@ -1,5 +1,5 @@
-import { defineConfig } from 'eslint/config';
 import eslint from '@eslint/js';
+import { defineConfig } from 'eslint/config';
 import eslintConfigPrettier from 'eslint-config-prettier';
 import eslintPluginPrettierRecommended from 'eslint-plugin-prettier/recommended';
 import jsdoc from 'eslint-plugin-jsdoc';
