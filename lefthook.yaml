@@ -2,43 +2,53 @@
 assert_lefthook_installed: true
 colors: false
 
+commit-msg:
+  commands:
+    'Git Lint Commit Message':
+      run: node_modules/.bin/commitlint --edit {1}
+
 pre-commit:
   parallel: true
   jobs:
-    - name: Format Source and Tests
+    - name: Source Format
       glob: '*.{js,json,md,ts,yaml}'
-      run: npm run format
+      run: node_modules/.bin/prettier --check --write {staged_files}
+      stage_fixed: true
 
-    - name: Format Infra
+    - name: Source Lint
+      glob: '*.{js,ts}'
+      run: node_modules/.bin/eslint --fix {staged_files}
+      stage_fixed: true
+
+    - name: Infra Format
       glob: '*.{hcl,tf,tfvars}'
-      run: terraform fmt -no-color -recursive
+      run: terraform fmt -no-color {staged_files}
+      stage_fixed: true
 
-    - name: Lint Core Infra
+    - name: Infra Lint Core
       glob: 'infra/core/*.{hcl,tf,tfvars}'
       root: infra/core
       run: tflint --no-color --recursive -f compact
 
-    - name: Lint Instance Infra
+    - name: Infra Lint Instance
       glob: 'infra/instance/*.{hcl,tf,tfvars}'
       root: infra/instance
       run: tflint --no-color --recursive -f compact
 
 pre-push:
-  parallel: true
-  jobs:
-    - name: Typecheck Source and Tests
-      glob: '*.{js,json,md,ts,yaml}'
-      run: npm run typecheck
+  commands:
+    'Git Lint Branch Naming':
+      run: |
+        BRANCH=$(git rev-parse --abbrev-ref HEAD | tr -d '[:space:]')
+        VALID_REGEX='^(main|((bugfix|chore|ci|docs|feature|hotfix|perf|refactor|release|renovate|security|style|test)\/[a-z0-9]+([.-][a-z0-9]+)*))$'
 
-    - name: Validate Branch Naming
-      run: node prepush.helper.ts
+        if echo "$BRANCH" | grep -Eq "$VALID_REGEX"; then
+          echo "Branch name '$BRANCH' is valid."
+        else
+          echo "Error: Invalid branch name '$BRANCH'."
+          echo "Branches must match: $VALID_REGEX"
+          exit 1
+        fi
 
-    # - name: Validate Core Infra
-    #   glob: 'infra/core/*.{hcl,tf,tfvars}'
-    #   root: infra/core
-    #   run: terraform validate -no-color
-
-    # - name: Validate Instance Infra
-    #   glob: 'infra/instance/*.{hcl,tf,tfvars}'
-    #   root: infra/instance
-    #   run: terraform validate -no-color
+    'Source Typecheck':
+      run: node_modules/.bin/tsc --noEmit

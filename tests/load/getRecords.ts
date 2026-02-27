@@ -1,7 +1,7 @@
 import { check } from 'k6';
 import http from 'k6/http';
 
-import { fetchBearerToken, parseEnv } from './helpers/index.ts';
+import { fetchBearerToken, generateRecord, parseEnv } from './helpers/index.ts';
 
 const env = parseEnv();
 
@@ -20,83 +20,21 @@ const TOKEN_ENDPOINT = __ENV.CLIENT_SECRET ?? env.TOKEN_ENDPOINT;
 export { options } from './helpers/index.ts';
 
 /**
- * @see https://raw.githubusercontent.com/bcgov/nr-pies/refs/heads/main/docs/spec/element/message/record.example.json
- */
-const testRecord = {
-  transaction_id: '01950719-b154-72f5-8437-5572df032a69',
-  version: '0.1.0',
-  kind: 'Record',
-  system_id: SYSTEM_ID,
-  record_id: RECORD_ID,
-  record_kind: 'Permit',
-  on_hold_event_set: [
-    {
-      event: {
-        start_date: '2024-12-10',
-        end_date: '2024-12-20'
-      },
-      coding: {
-        code: 'MISSING_INFORMATION',
-        code_set: ['MISSING_INFORMATION'],
-        code_system: 'https://bcgov.github.io/nr-pies/docs/spec/code_system/on_hold_process'
-      }
-    }
-  ],
-  process_event_set: [
-    {
-      event: {
-        start_datetime: '2024-11-30T00:21:20.575Z'
-      },
-      process: {
-        code: 'PRE_APPLICATION',
-        code_display: 'Pre-Application',
-        code_set: ['APPLICATION', 'PRE_APPLICATION'],
-        code_system: 'https://bcgov.github.io/nr-pies/docs/spec/code_system/application_process'
-      }
-    },
-    {
-      event: {
-        start_date: '2024-12-01',
-        end_date: '2024-12-31'
-      },
-      process: {
-        code: 'REFERRAL',
-        code_set: ['APPLICATION', 'TECH_REVIEW_COMMENT', 'REFERRAL'],
-        code_system: 'https://bcgov.github.io/nr-pies/docs/spec/code_system/application_process',
-        status: 'Auditing',
-        status_code: 'AU',
-        status_description: 'The authorization request is under review by subject matter expert.'
-      }
-    },
-    {
-      event: {
-        start_date: '2025-01-01'
-      },
-      process: {
-        code: 'DISALLOWED',
-        code_set: ['APPLICATION', 'DECISION', 'DISALLOWED'],
-        code_system: 'https://bcgov.github.io/nr-pies/docs/spec/code_system/application_process',
-        status: 'DeclinedConflict',
-        status_description: 'The authorization request has not been allowed due to a conflict of interest.'
-      }
-    }
-  ]
-};
-
-/**
  * 2. Setup - initialize test data or state
  * @returns - Data created in setup to be used by VU execution
  */
 export function setup() {
   const token = fetchBearerToken(CLIENT_ID, CLIENT_SECRET, TOKEN_ENDPOINT);
-
   const res = http.get(`${BASE_URL}${API_RECORD}?record_id=${RECORD_ID}&system_id=${SYSTEM_ID}`, {
     headers: {
       Authorization: `Bearer ${token}`,
       'Content-Type': 'application/json'
-    }
+    },
+    responseCallback: http.expectedStatuses(200, 404)
   });
   if (res.status === 404) {
+    /** @see https://raw.githubusercontent.com/bcgov/nr-pies/refs/heads/main/docs/spec/element/message/record.example.json */
+    const testRecord = generateRecord(5917, RECORD_ID);
     http.put(`${BASE_URL}${API_RECORD}`, JSON.stringify(testRecord), {
       headers: {
         Authorization: `Bearer ${token}`,

@@ -84,11 +84,12 @@ export function generateProcessEvent(): ProcessEvent {
 }
 
 /**
- * Generates a mock `Record` object with sample process events.
- * @param itsm - The ITSM identifier to associate with the process events.
- * @returns A populated `Record` containing example process events for testing or development purposes.
+ * Generates a mock `Record` object with sample record.
+ * @param systemId - The ITSM identifier to associate with the record.
+ * @param recordId - The record identifier to associate with the record.
+ * @returns A populated `Record` containing example record for testing or development purposes.
  */
-export function generateRecord(itsm?: number): Record {
+export function generateRecord(systemId?: number, recordId?: string): Record {
   const onHoldEvents: CodingEvent[] = [];
   for (let count = 0; count < randomIntBetween(1, 3); count++) {
     onHoldEvents.push(generateOnHoldEvent());
@@ -102,8 +103,8 @@ export function generateRecord(itsm?: number): Record {
     transaction_id: uuidv7(),
     version: '0.1.0',
     kind: 'Record',
-    system_id: `ITSM-${itsm ? itsm.toString() : randomIntBetween(1000, 99999).toString()}`,
-    record_id: `${RECORD_PREFIX}${randomIntBetween(1, MAX_RECORD_ID)}`,
+    system_id: `ITSM-${systemId ? systemId.toString() : randomIntBetween(1000, 99999).toString()}`,
+    record_id: recordId ?? `${RECORD_PREFIX}${randomIntBetween(1, MAX_RECORD_ID)}`,
     record_kind: 'Permit',
     on_hold_event_set: uniqByKeepFirst(onHoldEvents, (item) => item.coding.code),
     process_event_set: uniqByKeepFirst(processEvents, (item) => item.process.code)
