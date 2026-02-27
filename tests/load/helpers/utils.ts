@@ -1,3 +1,4 @@
+import crypto from 'k6/crypto';
 import http from 'k6/http';
 
 /**
@@ -63,7 +64,7 @@ export function parseEnv(): Record<string, string> {
  * @returns A random integer between `min` and `max`, inclusive.
  */
 export function randomIntBetween(min: number, max: number): number {
-  return Math.floor(Math.random() * (max - min + 1) + min);
+  return Math.floor(secureRandom() * (max - min + 1) + min);
 }
 
 /**
@@ -72,7 +73,7 @@ export function randomIntBetween(min: number, max: number): number {
  * @returns A randomly selected item from the array.
  */
 export function randomItem<T>(arrayOfItems: readonly T[]): T {
-  return arrayOfItems[Math.floor(Math.random() * arrayOfItems.length)];
+  return arrayOfItems[Math.floor(secureRandom() * arrayOfItems.length)];
 }
 
 /**
@@ -83,8 +84,17 @@ export function randomItem<T>(arrayOfItems: readonly T[]): T {
  */
 export function randomString(length: number, charset = 'abcdefghijklmnopqrstuvwxyz'): string {
   let res = '';
-  while (length--) res += charset[Math.floor(Math.random() * charset.length)];
+  while (length--) res += charset[Math.floor(secureRandom() * charset.length)];
   return res;
+}
+
+/**
+ * Replacement for Math.random() using k6 crypto. Returns a floating-point, pseudo-random number in the range [0, 1).
+ * @returns Returns a pseudorandom number between 0 and 1.
+ */
+export function secureRandom(): number {
+  const view = new Uint32Array(crypto.randomBytes(4));
+  return view[0] / 4294967296; // Divide by 2^32 (4294967296) to get a value between 0 and 1
 }
 
 /**
@@ -126,13 +136,10 @@ export function uuidv7(): string {
   // 48 bits timestamp (milliseconds since Unix epoch)
   const tsHex = unixTsMs.toString(16).padStart(12, '0');
 
-  // 12 bits random
-  const rand12 = Math.floor(Math.random() * 0x1000)
-    .toString(16)
-    .padStart(3, '0');
-
-  // 62 bits random (16 hex chars = 64 bits, but we use only 62 bits)
-  const rand62 = Array.from({ length: 16 }, () => Math.floor(Math.random() * 16).toString(16)).join('');
+  // Generate 10 bytes (80 bits) of random data to cover the required 12+62 bits
+  const rand = Array.from(new Uint8Array(crypto.randomBytes(10)))
+    .map((x) => x.toString(16).padStart(2, '0'))
+    .join('');
 
   // Compose UUIDv7: xxxxxxxx-xxxx-7xxx-yxxx-xxxxxxxxxxxx
   // Version (7) in 13th hex digit, variant (10xx) in 17th hex digit
@@ -142,12 +149,12 @@ export function uuidv7(): string {
     tsHex.slice(8, 12) +
     '-' +
     '7' +
-    rand12.slice(0, 3) +
+    rand.slice(0, 3) + // 12 bits random
     '-' +
-    ((Number.parseInt(rand62[0], 16) & 0x3) | 0x8).toString(16) +
-    rand62.slice(1, 4) +
+    ((Number.parseInt(rand[3], 16) & 0x3) | 0x8).toString(16) +
+    rand.slice(4, 7) +
     '-' +
-    rand62.slice(4, 16);
+    rand.slice(7, 19); // remaining 62 bits random
 
   return uuid;
 }

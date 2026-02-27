@@ -114,7 +114,10 @@ export function setAuthHeader(res: Response, attributes: AuthErrorAttributes): R
     // Drop undefined pairs and non-US-ASCII encoded values (RFC 7230 Section 3.2.4)
     .filter(([k, v]) => k && v && /^[\u0020-\u007E]*$/.test(v as string))
     // Escape double quotes and backslashes in values
-    .map(([k, v]) => `${k}="${(v as string).replaceAll(/\\/g, String.raw`\\`).replaceAll(/"/g, String.raw`\"`)}"`)
+    .map(([k, v]) => {
+      const value = (v as string).replaceAll('\\', String.raw`\\`).replaceAll('"', String.raw`\"`);
+      return `${k}="${value}"`;
+    })
     .join(', ')}`;
   return res.set('WWW-Authenticate', headerValue);
 }

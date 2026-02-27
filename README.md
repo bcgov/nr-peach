@@ -2,7 +2,7 @@
 
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=bcgov_nr-peach&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=bcgov_nr-peach)
 [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=bcgov_nr-peach&metric=coverage)](https://sonarcloud.io/summary/new_code?id=bcgov_nr-peach)
-[![Tests](https://github.com/bcgov/nr-peach/actions/workflows/unit-tests.yaml/badge.svg)](https://github.com/bcgov/nr-peach/actions/workflows/unit-tests.yaml)
+[![Tests](https://github.com/bcgov/nr-peach/actions/workflows/validate.yaml/badge.svg)](https://github.com/bcgov/nr-peach/actions/workflows/validate.yaml)
 [![CodeQL](https://github.com/bcgov/nr-peach/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/bcgov/nr-peach/actions/workflows/github-code-scanning/codeql)
 
 [![Reliability Rating](https://sonarcloud.io/api/project_badges/measure?project=bcgov_nr-peach&metric=reliability_rating)](https://sonarcloud.io/summary/new_code?id=bcgov_nr-peach)

@@ -102,7 +102,7 @@ jobs:
             ${{ runner.os }}-app-
       - name: Install dependencies
         if: steps.cache-app.outputs.cache-hit != 'true'
-        run: npm ci
+        run: npm ci --ignore-scripts
       - name: Lint
         run: npm run lint
 
@@ -138,7 +138,7 @@ jobs:
             ${{ runner.os }}-app-
       - name: Install dependencies
         if: steps.cache-app.outputs.cache-hit != 'true'
-        run: npm ci
+        run: npm ci --ignore-scripts
       - name: Test
         env:
           CI: true

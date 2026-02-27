@@ -18,6 +18,17 @@ on:
         required: false
         type: string
         default: latest
+    secrets:
+      AZURE_CLIENT_ID:
+        required: true
+      AZURE_TENANT_ID:
+        required: true
+      AZURE_SUBSCRIPTION_ID:
+        required: true
+      VNET_RESOURCE_GROUP_NAME:
+        required: true
+      VNET_NAME:
+        required: true
 
 env:
   AZURE_REGION: Canada Central
@@ -33,7 +44,6 @@ jobs:
       contents: write # This is required for actions/checkout
       id-token: write # This is required for requesting the JWT
     runs-on: ubuntu-latest
-    timeout-minutes: 30
     steps:
       - name: Checkout
         uses: actions/checkout@v6.0.2
@@ -81,15 +91,20 @@ jobs:
             ${{ runner.os }}-terraform-
       - name: Terraform init
         working-directory: infra/core
+        env:
+          AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+          AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          VNET_RESOURCE_GROUP_NAME: ${{ secrets.VNET_RESOURCE_GROUP_NAME }}
         run: |
           # Initialize Terraform
           set -euo pipefail
           terraform init -upgrade -reconfigure \
-            -backend-config="resource_group_name=${{ secrets.VNET_RESOURCE_GROUP_NAME }}" \
+            -backend-config="resource_group_name=$VNET_RESOURCE_GROUP_NAME" \
             -backend-config="storage_account_name=${{ vars.STORAGE_ACCOUNT_NAME }}" \
-            -backend-config="subscription_id=${{ secrets.AZURE_SUBSCRIPTION_ID }}" \
-            -backend-config="tenant_id=${{ secrets.AZURE_TENANT_ID }}" \
-            -backend-config="client_id=${{ secrets.AZURE_CLIENT_ID }}" \
+            -backend-config="subscription_id=$AZURE_SUBSCRIPTION_ID" \
+            -backend-config="tenant_id=$AZURE_TENANT_ID" \
+            -backend-config="client_id=$AZURE_CLIENT_ID" \
             -backend-config="use_oidc=true"
       - name: Terraform validate
         working-directory: infra/core
@@ -99,9 +114,6 @@ jobs:
         env:
           TF_VAR_app_name: nr-peach
           TF_VAR_app_env: ${{ inputs.environment }}
-          TF_VAR_azure_client_id: ${{ secrets.AZURE_CLIENT_ID }}
-          TF_VAR_azure_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-          TF_VAR_azure_tenant_id: ${{ secrets.AZURE_TENANT_ID }}
           TF_VAR_client_id: ${{ secrets.AZURE_CLIENT_ID }}
           TF_VAR_common_tags: >-
             {"app_name":"peach","environment":"${{ inputs.environment }}","instance":"core","repo_name":"nr-peach","managed_by":"terraform"}

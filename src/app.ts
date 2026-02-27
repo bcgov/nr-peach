@@ -33,7 +33,14 @@ if (process.env.APP_RATEENABLE?.toLowerCase() === 'true')
     })
   );
 app.use(compression());
-app.use(cors());
+app.use(
+  cors({
+    /** Tells browsers to cache preflight requests for Access-Control-Max-Age seconds */
+    maxAge: 600,
+    /** Set true to dynamically set Access-Control-Allow-Origin based on Origin */
+    origin: true
+  })
+);
 app.use(express.json());
 app.use(express.urlencoded());
 app.use(favicon('src/public/favicon.ico'));
