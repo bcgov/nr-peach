@@ -62,7 +62,7 @@ jobs:
 
       - name: Attest
         id: attest
-        uses: actions/attest-build-provenance@v3.2.0
+        uses: actions/attest-build-provenance@v4.1.0
         with:
           subject-name: ghcr.io/${{ github.repository }}
           subject-digest: ${{ steps.builder.outputs.digest }}
