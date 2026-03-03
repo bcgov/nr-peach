@@ -4,8 +4,7 @@ import { getBearerToken, getJwksClient, normalizeScopes, setAuthHeader } from '.
 import { Problem } from '../utils/index.ts';
 import { state } from '../state.ts';
 
-import type { Request, RequestHandler, Response } from 'express';
-import type { AuthErrorAttributes, AuthErrorCodes, LocalContext, SystemSource } from '../types/index.d.ts';
+import type { AuthErrorAttributes, AuthErrorCodes, AuthRequestHandler, SystemSource } from '../types/index.d.ts';
 
 /** Default authentication error attributes */
 const attributes: AuthErrorAttributes = { realm: process.env.AUTH_AUDIENCE ?? 'nr-peach', error: 'invalid_token' };
@@ -22,8 +21,8 @@ const authStatusMap: Record<AuthErrorCodes, number> = {
  * @see https://datatracker.ietf.org/doc/html/rfc6750
  * @returns An Express `RequestHandler` for authentication.
  */
-export function authn(): RequestHandler {
-  return async function (req, res: Response<unknown, LocalContext>, next): Promise<void> {
+export function authn(): AuthRequestHandler {
+  return async function (req, res, next): Promise<void> {
     if (state.authMode && state.authMode === 'none') return next();
 
     try {
@@ -72,12 +71,8 @@ export function authn(): RequestHandler {
  * @param source - The source of the `system_id` (either 'body' or 'query').
  * @returns An Express `RequestHandler` for authorization.
  */
-export function authz(source: SystemSource): RequestHandler {
-  return function (
-    req: Request<Record<string, string>, unknown, { system_id?: string }, { system_id?: string }>,
-    res: Response<unknown, LocalContext>,
-    next
-  ): void {
+export function authz(source: SystemSource): AuthRequestHandler {
+  return function (req, res, next): void {
     if (state.authMode && state.authMode !== 'authz') return next();
 
     const system_id = req[source].system_id;
