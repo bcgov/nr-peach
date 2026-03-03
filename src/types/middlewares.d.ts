@@ -1,3 +1,6 @@
+import type { RequestHandler } from 'express';
+import type { LocalContext } from './controllers.d.ts';
+
 /**
  * Represents an error that occurred during authentication.
  * @see https://datatracker.ietf.org/doc/html/rfc6750#section-3
@@ -30,6 +33,15 @@ export type AuthErrorCodes = 'invalid_request' | 'invalid_token' | 'insufficient
  * - `'none'`: The application will perform no authentication nor authorization.
  */
 export type AuthMode = 'authn' | 'authz' | 'none';
+
+/** Defines Express RequestHandlers for authentication and authorization middleware. */
+export type AuthRequestHandler = RequestHandler<
+  Record<string, string>,
+  unknown,
+  { system_id?: string },
+  { system_id?: string },
+  LocalContext
+>;
 
 /** Represents the source of a system_id input, which can either be from the request body or query parameters. */
 export type SystemSource = 'body' | 'query';
