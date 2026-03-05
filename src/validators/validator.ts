@@ -8,7 +8,8 @@ import type { AnySchemaObject, AnyValidateFunction, ErrorObject } from 'ajv/dist
 import type { IntegrityDictionary, IntegrityResult } from '../types/index.d.ts';
 
 const log = getLogger(import.meta.filename);
-const ajvCache: Record<string, Ajv> = {};
+const stringSchemaCache: Record<string, Ajv> = {};
+const objectSchemaCache = new WeakMap<AnySchemaObject, Promise<AnyValidateFunction>>();
 
 // Only pre-cache schemas in production to avoid bombarding Github API in development
 if (process.env.NODE_ENV === 'production') await preCachePiesSchema();
@@ -58,23 +59,28 @@ export async function validateSchema(
   schema: AnySchemaObject | string,
   data: unknown
 ): Promise<{ valid: boolean; errors?: ErrorObject[] }> {
-  let validate: AnyValidateFunction<unknown>;
+  let validate: AnyValidateFunction;
   if (typeof schema === 'string') {
-    const cached = schema in ajvCache;
+    const cached = schema in stringSchemaCache;
     log.verbose('validateSchema', { cached, schema });
 
     if (cached) {
-      validate = ajvCache[schema].getSchema(schema)!;
+      validate = stringSchemaCache[schema].getSchema(schema)!;
     } else {
       const ajv = createAjvInstance();
 
       const def = await loadSchema(schema);
       validate = await ajv.compileAsync(def);
-      ajvCache[schema] = ajv;
+      stringSchemaCache[schema] = ajv;
     }
   } else {
-    const ajv = createAjvInstance();
-    validate = await ajv.compileAsync(schema);
+    let validatePromise = objectSchemaCache.get(schema);
+    if (!validatePromise) {
+      const ajv = createAjvInstance();
+      validatePromise = ajv.compileAsync(schema);
+      objectSchemaCache.set(schema, validatePromise);
+    }
+    validate = await validatePromise;
   }
 
   const valid = !!validate(data);
