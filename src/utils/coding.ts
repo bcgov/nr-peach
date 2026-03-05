@@ -14,13 +14,17 @@ export const CodingDictionary: Record<
   >
 > = Object.freeze({
   'https://bcgov.github.io/nr-pies/docs/spec/code_system/application_process': {
-    APPLICATION: {
-      codeSet: ['APPLICATION'],
-      display: 'Application'
+    ACCEPTED: {
+      codeSet: ['APPLICATION', 'INITIAL_SUBMISSION_REVIEW', 'ACCEPTED'],
+      display: 'Accepted'
     },
     ALLOWED: {
       codeSet: ['APPLICATION', 'DECISION', 'ALLOWED'],
       display: 'Allowed'
+    },
+    APPLICATION: {
+      codeSet: ['APPLICATION'],
+      display: 'Application'
     },
     DECISION_REVIEW: {
       codeSet: ['APPLICATION', 'DECISION', 'DECISION_REVIEW'],
@@ -82,6 +86,10 @@ export const CodingDictionary: Record<
       codeSet: ['APPLICATION', 'PRE_APPLICATION', 'SUBMITTED'],
       display: 'Submitted'
     },
+    TECHNICAL_REVIEW: {
+      codeSet: ['APPLICATION', 'TECH_REVIEW_COMMENT', 'TECHNICAL_REVIEW'],
+      display: 'Technical Review'
+    },
     TECH_REVIEW_COMMENT: {
       codeSet: ['APPLICATION', 'TECH_REVIEW_COMMENT'],
       display: 'Technical Review and Comment'
@@ -89,10 +97,6 @@ export const CodingDictionary: Record<
     TECH_REVIEW_COMPLETED: {
       codeSet: ['APPLICATION', 'TECH_REVIEW_COMMENT', 'TECH_REVIEW_COMPLETED'],
       display: 'Technical Review Completed'
-    },
-    TECHNICAL_REVIEW: {
-      codeSet: ['APPLICATION', 'TECH_REVIEW_COMMENT', 'TECHNICAL_REVIEW'],
-      display: 'Technical Review'
     },
     WITHDRAWN: {
       codeSet: ['APPLICATION', 'WITHDRAWN'],
