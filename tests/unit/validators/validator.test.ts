@@ -1,36 +1,57 @@
-import { createAjvInstance, pies } from '../../../src/validators/schema/index.ts';
+import { createAjvInstance, loadSchema, getPiesSchemaUri } from '../../../src/validators/schema/index.ts';
 import * as integrity from '../../../src/validators/integrity/index.ts';
-import { preCachePiesSchema, validateIntegrity, validateSchema } from '../../../src/validators/validator.ts';
+import { validateSchema, validateIntegrity, preCachePiesSchema } from '../../../src/validators/validator.ts';
+
+import type { Mock } from 'vitest';
+
+vi.mock('../../../src/validators/schema/index.ts', () => ({
+  createAjvInstance: vi.fn(),
+  loadSchema: vi.fn(),
+  getPiesSchemaUri: vi.fn(),
+  pies: {
+    spec: {
+      message: {
+        A: 'schema-a',
+        B: 'schema-b'
+      }
+    }
+  }
+}));
+
+vi.mock('../../../src/validators/integrity/index.ts', () => ({
+  integrityValidators: {
+    recordLinkage: vi.fn()
+  }
+}));
 
 describe('preCachePiesSchema', () => {
-  // TODO: Determine why this intermittently fails with shuffled tests
-  it('should call validateSchema for each pies.spec.message kind and log info', async () => {
-    const result = await preCachePiesSchema();
+  it('should iterate through all pies message schemas and trigger validation', async () => {
+    (getPiesSchemaUri as Mock).mockImplementation((val) => `uri-${val}`);
 
-    expect(result).toBeDefined();
-    expect(result.length).toBe(Object.keys(pies.spec.message).length);
+    const mockAjv = {
+      compileAsync: vi.fn().mockResolvedValue(vi.fn().mockReturnValue(true))
+    };
+    (createAjvInstance as Mock).mockReturnValue(mockAjv);
+    (loadSchema as Mock).mockResolvedValue({});
+
+    await preCachePiesSchema();
+
+    expect(getPiesSchemaUri).toHaveBeenCalledWith('schema-a');
+    expect(getPiesSchemaUri).toHaveBeenCalledWith('schema-b');
+    expect(loadSchema).toHaveBeenCalledTimes(2);
   });
 });
 
 describe('validateIntegrity', () => {
-  it('should call the correct integrity validator and return its result', () => {
-    const mockType =
-      'mockType' as keyof typeof import('../../../src/validators/integrity/index.ts').integrityValidators;
-    const mockData = { foo: 'bar' };
-    const mockResult = { valid: true, errors: [] };
+  it('should call the correct validator from integrityValidators', () => {
+    const mockResult = { valid: true };
+    (integrity.integrityValidators.recordLinkage as Mock).mockReturnValue(mockResult);
 
-    // Mock the integrityValidators
-    const originalValidators = integrity.integrityValidators;
-    const mockedValidators = {
-      ...originalValidators,
-      [mockType]: vi.fn().mockReturnValue(mockResult)
-    };
-    vi.spyOn(integrity, 'integrityValidators', 'get').mockReturnValue(mockedValidators);
+    const data = { some: 'data' };
+    const result = validateIntegrity('recordLinkage', data);
 
-    const result = validateIntegrity(mockType, mockData);
-
-    expect(result).toEqual(mockResult);
-    expect(mockedValidators[mockType]).toHaveBeenCalledWith(mockData);
+    expect(integrity.integrityValidators.recordLinkage).toHaveBeenCalledWith(data);
+    expect(result).toBe(mockResult);
   });
 
   it('should throw if the validator for the type does not exist', () => {
@@ -44,53 +65,59 @@ describe('validateIntegrity', () => {
 });
 
 describe('validateSchema', () => {
-  it('should validate data against a schema URI and cache it', async () => {
-    const schemaUri = 'https://example.com/bam.json';
-    const schema = { type: 'object' };
-    const data = { key: 'value' };
+  it('should compile and cache a string-based schema', async () => {
+    const mockUri = 'http://schema.com/test.json';
+    const mockSchemaDef = { type: 'object' };
+    const mockValidate = vi.fn().mockReturnValue(true);
+    const mockAjv = {
+      compileAsync: vi.fn().mockResolvedValue(mockValidate),
+      getSchema: vi.fn().mockReturnValue(mockValidate)
+    };
 
-    global.fetch = vi.fn().mockResolvedValue({
-      ok: true,
-      json: vi.fn().mockResolvedValue(schema)
-    });
+    (loadSchema as Mock).mockResolvedValue(mockSchemaDef);
+    (createAjvInstance as Mock).mockReturnValue(mockAjv);
 
-    const result = await validateSchema(schemaUri, data);
+    // First call: should compile
+    const result1 = await validateSchema(mockUri, { foo: 'bar' });
 
-    expect(result.valid).toBe(true);
-    expect(result.errors).toBeUndefined();
+    expect(loadSchema).toHaveBeenCalledWith(mockUri);
+    expect(mockAjv.compileAsync).toHaveBeenCalledWith(mockSchemaDef);
+    expect(result1.valid).toBe(true);
+
+    // Second call: should use cache (mockAjv.getSchema)
+    await validateSchema(mockUri, { foo: 'bar' });
+    expect(mockAjv.getSchema).toHaveBeenCalledWith(mockUri);
   });
 
-  it('should validate data against a cached schema', async () => {
-    const schemaUri = 'https://example.com/fam.json';
-    const schema = { type: 'object' };
-    const data = { key: 'value' };
+  it('should handle validation errors correctly', async () => {
+    const mockSchemaObj = { type: 'number' };
+    const mockErrors = [{ message: 'should be number' }];
+    const mockValidate = Object.assign(vi.fn().mockReturnValue(false), { errors: mockErrors });
 
-    global.fetch = vi.fn().mockResolvedValue({
-      ok: true,
-      json: vi.fn().mockResolvedValue(schema)
-    });
+    const mockAjv = {
+      compileAsync: vi.fn().mockResolvedValue(mockValidate)
+    };
+    (createAjvInstance as Mock).mockReturnValue(mockAjv);
 
-    // Invoke once to cache it
-    await validateSchema(schemaUri, data);
-    // Invoke again to test cache usage
-    try {
-      await validateSchema(schemaUri, data);
-    } catch (error) {
-      expect(error).toBeDefined();
-      // This is not a great test, but it ensures that the cache logic line is used
-    }
-  });
-
-  it('should return validation errors for invalid data', async () => {
-    const schema = { type: 'object', required: ['key'] };
-    const data = {};
-
-    const ajv = createAjvInstance();
-    ajv.compileAsync = vi.fn().mockResolvedValue(() => false);
-
-    const result = await validateSchema(schema, data);
+    const result = await validateSchema(mockSchemaObj, 'not-a-number');
 
     expect(result.valid).toBe(false);
-    expect(result.errors).toBeDefined();
+    expect(result.errors).toEqual(mockErrors);
+  });
+
+  it('should use WeakMap cache for object-based schemas', async () => {
+    const mockSchemaObj = { type: 'string' };
+    const mockValidate = vi.fn().mockReturnValue(true);
+    const mockAjv = {
+      compileAsync: vi.fn().mockResolvedValue(mockValidate)
+    };
+    (createAjvInstance as Mock).mockReturnValue(mockAjv);
+
+    // Call twice with the same object reference
+    await validateSchema(mockSchemaObj, 'test');
+    await validateSchema(mockSchemaObj, 'test');
+
+    // Ajv instance should only be created once for this object
+    expect(createAjvInstance).toHaveBeenCalledTimes(1);
   });
 });

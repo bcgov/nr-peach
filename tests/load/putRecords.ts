@@ -92,7 +92,8 @@ export function teardown(data: { token: string }) {
           headers: {
             Authorization: `Bearer ${data.token}`,
             'Content-Type': 'application/json'
-          }
+          },
+          responseCallback: http.expectedStatuses(204, 404)
         }
       );
     }

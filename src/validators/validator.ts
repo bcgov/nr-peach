@@ -8,7 +8,8 @@ import type { AnySchemaObject, AnyValidateFunction, ErrorObject } from 'ajv/dist
 import type { IntegrityDictionary, IntegrityResult } from '../types/index.d.ts';
 
 const log = getLogger(import.meta.filename);
-const ajvCache: Record<string, Ajv> = {};
+const stringSchemaCache: Record<string, Ajv> = {};
+const objectSchemaCache = new WeakMap<AnySchemaObject, Promise<AnyValidateFunction<unknown>>>();
 
 // Only pre-cache schemas in production to avoid bombarding Github API in development
 if (process.env.NODE_ENV === 'production') await preCachePiesSchema();
@@ -46,13 +47,17 @@ export function validateIntegrity<K extends keyof IntegrityDictionary>(
 }
 
 /**
- * Validates data against a JSON schema.
- * Caches string-identified schemas for reuse; compiles non-string schemas directly.
- * @param schema The schema to validate against (string identifier or schema object).
- * @param data The data to validate.
- * @returns A promise that resolves to an object containing:
- * - `valid`: A boolean indicating whether the data is valid according to the schema.
- * - `errors`: An optional property containing validation errors if the data is invalid.
+ * Validates data against a JSON schema using asynchronous compilation and caching.
+ * @remarks
+ * This function optimizes performance by:
+ * 1. Caching Ajv instances for string-identified schemas.
+ * 2. Caching compilation promises for schema objects to prevent redundant processing.
+ * @param schema - The validation blueprint. Can be a string identifier (URI/ID) or a schema object.
+ * @param data - The payload to validate. Treated as `unknown` to ensure type-safe handling.
+ * @returns A promise resolving to a validation result:
+ * - `valid`: true if the data satisfies the schema.
+ * - `errors`: An array of `ErrorObject` if validation fails, otherwise undefined.
+ * @throws {Error} Will throw if the schema cannot be loaded or if compilation fails.
  */
 export async function validateSchema(
   schema: AnySchemaObject | string,
@@ -60,21 +65,26 @@ export async function validateSchema(
 ): Promise<{ valid: boolean; errors?: ErrorObject[] }> {
   let validate: AnyValidateFunction<unknown>;
   if (typeof schema === 'string') {
-    const cached = schema in ajvCache;
+    const cached = schema in stringSchemaCache;
     log.verbose('validateSchema', { cached, schema });
 
     if (cached) {
-      validate = ajvCache[schema].getSchema(schema)!;
+      validate = stringSchemaCache[schema].getSchema(schema)!;
     } else {
       const ajv = createAjvInstance();
 
       const def = await loadSchema(schema);
       validate = await ajv.compileAsync(def);
-      ajvCache[schema] = ajv;
+      stringSchemaCache[schema] = ajv;
     }
   } else {
-    const ajv = createAjvInstance();
-    validate = await ajv.compileAsync(schema);
+    let validatePromise = objectSchemaCache.get(schema);
+    if (!validatePromise) {
+      const ajv = createAjvInstance();
+      validatePromise = ajv.compileAsync(schema);
+      objectSchemaCache.set(schema, validatePromise);
+    }
+    validate = await validatePromise;
   }
 
   const valid = !!validate(data);
