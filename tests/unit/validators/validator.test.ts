@@ -66,7 +66,7 @@ describe('validateIntegrity', () => {
 
 describe('validateSchema', () => {
   it('should compile and cache a string-based schema', async () => {
-    const mockUri = 'http://schema.com/test.json';
+    const mockUri = 'https://schema.com/test.json';
     const mockSchemaDef = { type: 'object' };
     const mockValidate = vi.fn().mockReturnValue(true);
     const mockAjv = {

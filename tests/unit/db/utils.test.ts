@@ -1,5 +1,4 @@
-import './kysely.helper.ts'; // Must be imported before everything else
-import { mockSqlExecuteReturn } from './kysely.helper.ts';
+import { mockSqlExecuteReturn } from './kysely.helper.ts'; // Must be imported before everything else
 
 import { Kysely, sql } from 'kysely';
 

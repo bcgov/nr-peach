@@ -2,6 +2,7 @@ import { getBearerToken, normalizeScopes, setAuthHeader } from '../../../../src/
 
 import type { Request, Response } from 'express';
 import type { JwksClient } from 'jwks-rsa';
+import type { Mock } from 'vitest';
 import type { AuthErrorAttributes } from '../../../../src/types/index.d.ts';
 
 describe('getBearerToken', () => {
@@ -227,7 +228,7 @@ describe('setAuthHeader', () => {
   it('sets the WWW-Authenticate header with the provided attributes', () => {
     const res = {
       set: vi.fn()
-    } as unknown as Response;
+    } as Response & { set: Mock };
 
     const attributes: AuthErrorAttributes = {
       realm: 'nr-peach',
@@ -237,7 +238,6 @@ describe('setAuthHeader', () => {
 
     setAuthHeader(res, attributes);
 
-    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(res.set).toHaveBeenCalledWith(
       'WWW-Authenticate',
       'Bearer realm="nr-peach", error="invalid_token", error_description="The access token is invalid"'
@@ -247,7 +247,7 @@ describe('setAuthHeader', () => {
   it('sets the WWW-Authenticate header without empty attributes', () => {
     const res = {
       set: vi.fn()
-    } as unknown as Response;
+    } as Response & { set: Mock };
 
     const attributes: AuthErrorAttributes = {
       realm: 'nr-peach',
@@ -258,7 +258,6 @@ describe('setAuthHeader', () => {
 
     setAuthHeader(res, attributes);
 
-    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(res.set).toHaveBeenCalledWith(
       'WWW-Authenticate',
       'Bearer realm="nr-peach", error="invalid_token", error_description="The access token is invalid"'
@@ -268,7 +267,7 @@ describe('setAuthHeader', () => {
   it('sets the WWW-Authenticate header with only US-ASCII encoded string values', () => {
     const res = {
       set: vi.fn()
-    } as unknown as Response;
+    } as Response & { set: Mock };
 
     const attributes: AuthErrorAttributes = {
       realm: 'nr-peach',
@@ -278,27 +277,25 @@ describe('setAuthHeader', () => {
 
     setAuthHeader(res, attributes);
 
-    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(res.set).toHaveBeenCalledWith('WWW-Authenticate', 'Bearer realm="nr-peach", error="invalid_token"');
   });
 
   it('sets the WWW-Authenticate header with proper string escaping', () => {
     const res = {
       set: vi.fn()
-    } as unknown as Response;
+    } as Response & { set: Mock };
 
     const attributes: AuthErrorAttributes = {
       realm: 'nr-peach',
       error: 'invalid_token',
-      error_description: 'Quote " and backslash \\ are escaped'
+      error_description: String.raw`Quote " and backslash \ are escaped`
     };
 
     setAuthHeader(res, attributes);
 
-    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(res.set).toHaveBeenCalledWith(
       'WWW-Authenticate',
-      'Bearer realm="nr-peach", error="invalid_token", error_description="Quote \\" and backslash \\\\ are escaped"'
+      String.raw`Bearer realm="nr-peach", error="invalid_token", error_description="Quote \" and backslash \\ are escaped"` // eslint-disable-line max-len
     );
   });
 });
