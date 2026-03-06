@@ -1,3 +1,4 @@
+import stringify from 'fast-json-stable-stringify';
 import { createHash } from 'node:crypto';
 
 import { BaseRepository } from '../../../../src/repositories/base.ts';
@@ -48,13 +49,13 @@ describe('cacheableRead', () => {
     expect(result).toEqual(readResult);
     expect(repo.read).toHaveBeenCalledWith('2.0.0');
 
-    const cacheKey = `pies.version:${createHash('sha256').update(JSON.stringify('2.0.0')).digest('hex')}`;
+    const cacheKey = `pies.version:${createHash('sha256').update(stringify('2.0.0')).digest('hex')}`;
     expect(lruCache.get(cacheKey)).toEqual(readResult);
   });
 
   it('returns cached result if available', async () => {
     const cachedResult = { id: '3.0.0' };
-    const cacheKey = `pies.version:${createHash('sha256').update(JSON.stringify('3.0.0')).digest('hex')}`;
+    const cacheKey = `pies.version:${createHash('sha256').update(stringify('3.0.0')).digest('hex')}`;
     lruCache.set(cacheKey, cachedResult);
 
     const result = await cacheableRead(repo, '3.0.0', true);
@@ -102,7 +103,7 @@ describe('cacheableUpsert', () => {
     expect(repo.upsert).toHaveBeenCalledWith(mockData);
 
     // Check cache
-    const cacheKey = `pies.version:${createHash('sha256').update(JSON.stringify(mockData)).digest('hex')}`;
+    const cacheKey = `pies.version:${createHash('sha256').update(stringify(mockData)).digest('hex')}`;
     expect(lruCache.get(cacheKey)).toEqual(upsertResult);
   });
 });

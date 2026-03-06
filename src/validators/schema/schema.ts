@@ -1,5 +1,7 @@
 import { Ajv } from 'ajv';
 import formats from 'ajv-formats';
+import stringify from 'fast-json-stable-stringify';
+import { createHash } from 'node:crypto';
 
 import { getLogger } from '../../utils/index.ts';
 
@@ -31,6 +33,18 @@ export function createAjvInstance(opts?: Options): Ajv {
   // TS workaround: https://github.com/ajv-validator/ajv-formats/issues/85#issuecomment-2377962689
   const addFormats = formats as unknown as Plugin<FormatsPluginOptions>;
   return addFormats(ajv);
+}
+
+/**
+ * Ensures a schema has a unique $id. If missing, generates a deterministic hash based on the schema content.
+ * @param schema A JSON Schema object.
+ * @returns The schema with a defined $id attribute.
+ */
+export function ensureSchemaId(schema: AnySchemaObject): AnySchemaObject {
+  if (schema.$id) return schema;
+
+  const hash = createHash('sha256').update(stringify(schema)).digest('hex');
+  return { $id: `schema:${hash}`, ...schema };
 }
 
 /**
