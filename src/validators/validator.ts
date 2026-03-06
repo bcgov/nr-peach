@@ -1,15 +1,14 @@
-import { Ajv } from 'ajv';
-
 import { integrityValidators } from './integrity/index.ts';
-import { createAjvInstance, getPiesSchemaUri, loadSchema, pies } from './schema/index.ts';
+import { createAjvInstance, ensureSchemaId, getPiesSchemaUri, loadSchema, pies } from './schema/index.ts';
 import { getLogger } from '../utils/index.ts';
 
 import type { AnySchemaObject, AnyValidateFunction, ErrorObject } from 'ajv/dist/core.js';
 import type { IntegrityDictionary, IntegrityResult } from '../types/index.d.ts';
 
+const ajv = createAjvInstance();
+
 const log = getLogger(import.meta.filename);
-const stringSchemaCache: Record<string, Ajv> = {};
-const objectSchemaCache = new WeakMap<AnySchemaObject, Promise<AnyValidateFunction<unknown>>>();
+const inFlightCompilations = new Map<string, Promise<AnyValidateFunction<unknown>>>();
 
 // Only pre-cache schemas in production to avoid bombarding Github API in development
 if (process.env.NODE_ENV === 'production') await preCachePiesSchema();
@@ -47,46 +46,51 @@ export function validateIntegrity<K extends keyof IntegrityDictionary>(
 }
 
 /**
- * Validates data against a JSON schema using asynchronous compilation and caching.
+ * Validates data against a JSON schema using async compilation, deterministic hashing, and request deduplication.
  * @remarks
- * This function optimizes performance by:
- * 1. Caching Ajv instances for string-identified schemas.
- * 2. Caching compilation promises for schema objects to prevent redundant processing.
+ * This function optimizes performance and reliability through three layers:
+ * 1. **Persistent Cache**: Uses Ajv's internal registry for schemas with a known `$id` or URI.
+ * 2. **Deterministic Hashing**: Anonymous schema objects are automatically assigned a
+ * stable `$id` based on their content, preventing redundant compilations of identical structures.
+ * 3. **Concurrency Lock**: Uses an `in-flight` promise map to ensure that multiple
+ * simultaneous requests for the same new schema trigger only one compilation/load task.
  * @param schema - The validation blueprint. Can be a string identifier (URI/ID) or a schema object.
- * @param data - The payload to validate. Treated as `unknown` to ensure type-safe handling.
+ * Objects without an `$id` will have one auto-generated.
+ * @param data - The payload to validate. Treated as `unknown` for type safety.
  * @returns A promise resolving to a validation result:
  * - `valid`: true if the data satisfies the schema.
  * - `errors`: An array of `ErrorObject` if validation fails, otherwise undefined.
- * @throws {Error} Will throw if the schema cannot be loaded or if compilation fails.
+ * @throws {Error} Will throw if `loadSchema` fails to fetch a remote definition or
+ * if the schema contains syntax errors.
  */
 export async function validateSchema(
   schema: AnySchemaObject | string,
   data: unknown
 ): Promise<{ valid: boolean; errors?: ErrorObject[] }> {
-  let validate: AnyValidateFunction<unknown>;
-  if (typeof schema === 'string') {
-    const cached = schema in stringSchemaCache;
-    log.verbose('validateSchema', { cached, schema });
+  const isString = typeof schema === 'string';
+  const definition = isString ? null : ensureSchemaId(schema);
+  const schemaId = isString ? schema : definition!.$id!;
 
-    if (cached) {
-      validate = stringSchemaCache[schema].getSchema(schema)!;
-    } else {
-      const ajv = createAjvInstance();
+  let validate = ajv.getSchema(schemaId);
 
-      const def = await loadSchema(schema);
-      validate = await ajv.compileAsync(def);
-      stringSchemaCache[schema] = ajv;
+  if (!validate) {
+    // Check if another request is already compiling this
+    let promise = inFlightCompilations.get(schemaId);
+    if (!promise) {
+      promise = (async (): Promise<AnyValidateFunction<unknown>> => {
+        try {
+          const finalDef = definition ?? (await loadSchema(schemaId));
+          return await ajv.compileAsync(finalDef);
+        } finally {
+          inFlightCompilations.delete(schemaId);
+        }
+      })();
+      inFlightCompilations.set(schemaId, promise);
     }
-  } else {
-    let validatePromise = objectSchemaCache.get(schema);
-    if (!validatePromise) {
-      const ajv = createAjvInstance();
-      validatePromise = ajv.compileAsync(schema);
-      objectSchemaCache.set(schema, validatePromise);
-    }
-    validate = await validatePromise;
+
+    validate = await promise;
   }
 
   const valid = !!validate(data);
-  return { valid: valid, errors: validate.errors ?? undefined };
+  return { valid: valid, errors: validate.errors?.slice() };
 }
