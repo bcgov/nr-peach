@@ -49,6 +49,7 @@
     "express": "5.2.1",
     "express-rate-limit": "8.2.1",
     "express-winston": "4.2.0",
+    "fast-json-stable-stringify": "2.1.0",
     "helmet": "8.1.0",
     "js-yaml": "4.1.1",
     "jsonwebtoken": "9.0.3",

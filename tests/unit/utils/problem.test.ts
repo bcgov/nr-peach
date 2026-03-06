@@ -99,17 +99,13 @@ describe('Problem', () => {
       expect(res.end).toHaveBeenCalledTimes(1);
       // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(res.end).toHaveBeenCalledWith(
-        JSON.stringify(
-          {
-            type: 'https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/401',
-            title: 'Unauthorized',
-            status: 401,
-            detail: undefined,
-            instance: '/test'
-          },
-          null,
-          2
-        )
+        JSON.stringify({
+          type: 'https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/401',
+          title: 'Unauthorized',
+          status: 401,
+          detail: undefined,
+          instance: '/test'
+        })
       );
     });
   });

@@ -98,11 +98,10 @@ export default class Problem extends Error {
    * Sends a JSON response with the current instance's data.
    * @param req - The HTTP request object.
    * @param res - The HTTP response object.
-   * @param space - The number of spaces to use for JSON stringification. Defaults to 2.
    */
-  send(req: Request, res: Response, space: string | number = 2) {
+  send(req: Request, res: Response) {
     this.instance ??= req.originalUrl;
     res.writeHead(this.status, { 'Content-Type': CONTENT_TYPE });
-    res.end(JSON.stringify(this, null, space));
+    res.end(JSON.stringify(this));
   }
 }
