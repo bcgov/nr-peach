@@ -1,6 +1,7 @@
 import Problem from '../../../src/utils/problem.ts';
 
 import type { Request, Response } from 'express';
+import type { Mock } from 'vitest';
 
 describe('Problem', () => {
   it('should create a Problem instance with valid inputs', () => {
@@ -82,34 +83,26 @@ describe('Problem', () => {
     it('should send a JSON response with the problem details', () => {
       const req = { originalUrl: '/test' } as Request;
       const res = {
-        writeHead: vi.fn(),
-        end: vi.fn()
-      } as unknown as Response;
+        end: vi.fn(),
+        writeHead: vi.fn()
+      } as Response & { end: Mock; writeHead: Mock };
 
       const problem = new Problem(401, { title: 'Unauthorized' });
       problem.send(req, res);
 
-      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(res.writeHead).toHaveBeenCalledTimes(1);
-      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(res.writeHead).toHaveBeenCalledWith(401, {
         'Content-Type': 'application/problem+json'
       });
-      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(res.end).toHaveBeenCalledTimes(1);
-      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(res.end).toHaveBeenCalledWith(
-        JSON.stringify(
-          {
-            type: 'https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/401',
-            title: 'Unauthorized',
-            status: 401,
-            detail: undefined,
-            instance: '/test'
-          },
-          null,
-          2
-        )
+        JSON.stringify({
+          type: 'https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/401',
+          title: 'Unauthorized',
+          status: 401,
+          detail: undefined,
+          instance: '/test'
+        })
       );
     });
   });

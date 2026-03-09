@@ -2,6 +2,7 @@ import { getBearerToken, normalizeScopes, setAuthHeader } from '../../../../src/
 
 import type { Request, Response } from 'express';
 import type { JwksClient } from 'jwks-rsa';
+import type { Mock } from 'vitest';
 import type { AuthErrorAttributes } from '../../../../src/types/index.d.ts';
 
 describe('getBearerToken', () => {
@@ -59,7 +60,7 @@ describe('getJwksClient', () => {
   beforeEach(async () => {
     vi.resetModules();
     vi.unstubAllGlobals();
-    delete (global as Record<string, unknown>).jwksClientPromise;
+    delete (globalThis as Record<string, unknown>).jwksClientPromise;
     getJwksClient = (await import('../../../../src/middlewares/helpers/oauth.ts')).getJwksClient;
     process.env.AUTH_ISSUER = 'https://auth.example.com/';
   });
@@ -71,7 +72,7 @@ describe('getJwksClient', () => {
   it('creates a JWKS client with the correct configuration', async () => {
     const mockUri = 'https://auth.example.com/.well-known/jwks.json';
 
-    global.fetch = vi.fn().mockResolvedValueOnce({
+    globalThis.fetch = vi.fn().mockResolvedValueOnce({
       ok: true,
       json: vi.fn().mockResolvedValueOnce({ jwks_uri: mockUri })
     });
@@ -79,13 +80,13 @@ describe('getJwksClient', () => {
     const client = await getJwksClient();
 
     expect(client).toBeDefined();
-    expect(global.fetch).toHaveBeenCalledWith('https://auth.example.com/.well-known/openid-configuration');
+    expect(globalThis.fetch).toHaveBeenCalledWith('https://auth.example.com/.well-known/openid-configuration');
   });
 
   it('returns cached promise on subsequent calls', async () => {
     const mockUri = 'https://auth.example.com/.well-known/jwks.json';
 
-    global.fetch = vi.fn().mockResolvedValueOnce({
+    globalThis.fetch = vi.fn().mockResolvedValueOnce({
       ok: true,
       json: vi.fn().mockResolvedValueOnce({ jwks_uri: mockUri })
     });
@@ -94,11 +95,11 @@ describe('getJwksClient', () => {
     const client2 = await getJwksClient();
 
     expect(client1).toBe(client2);
-    expect(global.fetch).toHaveBeenCalledTimes(1);
+    expect(globalThis.fetch).toHaveBeenCalledTimes(1);
   });
 
   it('throws an error if getJwksUri fails', async () => {
-    global.fetch = vi.fn().mockResolvedValueOnce({
+    globalThis.fetch = vi.fn().mockResolvedValueOnce({
       ok: false,
       status: 500,
       statusText: 'Internal Server Error'
@@ -114,7 +115,7 @@ describe('getJwksUri', () => {
   beforeEach(async () => {
     vi.resetModules();
     vi.unstubAllGlobals();
-    delete (global as Record<string, unknown>).jwksUriPromise;
+    delete (globalThis as Record<string, unknown>).jwksUriPromise;
     getJwksUri = (await import('../../../../src/middlewares/helpers/oauth.ts')).getJwksUri;
   });
 
@@ -126,7 +127,7 @@ describe('getJwksUri', () => {
     const mockUri = 'https://auth.example.com/.well-known/jwks.json';
     process.env.AUTH_ISSUER = 'https://auth.example.com';
 
-    global.fetch = vi.fn().mockResolvedValueOnce({
+    globalThis.fetch = vi.fn().mockResolvedValueOnce({
       ok: true,
       json: vi.fn().mockResolvedValueOnce({ jwks_uri: mockUri })
     });
@@ -134,14 +135,14 @@ describe('getJwksUri', () => {
     const result = await getJwksUri();
 
     expect(result).toBe(mockUri);
-    expect(global.fetch).toHaveBeenCalledWith('https://auth.example.com/.well-known/openid-configuration');
+    expect(globalThis.fetch).toHaveBeenCalledWith('https://auth.example.com/.well-known/openid-configuration');
   });
 
   it('returns cached promise on subsequent calls', async () => {
     const mockUri = 'https://auth.example.com/.well-known/jwks.json';
     process.env.AUTH_ISSUER = 'https://auth.example.com';
 
-    global.fetch = vi.fn().mockResolvedValueOnce({
+    globalThis.fetch = vi.fn().mockResolvedValueOnce({
       ok: true,
       json: vi.fn().mockResolvedValueOnce({ jwks_uri: mockUri })
     });
@@ -151,14 +152,14 @@ describe('getJwksUri', () => {
 
     expect(result1).toBe(mockUri);
     expect(result2).toBe(mockUri);
-    expect(global.fetch).toHaveBeenCalledTimes(1);
+    expect(globalThis.fetch).toHaveBeenCalledTimes(1);
   });
 
   it('handles issuer URL with trailing slash', async () => {
     const mockUri = 'https://auth.example.com/.well-known/jwks.json';
     process.env.AUTH_ISSUER = 'https://auth.example.com/';
 
-    global.fetch = vi.fn().mockResolvedValueOnce({
+    globalThis.fetch = vi.fn().mockResolvedValueOnce({
       ok: true,
       json: vi.fn().mockResolvedValueOnce({ jwks_uri: mockUri })
     });
@@ -166,7 +167,7 @@ describe('getJwksUri', () => {
     const result = await getJwksUri();
 
     expect(result).toBe(mockUri);
-    expect(global.fetch).toHaveBeenCalledWith('https://auth.example.com/.well-known/openid-configuration');
+    expect(globalThis.fetch).toHaveBeenCalledWith('https://auth.example.com/.well-known/openid-configuration');
   });
 
   it('throws an error when AUTH_ISSUER is not set', async () => {
@@ -178,7 +179,7 @@ describe('getJwksUri', () => {
   it('throws an error when fetch fails', async () => {
     process.env.AUTH_ISSUER = 'https://auth.example.com';
 
-    global.fetch = vi.fn().mockResolvedValueOnce({
+    globalThis.fetch = vi.fn().mockResolvedValueOnce({
       ok: false,
       status: 404,
       statusText: 'Not Found'
@@ -190,7 +191,7 @@ describe('getJwksUri', () => {
   it('throws an error when jwks_uri is missing in the configuration', async () => {
     process.env.AUTH_ISSUER = 'https://auth.example.com';
 
-    global.fetch = vi.fn().mockResolvedValueOnce({
+    globalThis.fetch = vi.fn().mockResolvedValueOnce({
       ok: true,
       json: vi.fn().mockResolvedValueOnce({})
     });
@@ -227,7 +228,7 @@ describe('setAuthHeader', () => {
   it('sets the WWW-Authenticate header with the provided attributes', () => {
     const res = {
       set: vi.fn()
-    } as unknown as Response;
+    } as Response & { set: Mock };
 
     const attributes: AuthErrorAttributes = {
       realm: 'nr-peach',
@@ -237,7 +238,6 @@ describe('setAuthHeader', () => {
 
     setAuthHeader(res, attributes);
 
-    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(res.set).toHaveBeenCalledWith(
       'WWW-Authenticate',
       'Bearer realm="nr-peach", error="invalid_token", error_description="The access token is invalid"'
@@ -247,7 +247,7 @@ describe('setAuthHeader', () => {
   it('sets the WWW-Authenticate header without empty attributes', () => {
     const res = {
       set: vi.fn()
-    } as unknown as Response;
+    } as Response & { set: Mock };
 
     const attributes: AuthErrorAttributes = {
       realm: 'nr-peach',
@@ -258,7 +258,6 @@ describe('setAuthHeader', () => {
 
     setAuthHeader(res, attributes);
 
-    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(res.set).toHaveBeenCalledWith(
       'WWW-Authenticate',
       'Bearer realm="nr-peach", error="invalid_token", error_description="The access token is invalid"'
@@ -268,7 +267,7 @@ describe('setAuthHeader', () => {
   it('sets the WWW-Authenticate header with only US-ASCII encoded string values', () => {
     const res = {
       set: vi.fn()
-    } as unknown as Response;
+    } as Response & { set: Mock };
 
     const attributes: AuthErrorAttributes = {
       realm: 'nr-peach',
@@ -278,27 +277,25 @@ describe('setAuthHeader', () => {
 
     setAuthHeader(res, attributes);
 
-    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(res.set).toHaveBeenCalledWith('WWW-Authenticate', 'Bearer realm="nr-peach", error="invalid_token"');
   });
 
   it('sets the WWW-Authenticate header with proper string escaping', () => {
     const res = {
       set: vi.fn()
-    } as unknown as Response;
+    } as Response & { set: Mock };
 
     const attributes: AuthErrorAttributes = {
       realm: 'nr-peach',
       error: 'invalid_token',
-      error_description: 'Quote " and backslash \\ are escaped'
+      error_description: String.raw`Quote " and backslash \ are escaped`
     };
 
     setAuthHeader(res, attributes);
 
-    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(res.set).toHaveBeenCalledWith(
       'WWW-Authenticate',
-      'Bearer realm="nr-peach", error="invalid_token", error_description="Quote \\" and backslash \\\\ are escaped"'
+      String.raw`Bearer realm="nr-peach", error="invalid_token", error_description="Quote \" and backslash \\ are escaped"` // eslint-disable-line max-len
     );
   });
 });

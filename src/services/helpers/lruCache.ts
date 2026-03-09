@@ -1,9 +1,10 @@
+import stringify from 'fast-json-stable-stringify';
 import { LRUCache } from 'lru-cache';
 import { createHash } from 'node:crypto';
 
 import { findWhereOrUpsert } from './repo.ts';
 import { BaseRepository } from '../../repositories/index.ts';
-import { getLogger, sortObject } from '../../utils/index.ts';
+import { getLogger } from '../../utils/index.ts';
 
 import type { FilterObject, InsertObject, OperandValueExpression, Selectable, Simplify } from 'kysely';
 import type { DB } from '../../types/index.d.ts';
@@ -33,7 +34,7 @@ export async function cacheableRead<TB extends keyof DB, ID extends OperandValue
   const reader = (pk: ID) => repo.read(pk).executeTakeFirstOrThrow();
   if (!cacheEnabled) return await reader(id);
 
-  const hash = createHash('sha256').update(JSON.stringify(id)).digest('hex');
+  const hash = createHash('sha256').update(stringify(id)).digest('hex');
   return cacheWrapper(`${repo.tableName}:${hash}`, reader, id);
 }
 
@@ -54,8 +55,7 @@ export function cacheableUpsert<TB extends keyof DB>(
 ): Promise<Selectable<DB[TB]>> {
   if (!cacheEnabled) return findWhereOrUpsert(repo, data);
 
-  const sortedData = sortObject(data);
-  const hash = createHash('sha256').update(JSON.stringify(sortedData)).digest('hex');
+  const hash = createHash('sha256').update(stringify(data)).digest('hex');
   return cacheWrapper(`${repo.tableName}:${hash}`, findWhereOrUpsert, repo, data);
 }
 
