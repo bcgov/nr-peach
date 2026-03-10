@@ -1,30 +1,42 @@
 version: '3.8'
+
 services:
   app:
     build:
       context: .
       dockerfile: Dockerfile
     environment:
+      APP_AUTOMIGRATE: 'true'
       PGHOST: db
       PGDATABASE: peach
       PGUSER: app
-      PGPASSWORD: postgres
+      PGPASSWORD: ${DB_PASSWORD:-postgres}
     ports:
       - '3000:3000'
     volumes:
-      - ..:/workspace:cached
+      - ..:/workspace:cached,Z
+      - node_modules:/workspace/node_modules
     command: sleep infinity
     depends_on:
-      - db
+      db:
+        condition: service_healthy
+
   db:
     image: docker.io/postgres:18-alpine
     environment:
       POSTGRES_DB: peach
       POSTGRES_USER: app
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U app -d peach']
+      interval: 5s
+      timeout: 5s
+      retries: 5
     ports:
       - '5432:5432'
     volumes:
-      - postgres-data:/var/lib/postgresql/data
+      - postgres-data:/var/lib/postgresql
+
 volumes:
+  node_modules:
   postgres-data:

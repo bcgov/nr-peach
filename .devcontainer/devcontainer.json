@@ -24,7 +24,7 @@
     }
   },
   "forwardPorts": [3000, 5432],
-  "postCreateCommand": "(npm ci && npm run migrate:latest && npm run seed:run)",
+  "postCreateCommand": "sudo chown node:node node_modules && npm ci",
   "waitFor": "postCreateCommand",
   "remoteUser": "node"
 }
