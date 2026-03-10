@@ -86,7 +86,7 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v6.0.2
       - name: Setup Node.js
-        uses: actions/setup-node@v6.2.0
+        uses: actions/setup-node@v6.3.0
         with:
           node-version: 24
       - name: Cache Node modules
@@ -122,7 +122,7 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v6.0.2
       - name: Setup Node.js
-        uses: actions/setup-node@v6.2.0
+        uses: actions/setup-node@v6.3.0
         with:
           node-version: 24
       - name: Cache Node modules
