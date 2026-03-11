@@ -172,7 +172,7 @@ variable "postgresql_storage_mb" {
 variable "postgresql_version" {
   description = "Version of PostgreSQL Flexible Server."
   type        = string
-  default     = "16"
+  default     = "18"
   nullable    = false
 }
 
