@@ -29,7 +29,7 @@ const pool = new Pool({
   ssl: process.env.PGSSLMODE === 'require' ? { rejectUnauthorized: false } : false,
   connectionTimeoutMillis: +(process.env.PGPOOL_TIMEOUT ?? 5000),
   idleTimeoutMillis: +(process.env.PGPOOL_IDLE_TIMEOUT ?? 10000),
-  max: +(process.env.PGPOOL_MAX ?? 10),
+  max: +(process.env.PGPOOL_MAX ?? 20),
   min: +(process.env.PGPOOL_MIN ?? 0),
   maxLifetimeSeconds: +(process.env.PGPOOL_MAX_LIFETIME ?? 60)
 });
@@ -38,7 +38,7 @@ pool.on('error', onPoolError);
 const events: readonly ('acquire' | 'connect' | 'release' | 'remove')[] = ['acquire', 'connect', 'release', 'remove'];
 events.forEach((event) =>
   pool.on(event, () =>
-    log.silly(`Database client ${event}`, { clientCount: pool.totalCount, waitingCount: pool.waitingCount })
+    log.debug(`Database client ${event}`, { clientCount: pool.totalCount, waitingCount: pool.waitingCount })
   )
 );
 
