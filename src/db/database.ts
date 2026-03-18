@@ -240,9 +240,8 @@ export async function runSeeds() {
  * @param cb - Optional callback function to be executed after the database is destroyed.
  * @returns A promise that resolves when the database has been destroyed.
  */
-export async function shutdownDatabase(cb?: () => void): Promise<void> {
-  await db.destroy();
-  return cb?.();
+export function shutdownDatabase(cb?: () => void): Promise<void> {
+  return db.destroy().then(cb); // Also invokes pool.end()
 }
 
 export * from './utils.ts';

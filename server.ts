@@ -27,7 +27,7 @@ process.on('unhandledRejection', (err: Error): void => {
 
 // Graceful shutdown support
 const signals: readonly NodeJS.Signals[] = ['SIGHUP', 'SIGINT', 'SIGTERM', 'SIGUSR1', 'SIGUSR2'];
-signals.forEach((signal) => process.once(signal, () => shutdown(signal)));
+signals.forEach((signal) => process.on(signal, () => shutdown(signal)));
 
 // Perform preliminary system and database checks
 try {
@@ -112,9 +112,15 @@ function cleanup(): void {
  * @param signal - Received termination signal (e.g., 'SIGINT', 'SIGTERM').
  */
 function shutdown(signal: NodeJS.Signals): void {
+  if (state.shutdown) return;
   state.shutdown = true;
   log.fatal(`Shutdown initiated [${signal}]`);
+
   cleanup();
+  setTimeout(() => {
+    log.fatal('Shutdown timed out: forcing exit');
+    log.flush(() => process.exit(1));
+  }, 8000); // 8 seconds - slightly less than default 10s in Docker
 }
 
 /**
