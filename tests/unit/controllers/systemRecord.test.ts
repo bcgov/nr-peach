@@ -5,7 +5,7 @@ import { deleteSystemRecordController } from '../../../src/controllers/systemRec
 import * as services from '../../../src/services/index.ts';
 
 import type { Selectable } from 'kysely';
-import type { PiesSystemRecord } from '../../../src/types/index.js';
+import type { PiesSystemRecord } from '../../../src/types/index.d.ts';
 
 describe('System Record Controllers', () => {
   const deleteSystemRecordServiceSpy = vi.spyOn(services, 'deleteSystemRecordService');

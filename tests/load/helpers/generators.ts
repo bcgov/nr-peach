@@ -1,7 +1,7 @@
 import { parseEnv, randomIntBetween, randomItem, uniqByKeepFirst, uuidv7 } from './utils.ts';
 import { CodingDictionary } from '../../../src/utils/coding.ts';
 
-import type { Coding, CodingEvent, Event, Process, ProcessEvent, Record } from '../../../src/types/elements.d.ts';
+import type { Coding, CodingEvent, Event, Process, ProcessEvent, Record } from '../../../src/types/index.d.ts';
 
 const env = parseEnv();
 
