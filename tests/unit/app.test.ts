@@ -56,6 +56,23 @@ describe('App', () => {
     expect(response.status).toBe(404);
   });
 
+  it('should return 429 when rate limit is exceeded', async () => {
+    vi.resetModules();
+    vi.stubEnv('APP_RATEENABLE', 'true');
+    vi.stubEnv('APP_RATELIMIT', '1');
+
+    const { app: rateLimitedApp } = await import('../../src/app.ts');
+
+    // First request consumes the limit
+    await request(rateLimitedApp).get('/');
+
+    const response = await request(rateLimitedApp).get('/');
+    expect(response.status).toBe(429);
+    expect((response.body as { detail: string }).detail).toBe('Too many requests, please try again later.');
+    vi.unstubAllEnvs();
+    vi.doUnmock('../../src/db/index.ts');
+  });
+
   describe('errorHandler', () => {
     let req: Request;
     let res: Response;

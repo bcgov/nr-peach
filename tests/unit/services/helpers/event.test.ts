@@ -6,41 +6,6 @@ import {
 
 import type { Event } from '../../../../src/types/index.d.ts';
 
-describe('mergeDateAndTimeToISOString', () => {
-  it('merges date and time (HH:mm) to ISO string in UTC', () => {
-    const date = new Date(Date.UTC(2023, 5, 1)); // 2023-06-01T00:00:00.000Z
-    const time = '14:30';
-    const result = mergeDateAndTimeToISOString(date, time);
-    expect(result).toBe('2023-06-01T14:30:00.000Z');
-  });
-
-  it('merges date and time (HH:mm:ss) to ISO string in UTC', () => {
-    const date = new Date(Date.UTC(2023, 5, 1));
-    const time = '14:30:15';
-    const result = mergeDateAndTimeToISOString(date, time);
-    expect(result).toBe('2023-06-01T14:30:15.000Z');
-  });
-
-  it('merges date and time (HH:mm:ss.sss) to ISO string in UTC', () => {
-    const date = new Date(Date.UTC(2023, 5, 1));
-    const time = '14:30:15.123';
-    const result = mergeDateAndTimeToISOString(date, time);
-    expect(result).toBe('2023-06-01T14:30:15.123Z');
-  });
-
-  it('ignores timezone offset in time string', () => {
-    const date = new Date(Date.UTC(2023, 5, 1));
-    const time = '14:30:15.123+02:00';
-    const result = mergeDateAndTimeToISOString(date, time);
-    expect(result).toBe('2023-06-01T14:30:15.123Z');
-  });
-
-  it('throws error for invalid time format', () => {
-    const date = new Date(Date.UTC(2023, 5, 1));
-    expect(() => mergeDateAndTimeToISOString(date, 'badtime')).toThrow();
-  });
-});
-
 describe('dateTimePartsToEvent', () => {
   it('returns start_datetime and end_datetime when times are provided', () => {
     const startDate = new Date(Date.UTC(2023, 5, 1));
@@ -147,5 +112,55 @@ describe('eventToDateTimeParts', () => {
       endDate: undefined,
       endTime: undefined
     });
+  });
+});
+
+describe('mergeDateAndTimeToISOString', () => {
+  it('merges date and time (HH:mm) to ISO string in UTC', () => {
+    const date = new Date(Date.UTC(2023, 5, 1)); // 2023-06-01T00:00:00.000Z
+    const time = '14:30';
+    const result = mergeDateAndTimeToISOString(date, time);
+    expect(result).toBe('2023-06-01T14:30:00.000Z');
+  });
+
+  it('merges date and time (HH:mm:ss) to ISO string in UTC', () => {
+    const date = new Date(Date.UTC(2023, 5, 1));
+    const time = '14:30:15';
+    const result = mergeDateAndTimeToISOString(date, time);
+    expect(result).toBe('2023-06-01T14:30:15.000Z');
+  });
+
+  it('merges date and time (HH:mm:ss.sss) to ISO string in UTC', () => {
+    const date = new Date(Date.UTC(2023, 5, 1));
+    const time = '14:30:15.123';
+    const result = mergeDateAndTimeToISOString(date, time);
+    expect(result).toBe('2023-06-01T14:30:15.123Z');
+  });
+
+  it('ignores timezone offset in time string', () => {
+    const date = new Date(Date.UTC(2023, 5, 1));
+    const time = '14:30:15.123+02:00';
+    const result = mergeDateAndTimeToISOString(date, time);
+    expect(result).toBe('2023-06-01T14:30:15.123Z');
+  });
+
+  it('throws error for invalid time format', () => {
+    const date = new Date(Date.UTC(2023, 5, 1));
+    expect(() => mergeDateAndTimeToISOString(date, 'badtime')).toThrow();
+  });
+
+  it('throws error for non-numeric hour', () => {
+    const date = new Date(Date.UTC(2023, 5, 1));
+    expect(() => mergeDateAndTimeToISOString(date, 'xx:30')).toThrow('Invalid numeric values in time: xx:30');
+  });
+
+  it('throws error for non-numeric minute', () => {
+    const date = new Date(Date.UTC(2023, 5, 1));
+    expect(() => mergeDateAndTimeToISOString(date, '14:xx')).toThrow('Invalid numeric values in time: 14:xx');
+  });
+
+  it('throws error for non-numeric second', () => {
+    const date = new Date(Date.UTC(2023, 5, 1));
+    expect(() => mergeDateAndTimeToISOString(date, '14:30:xx')).toThrow('Invalid numeric values in time: 14:30:xx');
   });
 });

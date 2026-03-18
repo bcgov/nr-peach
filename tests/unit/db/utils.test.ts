@@ -3,6 +3,7 @@ import { mockSqlExecuteReturn } from './kysely.helper.ts'; // Must be imported b
 import { Kysely, sql } from 'kysely';
 
 import {
+  SYSTEM_USER,
   createAuditLogTrigger,
   createIndex,
   createUpdatedAtTrigger,
@@ -120,6 +121,10 @@ describe('DB Utils', () => {
   });
 
   it('should add timestamps to a table builder', () => {
+    const colBuilder = {
+      defaultTo: vi.fn().mockReturnThis(),
+      notNull: vi.fn().mockReturnThis()
+    };
     const tableBuilder = {
       addColumn: vi.fn().mockReturnThis()
     } as unknown as CreateTableBuilder<string>;
@@ -127,8 +132,22 @@ describe('DB Utils', () => {
 
     // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(result.addColumn).toHaveBeenCalledWith('created_at', 'timestamptz', expect.any(Function));
+    const createdAtFn = (tableBuilder.addColumn as Mock).mock.calls.find((call) => call[0] === 'created_at')?.[2] as (
+      col: typeof colBuilder
+    ) => void;
+    createdAtFn(colBuilder);
+    expect(colBuilder.notNull).toHaveBeenCalled();
+    expect(colBuilder.defaultTo).toHaveBeenCalledWith(expect.objectContaining({ strings: ['CURRENT_TIMESTAMP'] }));
+
     // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(result.addColumn).toHaveBeenCalledWith('created_by', 'text', expect.any(Function));
+    const createdByFn = (tableBuilder.addColumn as Mock).mock.calls.find((call) => call[0] === 'created_by')?.[2] as (
+      col: typeof colBuilder
+    ) => void;
+    createdByFn(colBuilder);
+    expect(colBuilder.notNull).toHaveBeenCalled();
+    expect(colBuilder.defaultTo).toHaveBeenCalledWith(SYSTEM_USER);
+
     // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(result.addColumn).toHaveBeenCalledWith('updated_at', 'timestamptz');
     // eslint-disable-next-line @typescript-eslint/unbound-method
