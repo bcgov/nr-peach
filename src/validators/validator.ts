@@ -18,7 +18,7 @@ if (process.env.NODE_ENV === 'production') await preCachePiesSchema();
  * @returns A promise that resolves when all schemas have been pre-cached.
  */
 export async function preCachePiesSchema(): Promise<{ valid: boolean; errors?: ErrorObject[] }[]> {
-  log.verbose('Pre-caching PIES JSON schemas...');
+  log.debug('Pre-caching PIES JSON schemas');
 
   const start = Date.now();
   return await Promise.all(
@@ -27,7 +27,7 @@ export async function preCachePiesSchema(): Promise<{ valid: boolean; errors?: E
       .map((uri) => validateSchema(uri, null)) // Ignore the result, just pre-cache schemas
   ).finally(() => {
     const end = Date.now();
-    log.info('PIES JSON schemas are pre-cached', { duration: end - start });
+    log.info({ duration: end - start }, 'PIES JSON schemas are pre-cached');
   });
 }
 

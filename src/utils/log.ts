@@ -1,113 +1,85 @@
-import { logger } from 'express-winston';
+import pino from 'pino';
+import { pinoHttp } from 'pino-http';
 import { parse } from 'node:path';
-import { createLogger, format, transports } from 'winston';
-import Transport from 'winston-transport';
 
 import type { Request, RequestHandler, Response } from 'express';
-import type { LogEntry, Logger } from 'winston';
-import type { TransportStreamOptions } from 'winston-transport';
+import type { Logger, TransportSingleOptions } from 'pino';
 import type { LocalContext } from '../types/index.d.ts';
 
-const DEFAULT_LOG_LEVEL = 'http';
+/** Define Pino logging meta-structure */
+declare module 'pino' {
+  interface LogFnFields {
+    module?: never; // Disallow overwriting the module field
+  }
+}
+
+const DEFAULT_LOG_LEVEL = 'info';
 const USER_AGENTS = ['AlwaysOn', 'Edge Health Probe', 'HealthCheck', 'kube-probe', 'ReadyForRequest'];
 
-/**
- * Class representing a winston transport writing to null
- * Typically only used in test environments
- */
-export class NullTransport extends Transport {
-  /**
-   * Constructor
-   * @param opts Winston Transport options
-   */
-  constructor(opts: TransportStreamOptions) {
-    super(opts);
+const prettyTransport: TransportSingleOptions = {
+  target: 'pino-pretty',
+  options: {
+    colorize: true,
+    ignore: 'pid,hostname',
+    singleLine: process.env.APP_LOGSINGLELINE === 'true'
   }
+};
 
-  /**
-   * The transport logger
-   * @param _info Object to log
-   * @param callback Callback function
-   */
-  log(_info: LogEntry, callback: () => void) {
-    callback();
-  }
-}
-
-/**
- * Main Winston Logger
- * @returns {object} Winston Logger
- */
-const log = createLogger({
-  exitOnError: false,
-  format: format.combine(
-    format.errors({ stack: true }), // Force errors to show stacktrace
-    format.timestamp(), // Add ISO timestamp to each entry
-    process.env.NODE_ENV === 'production' ? format.json() : format.prettyPrint({ colorize: true })
-  ),
-  level: process.env.APP_LOGLEVEL ?? DEFAULT_LOG_LEVEL
+export const baseLogger: Logger = pino({
+  formatters: { level: (label) => ({ level: label }) },
+  level: process.env.NODE_ENV === 'test' ? 'silent' : (process.env.APP_LOGLEVEL ?? DEFAULT_LOG_LEVEL),
+  redact: ['*.authorization', 'req.headers.authorization', 'password', 'token'],
+  transport: process.env.NODE_ENV === 'production' ? undefined : prettyTransport
 });
 
-if (process.env.NODE_ENV === 'test') {
-  log.add(new NullTransport({}));
-} else {
-  log.add(new transports.Console({ handleExceptions: true }));
+/**
+ * Main Pino Logger
+ * @param moduleName The module name to register log statements under
+ * @returns A child Pino Logger
+ */
+export function getLogger(moduleName: string) {
+  return baseLogger.child({ module: parse(moduleName).name });
 }
 
-if (process.env.APP_LOGFILE) {
-  log.add(new transports.File({ filename: process.env.APP_LOGFILE, handleExceptions: true }));
-}
-
-log.info(`Logger initialized at '${log.level}' level`, { component: 'log', logLevel: log.level });
+const log = getLogger(import.meta.filename);
 
 /**
- * Returns a Winston Logger or Child Winston Logger
- * @param filename Optional module filename path to annotate logs with
- * @returns A child logger with appropriate metadata if `filename` is defined.
- * Otherwise returns a standard logger.
+ * HTTP Middleware
  */
-export function getLogger(filename?: string): Logger {
-  return filename ? log.child({ component: parse(filename).name }) : log;
-}
-/**
- * Parses express information to insert into log output
- * @param req Express request object
- * @param res Express response object
- * @returns Dynamic meta object
- */
-export function dynamicMeta(
-  req: Request,
-  res: Response<unknown, LocalContext> & { responseTime?: number }
-): Record<string, unknown> {
-  const claims = { azp: res.locals?.claims?.azp, sub: res.locals?.claims?.sub };
-  return {
-    claims: Object.keys(claims).length ? claims : undefined,
-    contentLength: res.get('content-length'),
-    httpVersion: req.httpVersion,
-    ip: req.ip,
-    method: req.method,
-    path: req.path,
-    query: Object.keys(req.query).length ? req.query : undefined,
-    responseTime: res.responseTime,
-    statusCode: res.statusCode,
-    userAgent: req.get('user-agent')
-  };
-}
-
-/**
- * Returns an express-winston middleware function for http logging
- * @returns An express-winston middleware function
- */
-export const httpLogger: RequestHandler = logger({
-  colorize: false,
-  dynamicMeta: dynamicMeta,
-  expressFormat: true, // Use express style message strings
-  level: 'http',
-  meta: true, // Must be true for dynamicMeta to execute
-  metaField: null, // Set to null for all attributes to be at top level object
-  requestWhitelist: [], // Suppress default value output
-  responseWhitelist: [], // Suppress default value output
-  // Skip logging health check requests
-  skip: (req) => USER_AGENTS.some((el) => req.get('user-agent')?.includes(el)),
-  winstonInstance: log
+export const httpLogger: RequestHandler = pinoHttp({
+  logger: getLogger('http'),
+  customLogLevel: (req, res, err) => {
+    if (USER_AGENTS.some((el) => req.get('user-agent')?.includes(el))) return 'debug';
+    if (res.statusCode >= 500 || err) return 'error';
+    if (res.statusCode >= 400) return 'warn';
+    return 'info';
+  },
+  serializers: {
+    req: (req: Request) => ({
+      method: req.method,
+      params: Object.keys(req.params).length ? req.params : undefined,
+      query: Object.keys(req.query).length ? req.query : undefined,
+      url: req.url,
+      userAgent: req.headers['user-agent']
+    }),
+    res: (res: Response) => ({ statusCode: res.statusCode }),
+    err: (err: Error) => ({
+      type: err.constructor.name,
+      message: err.message,
+      stack: process.env.APP_LOGLEVEL === 'trace' ? err.stack : undefined
+    })
+  },
+  customErrorMessage: (req, res, err) => `${req.method} ${req.url} ${res.statusCode} - ${err.message}`,
+  customProps: (req, res: Response<unknown, LocalContext>) => {
+    const claims = res.locals?.claims;
+    return {
+      claims: claims?.azp || claims?.sub ? { azp: claims.azp, sub: claims.sub } : undefined,
+      httpVersion: req.httpVersion,
+      ip: req.ip,
+      path: req.path
+    };
+  },
+  customSuccessMessage: (req, res, responseTime) => `${req.method} ${req.url} ${res.statusCode} ${responseTime}ms`
 });
+
+log.info(`Logger initialized at '${baseLogger.level}' level`);

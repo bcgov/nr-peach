@@ -58,11 +58,14 @@ export async function transactionWrapper<T>(
       if (!(err instanceof DatabaseError && (err.code === '40001' || err.code === '40P01'))) throw err;
 
       const delay = initialDelay * 2 ** attempt;
-      log.warn(`Transaction failed, retrying in ${delay}ms...`, {
-        attempt: attempt + 1,
-        error: err,
-        function: 'transactionWrapper'
-      });
+      log.warn(
+        {
+          attempt: attempt + 1,
+          error: err,
+          function: 'transactionWrapper'
+        },
+        `Transaction failed, retrying in ${delay}ms...`
+      );
       await new Promise((res) => setTimeout(res, delay));
     }
   }

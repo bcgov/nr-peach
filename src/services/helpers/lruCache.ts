@@ -77,12 +77,12 @@ export async function cacheWrapper<T, A extends unknown[]>(
 ): Promise<T> {
   const cachedValue = lruCache.get(cacheKey) as T | undefined;
   if (cachedValue) {
-    log.debug(`Cache hit for key: ${cacheKey}`);
+    log.trace(`Cache hit for key: ${cacheKey}`);
     return cachedValue;
   }
 
   try {
-    log.debug(`Cache miss for key: ${cacheKey}`);
+    log.trace(`Cache miss for key: ${cacheKey}`);
 
     const result = await callback(...args);
     lruCache.set(cacheKey, result);

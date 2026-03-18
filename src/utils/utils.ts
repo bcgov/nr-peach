@@ -103,7 +103,7 @@ export function getGitRevision(): string | undefined {
 
     return readRef(gitDir, ref) ?? readPackedRef(gitDir, ref) ?? undefined;
   } catch (error) {
-    if (error instanceof Error) log.warn(error.message, { function: 'getGitRevision' });
+    if (error instanceof Error) log.warn(error.message);
     return undefined;
   }
 }
