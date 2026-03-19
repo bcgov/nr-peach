@@ -5,7 +5,7 @@ import { BaseRepository } from '../../../../src/repositories/base.ts';
 import { cacheableRead, cacheableUpsert, cacheWrapper, lruCache } from '../../../../src/services/helpers/lruCache.ts';
 
 import type { Kysely, Transaction } from 'kysely';
-import type { DB } from '../../../../src/types/index.js';
+import type { DB } from '../../../../src/types/index.d.ts';
 
 // Mocks
 class MockRepo extends BaseRepository<'pies.version'> {

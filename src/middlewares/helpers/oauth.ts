@@ -40,7 +40,7 @@ export async function getJwksClient(): Promise<JwksClient> {
 
   // Promise lock to prevent multiple concurrent lookups.
   jwksClientPromise = (async () => {
-    log.debug('Fetching JWKS Client...');
+    log.debug('Fetching JWKS Client');
     return jwksRsa({
       cache: true,
       cacheMaxEntries: 5,
@@ -69,7 +69,7 @@ export async function getJwksUri(): Promise<string> {
 
   // Promise lock to prevent multiple concurrent lookups.
   jwksUriPromise = (async () => {
-    log.debug('Fetching JWKS URI...');
+    log.debug('Fetching JWKS URI');
     const issuer = process.env.AUTH_ISSUER;
     if (!issuer) throw new Error('AUTH_ISSUER is not set');
 

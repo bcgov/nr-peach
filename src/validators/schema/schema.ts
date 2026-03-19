@@ -55,7 +55,7 @@ export function ensureSchemaId(schema: AnySchemaObject): AnySchemaObject {
  */
 export async function loadSchema(schema: string): Promise<AnySchemaObject> {
   const cached = schema in schemaCache;
-  log.verbose('loadSchema', { cached, schema });
+  log.trace({ cached, schema }, 'Loading JSON schema');
 
   if (!cached) {
     try {
@@ -63,7 +63,7 @@ export async function loadSchema(schema: string): Promise<AnySchemaObject> {
       if (!res.ok) throw new Error(`Failed to fetch schema ${schema}`);
       schemaCache[schema] = (await res.json()) as AnySchemaObject;
     } catch (error) {
-      log.error('loadSchema', { error });
+      log.error({ error }, 'loadSchema');
       throw new Error(`Failed to load schema ${schema}`, { cause: error });
     }
   }

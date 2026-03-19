@@ -27,14 +27,14 @@ process.on('unhandledRejection', (err: Error): void => {
 
 // Graceful shutdown support
 const signals: readonly NodeJS.Signals[] = ['SIGHUP', 'SIGINT', 'SIGTERM', 'SIGUSR1', 'SIGUSR2'];
-signals.forEach((signal) => process.once(signal, () => shutdown(signal)));
+signals.forEach((signal) => process.on(signal, () => shutdown(signal)));
 
 // Perform preliminary system and database checks
 try {
   await validateConfig();
   await startup();
 } catch (error) {
-  log.error(`Startup failure: ${error instanceof Error ? error.message : String(error)}`);
+  log.fatal(`Startup failure: ${error instanceof Error ? error.message : String(error)}`);
   shutdown('SIGABRT');
 }
 
@@ -46,7 +46,7 @@ server.listen(port, () => {
     authn: ' in authentication only mode',
     authz: ' in scoped authorization mode'
   }[state.authMode!];
-  if (state.ready) log.info(`Server listening at ${url}${modeText}`, { authMode: state.authMode, url: url });
+  if (state.ready) log.info({ authMode: state.authMode, url: url }, `Server listening at ${url}${modeText}`);
 });
 server.on('error', onError);
 
@@ -77,11 +77,11 @@ function onError(error: Error & { syscall?: string; code: string }): void {
   const bind = typeof port === 'string' ? 'Pipe ' + port : 'Port ' + port;
   switch (error.code) {
     case 'EACCES':
-      log.error(`${bind} requires elevated privileges`);
+      log.fatal(`${bind} requires elevated privileges`);
       shutdown('SIGABRT');
       break;
     case 'EADDRINUSE':
-      log.error(`${bind} is already in use`);
+      log.fatal(`${bind} is already in use`);
       shutdown('SIGABRT');
       break;
     default:
@@ -91,32 +91,36 @@ function onError(error: Error & { syscall?: string; code: string }): void {
 
 /**
  * Gracefully shuts down the server and exits the process.
- * @see https://nodejs.org/api/http.html#servercloseallconnections
- * @param signal - Optional termination signal (e.g., 'SIGINT', 'SIGTERM').
  */
-function cleanup(signal?: NodeJS.Signals): void {
+function cleanup(): void {
   state.ready = false;
-  log.debug('Stop accepting new connections...');
+  log.debug('Closing HTTP server');
   server.close(() => {
-    log.debug('Shutting down database connections...');
+    log.debug('Closing database pool');
     void shutdownDatabase(() => {
-      log.debug('Closing all server connections...');
+      log.debug('Terminating active connections');
       server.closeAllConnections();
-      log.info('Server shut down');
-      if (signal) process.kill(process.pid, signal);
-      else process.exit();
+      log.info('Shutdown complete: exiting');
+      log.flush(() => process.exit(0));
     });
   });
 }
 
 /**
- * Handles application shutdown on termination signals.
+ * Handles shutting down the server and exits the process.
+ * @see https://nodejs.org/api/http.html#servercloseallconnections
  * @param signal - Received termination signal (e.g., 'SIGINT', 'SIGTERM').
  */
 function shutdown(signal: NodeJS.Signals): void {
+  if (state.shutdown) return;
   state.shutdown = true;
-  log.info(`Received ${signal} signal. Shutting down...`);
-  cleanup(signal);
+  log.fatal(`Shutdown initiated [${signal}]`);
+
+  cleanup();
+  setTimeout(() => {
+    log.fatal('Shutdown timed out: forcing exit');
+    log.flush(() => process.exit(1));
+  }, 8000); // 8 seconds - slightly less than default 10s in Docker
 }
 
 /**

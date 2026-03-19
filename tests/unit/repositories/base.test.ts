@@ -2,7 +2,7 @@ import { getDefinedOperations, mockDb } from './repository.helper.ts';
 import { BaseRepository } from '../../../src/repositories/base.ts';
 
 import type { Kysely, Transaction } from 'kysely';
-import type { DB } from '../../../src/types/index.js';
+import type { DB } from '../../../src/types/index.d.ts';
 
 // Locally extend DB interface to test against an abstract 'schema.test_table' table
 declare module '../../../src/types/index.d.ts' {

@@ -6,7 +6,7 @@ import {
   auditProcessEvent
 } from '../../../../src/validators/integrity/auditor.ts';
 
-import type { Header, Process, ProcessEvent } from '../../../../src/types/index.js';
+import type { Header, Process, ProcessEvent } from '../../../../src/types/index.d.ts';
 
 vi.mock('../../../../src/utils/coding.ts', () => ({
   CodingDictionary: {

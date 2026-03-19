@@ -19,6 +19,7 @@ const log = getLogger(import.meta.filename);
 
 export const app = express();
 app.disable('x-powered-by');
+app.set('trust proxy', 1); // Automatically parses the X-Forwarded-For header if present
 if (process.env.APP_RATEENABLE?.toLowerCase() === 'true')
   app.use(
     rateLimit({

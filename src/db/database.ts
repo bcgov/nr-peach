@@ -29,16 +29,16 @@ const pool = new Pool({
   ssl: process.env.PGSSLMODE === 'require' ? { rejectUnauthorized: false } : false,
   connectionTimeoutMillis: +(process.env.PGPOOL_TIMEOUT ?? 5000),
   idleTimeoutMillis: +(process.env.PGPOOL_IDLE_TIMEOUT ?? 10000),
-  max: +(process.env.PGPOOL_MAX ?? 10),
+  max: +(process.env.PGPOOL_MAX ?? 20),
   min: +(process.env.PGPOOL_MIN ?? 0),
   maxLifetimeSeconds: +(process.env.PGPOOL_MAX_LIFETIME ?? 60)
 });
 
 pool.on('error', onPoolError);
-const events: readonly ('acquire' | 'connect' | 'release' | 'remove')[] = ['acquire', 'connect', 'release', 'remove'];
+const events = ['acquire', 'connect', 'release', 'remove'] as const;
 events.forEach((event) =>
   pool.on(event, () =>
-    log.silly(`Database client ${event}`, { clientCount: pool.totalCount, waitingCount: pool.waitingCount })
+    log.trace({ clientCount: pool.totalCount, waitingCount: pool.waitingCount }, `Database client ${event}`)
   )
 );
 
@@ -88,11 +88,15 @@ export async function checkDatabaseHealth(now?: number): Promise<boolean> {
     } catch (error) {
       lastHealthCheckTime = now;
       lastHealthCheckResult = false;
-      log.error('Database is unhealthy', {
-        code: (error as { code?: string }).code,
-        message: (error as Error).message,
-        stack: (error as Error).stack
-      });
+      log.error(
+        {
+          code: (error as { code?: string }).code,
+          message: (error as Error).message,
+          stack: (error as Error).stack,
+          error: error
+        },
+        'Database is unhealthy'
+      );
       return lastHealthCheckResult;
     } finally {
       healthCheckPromise = null; // Reset the promise lock
@@ -110,7 +114,7 @@ export async function checkDatabaseMigrations(): Promise<boolean> {
   const migrations = await migrator.getMigrations();
   const isMigrated = migrations.every((m) => !!m.executedAt);
   if (!isMigrated) {
-    log.warn('Database is missing migrations', { missing: migrations.filter((m) => !m.executedAt).map((m) => m.name) });
+    log.warn({ missing: migrations.filter((m) => !m.executedAt).map((m) => m.name) }, 'Database is missing migrations');
   }
   return isMigrated;
 }
@@ -162,18 +166,24 @@ export async function getSeeds(): Promise<Record<string, Seed>> {
  */
 export function onLogEvent(event: LogEvent): void {
   if (event.level === 'error') {
-    log.error('Query failed', {
-      durationMs: event.queryDurationMillis,
-      error: event.error,
-      params: event.query.parameters,
-      sql: event.query.sql
-    });
+    log.error(
+      {
+        durationMs: event.queryDurationMillis,
+        error: event.error,
+        params: event.query.parameters.length ? event.query.parameters : undefined,
+        sql: event.query.sql
+      },
+      'Query failed'
+    );
   } else {
-    log.debug('Query executed', {
-      durationMs: event.queryDurationMillis,
-      params: event.query.parameters,
-      sql: event.query.sql
-    });
+    log.trace(
+      {
+        durationMs: event.queryDurationMillis,
+        params: event.query.parameters.length ? event.query.parameters : undefined,
+        sql: event.query.sql
+      },
+      'Query executed'
+    );
   }
 }
 
@@ -183,7 +193,7 @@ export function onLogEvent(event: LogEvent): void {
  * @param err The error object emitted by the pool.
  */
 export function onPoolError(err: Error): void {
-  log.error(`Database has errored: ${err.message}`, { clientCount: pool.totalCount, waitingCount: pool.waitingCount });
+  log.error({ clientCount: pool.totalCount, waitingCount: pool.waitingCount }, `Database has errored: ${err.message}`);
   state.ready = false;
 }
 
@@ -196,7 +206,7 @@ export async function runMigrations() {
 
   migrateResults?.forEach((it) => {
     if (it.status === 'Success') {
-      log.info(`Migration "${it.migrationName}" completed`, { migration: `${it.migrationName}.ts` });
+      log.info({ migration: `${it.migrationName}.ts` }, `Migration "${it.migrationName}" completed`);
     } else if (it.status === 'Error') {
       log.error(`Failed to execute migration "${it.migrationName}"`);
     }
@@ -215,7 +225,7 @@ export async function runSeeds() {
 
   seedResults?.forEach((it) => {
     if (it.status === 'Success') {
-      log.info(`Seed "${it.seedName}" completed`, { seed: `${it.seedName}.ts` });
+      log.info({ seed: `${it.seedName}.ts` }, `Seed "${it.seedName}" completed`);
     } else if (it.status === 'Error') {
       log.error(`failed to execute seed "${it.seedName}"`);
     }
@@ -230,9 +240,8 @@ export async function runSeeds() {
  * @param cb - Optional callback function to be executed after the database is destroyed.
  * @returns A promise that resolves when the database has been destroyed.
  */
-export async function shutdownDatabase(cb?: () => void): Promise<void> {
-  await db.destroy();
-  return cb?.();
+export function shutdownDatabase(cb?: () => void): Promise<void> {
+  return db.destroy().then(cb); // Also invokes pool.end()
 }
 
 export * from './utils.ts';

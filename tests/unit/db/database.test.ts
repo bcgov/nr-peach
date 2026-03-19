@@ -21,7 +21,7 @@ import {
 
 import type { LogEvent, QueryId, RootOperationNode } from 'kysely';
 import type { Mock, MockInstance } from 'vitest';
-import type { DB } from '../../../src/types/index.js';
+import type { DB } from '../../../src/types/index.d.ts';
 
 vi.mock('node:fs', () => ({
   readdirSync: vi.fn()
