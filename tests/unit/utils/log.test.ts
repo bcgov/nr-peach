@@ -157,7 +157,7 @@ describe('httpLogger', () => {
 
   describe('customProps', () => {
     it('should extract claims if present', () => {
-      const req = { httpVersion: '1.1', ip: '127.0.0.1', path: '/api' } as Request;
+      const req = { headers: {}, httpVersion: '1.1', ip: '127.0.0.1', path: '/api' } as Request;
       const res = {
         locals: { claims: { azp: 'client-id', sub: 'user-id' } }
       } as unknown as Response;
@@ -174,7 +174,7 @@ describe('httpLogger', () => {
     });
 
     it('should handle missing claims gracefully', () => {
-      const req = { httpVersion: '1.1', ip: '127.0.0.1', path: '/api' } as Request;
+      const req = { headers: {}, httpVersion: '1.1', ip: '127.0.0.1', path: '/api' } as Request;
       const res = { locals: {} } as unknown as Response;
 
       const customProps = options.customProps!;
@@ -184,6 +184,26 @@ describe('httpLogger', () => {
         claims: undefined,
         httpVersion: '1.1',
         ip: '127.0.0.1',
+        path: '/api'
+      });
+    });
+
+    it('should prefer x-azure-clientip header over req.ip', () => {
+      const req = {
+        headers: { 'x-azure-clientip': '10.0.0.1' },
+        httpVersion: '1.1',
+        ip: '127.0.0.1',
+        path: '/api'
+      } as unknown as Request;
+      const res = { locals: {} } as unknown as Response;
+
+      const customProps = options.customProps!;
+      const props = customProps(req, res);
+
+      expect(props).toEqual({
+        claims: undefined,
+        httpVersion: '1.1',
+        ip: '10.0.0.1',
         path: '/api'
       });
     });

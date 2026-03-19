@@ -75,7 +75,7 @@ export const httpLogger: RequestHandler = pinoHttp({
     return {
       claims: claims?.azp || claims?.sub ? { azp: claims.azp, sub: claims.sub } : undefined,
       httpVersion: req.httpVersion,
-      ip: req.ip,
+      ip: req.headers['x-azure-clientip'] ?? req.ip,
       path: req.path
     };
   },
