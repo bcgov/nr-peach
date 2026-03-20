@@ -3,7 +3,7 @@ import jwt from 'jsonwebtoken';
 import request from 'supertest';
 
 import { state } from '../../../src/state.ts';
-import { authn, authz } from '../../../src/middlewares/auth.ts';
+import { authn, authz, jwtCache } from '../../../src/middlewares/auth.ts';
 import * as helpers from '../../../src/middlewares/helpers/index.ts';
 
 import type { Application, Request, RequestHandler, Response } from 'express';
@@ -27,6 +27,7 @@ describe('authn', () => {
   beforeEach(() => {
     app = express();
     app.use(express.json());
+    jwtCache.clear();
   });
 
   it('should call next if auth mode is "none"', async () => {
@@ -111,6 +112,76 @@ describe('authn', () => {
 
     expect(response.status).toBe(200);
     expect(response.body).toEqual({ claims: { sub: 'user-id' }, token: 'valid-token' });
+  });
+
+  it('should return cached claims and skip verification if token is in cache', async () => {
+    const token = 'cached-token';
+    const cachedClaims = { sub: 'user-123', scope: 'read' };
+
+    // Manually prime the cache
+    jwtCache.set(token, cachedClaims);
+
+    state.authMode = 'authn';
+    getBearerTokenSpy.mockReturnValue(token);
+
+    // If cache works, jwt.verify and getJwksClient should NEVER be called
+    app.get('/test', authn(), (_req: Request, res: Response) => {
+      res.status(200).json(res.locals);
+    });
+
+    const response = await request(app).get('/test').send();
+
+    expect(response.status).toBe(200);
+    expect((response.body as { claims: jwt.JwtPayload }).claims).toEqual(cachedClaims);
+    expect(verifySpy).not.toHaveBeenCalled();
+    expect(getJwksClientSpy).not.toHaveBeenCalled();
+  });
+
+  it('should store claims in cache after successful verification', async () => {
+    const token = 'new-token';
+    const futureExp = Math.floor(Date.now() / 1000) + 3600; // 1 hour in future
+    const freshClaims = { sub: 'user-456', exp: futureExp };
+
+    const getSigningKeySpy = vi.fn().mockResolvedValue({
+      getPublicKey: vi.fn().mockReturnValue('public-key')
+    });
+
+    state.authMode = 'authn';
+    getBearerTokenSpy.mockReturnValue(token);
+    decodeSpy.mockReturnValue({ header: { kid: 'key-id' } });
+    getJwksClientSpy.mockResolvedValue({ getSigningKey: getSigningKeySpy } as unknown as JwksClient);
+    verifySpy.mockReturnValue(freshClaims as unknown as void);
+
+    app.get('/test', authn(), (_req: Request, res: Response) => res.sendStatus(200));
+
+    await request(app).get('/test').send();
+
+    // Verify the cache was updated
+    const cachedValue = jwtCache.get(token);
+    expect(cachedValue).toEqual(freshClaims);
+    expect(jwtCache.has(token)).toBe(true);
+  });
+
+  it('should not cache claims if exp is missing or in the past', async () => {
+    const token = 'no-cache-token';
+    const expiredClaims = { sub: 'user-789', exp: Math.floor(Date.now() / 1000) - 100 };
+
+    const getSigningKeySpy = vi.fn().mockResolvedValue({
+      getPublicKey: vi.fn().mockReturnValue('public-key')
+    });
+
+    state.authMode = 'authn';
+    getBearerTokenSpy.mockReturnValue(token);
+    decodeSpy.mockReturnValue({ header: { kid: 'key-id' } });
+    getJwksClientSpy.mockResolvedValue({ getSigningKey: getSigningKeySpy } as unknown as JwksClient);
+    verifySpy.mockReturnValue(expiredClaims as unknown as void);
+
+    app.get('/test', authn(), (_req: Request, res: Response) => res.sendStatus(200));
+
+    await request(app).get('/test').send();
+
+    // Cache should be empty because remainingMs would be <= 0
+    expect(jwtCache.has(token)).toBe(false);
   });
 });
 

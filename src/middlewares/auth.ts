@@ -1,4 +1,5 @@
 import jwt from 'jsonwebtoken';
+import { LRUCache } from 'lru-cache';
 
 import { getBearerToken, getJwksClient, normalizeScopes, setAuthHeader } from './helpers/index.ts';
 import { Problem } from '../utils/index.ts';
@@ -7,7 +8,10 @@ import { state } from '../state.ts';
 import type { AuthErrorAttributes, AuthErrorCodes, AuthRequestHandler, SystemSource } from '../types/index.d.ts';
 
 /** Default authentication error attributes */
-const attributes: AuthErrorAttributes = { realm: process.env.AUTH_AUDIENCE ?? 'nr-peach', error: 'invalid_token' };
+const defaultAttributes: AuthErrorAttributes = {
+  realm: process.env.AUTH_AUDIENCE ?? 'nr-peach',
+  error: 'invalid_token'
+};
 
 /** A map of authentication error codes to HTTP status codes. */
 const authStatusMap: Record<AuthErrorCodes, number> = {
@@ -16,6 +20,9 @@ const authStatusMap: Record<AuthErrorCodes, number> = {
   insufficient_scope: 403
 };
 
+// Create an LRU cache instance with a maximum size of 100 items and a TTL of 5 minutes
+export const jwtCache = new LRUCache<string, jwt.JwtPayload>({ allowStale: false, max: 100, ttl: 1000 * 60 * 5 });
+
 /**
  * Middleware for authentication. Verifies the JWT Token in the Authorization header and ensures it is valid.
  * @see https://datatracker.ietf.org/doc/html/rfc6750
@@ -23,7 +30,8 @@ const authStatusMap: Record<AuthErrorCodes, number> = {
  */
 export function authn(): AuthRequestHandler {
   return async function (req, res, next): Promise<void> {
-    if (state.authMode && state.authMode === 'none') return next();
+    const attributes = { ...defaultAttributes };
+    if (state.authMode === 'none') return next();
 
     try {
       const token = getBearerToken(req);
@@ -36,6 +44,12 @@ export function authn(): AuthRequestHandler {
         throw new Error('Invalid bearer token');
       }
       res.locals.token = token;
+
+      // Check cache first
+      if (jwtCache.has(token)) {
+        res.locals.claims = Object.freeze(jwtCache.get(token));
+        return next();
+      }
 
       // jwt.decode is used only to extract kid; claims are not trusted until verified
       const decoded = jwt.decode(token, { complete: true });
@@ -51,7 +65,16 @@ export function authn(): AuthRequestHandler {
         audience: process.env.AUTH_AUDIENCE ?? 'nr-peach',
         issuer: process.env.AUTH_ISSUER
       });
-      if (claims && typeof claims !== 'string') res.locals.claims = Object.freeze(claims);
+
+      if (claims && typeof claims !== 'string') {
+        const frozenClaims = Object.freeze(claims);
+        res.locals.claims = frozenClaims;
+
+        if (claims.exp) {
+          const remainingMs = (claims.exp - Math.floor(Date.now() / 1000)) * 1000 - 5000;
+          if (remainingMs > 0) jwtCache.set(token, frozenClaims, { ttl: remainingMs });
+        }
+      }
 
       next();
     } catch (error) {
@@ -73,6 +96,7 @@ export function authn(): AuthRequestHandler {
  */
 export function authz(source: SystemSource): AuthRequestHandler {
   return function (req, res, next): void {
+    const attributes = { ...defaultAttributes };
     if (state.authMode && state.authMode !== 'authz') return next();
 
     const system_id = req[source].system_id;
