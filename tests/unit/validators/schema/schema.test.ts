@@ -43,8 +43,8 @@ describe('ensureSchemaId', () => {
 
     const result = ensureSchemaId(input);
 
-    // Verify format: "schema:" followed by a 64-character hex hash (SHA-256)
-    expect(result.$id).toMatch(/^schema:[a-f0-9]{64}$/);
+    // Verify format: "schema:" followed by a 40-character hex hash (SHA-1)
+    expect(result.$id).toMatch(/^schema:[a-f0-9]{40}$/);
     expect(result.type).toBe('object');
   });
 

@@ -2,7 +2,7 @@ import compression from 'compression';
 import cors from 'cors';
 import express from 'express';
 import helmet from 'helmet';
-import { randomBytes } from 'node:crypto';
+import { randomUUID } from 'node:crypto';
 import { rateLimit } from 'express-rate-limit';
 import favicon from 'serve-favicon';
 
@@ -46,7 +46,15 @@ app.use(express.json());
 app.use(express.urlencoded());
 app.use(favicon('src/public/favicon.ico'));
 app.use((_req: Request, res: Response<unknown, LocalContext>, next: NextFunction): void => {
-  res.locals.cspNonce = randomBytes(32).toString('hex');
+  let nonce: string | undefined;
+  Object.defineProperty(res.locals, 'cspNonce', {
+    get() {
+      nonce ??= randomUUID();
+      return nonce;
+    },
+    enumerable: true,
+    configurable: true
+  });
   next();
 });
 app.use(helmet());

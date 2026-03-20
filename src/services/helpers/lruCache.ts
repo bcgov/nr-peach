@@ -34,7 +34,7 @@ export async function cacheableRead<TB extends keyof DB, ID extends OperandValue
   const reader = (pk: ID) => repo.read(pk).executeTakeFirstOrThrow();
   if (!cacheEnabled) return await reader(id);
 
-  const hash = createHash('sha256').update(stringify(id)).digest('hex');
+  const hash = createHash('sha1').update(stringify(id)).digest('hex');
   return cacheWrapper(`${repo.tableName}:${hash}`, reader, id);
 }
 
@@ -55,7 +55,7 @@ export function cacheableUpsert<TB extends keyof DB>(
 ): Promise<Selectable<DB[TB]>> {
   if (!cacheEnabled) return findWhereOrUpsert(repo, data);
 
-  const hash = createHash('sha256').update(stringify(data)).digest('hex');
+  const hash = createHash('sha1').update(stringify(data)).digest('hex');
   return cacheWrapper(`${repo.tableName}:${hash}`, findWhereOrUpsert, repo, data);
 }
 

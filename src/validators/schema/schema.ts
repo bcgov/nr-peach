@@ -43,7 +43,7 @@ export function createAjvInstance(opts?: Options): Ajv {
 export function ensureSchemaId(schema: AnySchemaObject): AnySchemaObject {
   if (schema.$id) return schema;
 
-  const hash = createHash('sha256').update(stringify(schema)).digest('hex');
+  const hash = createHash('sha1').update(stringify(schema)).digest('hex');
   return { $id: `schema:${hash}`, ...schema };
 }
 
