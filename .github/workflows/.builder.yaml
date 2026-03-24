@@ -68,13 +68,13 @@ jobs:
           subject-digest: ${{ steps.builder.outputs.digest }}
           # push-to-registry: true # Enable if you want to push the attestation to the github container registry
       - name: Generate SBOM (SPDX) with Syft
-        uses: anchore/sbom-action@57aae528053a48a3f6235f2d9461b05fbcb7366d # v0.23.1
+        uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0.24.0
         with:
           format: spdx-json
           image: ghcr.io/${{ github.repository }}@${{ steps.builder.outputs.digest }}
           dependency-snapshot: true
       - name: Generate SBOM (CycloneDX) with Syft
-        uses: anchore/sbom-action@57aae528053a48a3f6235f2d9461b05fbcb7366d # v0.23.1
+        uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0.24.0
         with:
           format: cyclonedx-json
           image: ghcr.io/${{ github.repository }}@${{ steps.builder.outputs.digest }}
