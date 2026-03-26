@@ -1,7 +1,7 @@
 import { Problem } from '../utils/index.ts';
 import { validateIntegrity, validateSchema } from '../validators/index.ts';
 
-import type { AnySchemaObject, ErrorObject } from 'ajv/dist/core.js';
+import type { ErrorObject, SchemaObject } from 'ajv';
 import type { RequestHandler } from 'express';
 import type {
   IntegrityDictionary,
@@ -47,7 +47,7 @@ export function validateRequestSchema(opts: RequestSchemaOptions = {}): RequestH
   return async function (req, res, next): Promise<void> {
     const reqErrors: Partial<Record<keyof RequestSchemaOptions, ErrorObject[]>> = {};
 
-    for (const [key, value] of Object.entries(opts) as [keyof RequestSchemaOptions, AnySchemaObject][]) {
+    for (const [key, value] of Object.entries(opts) as [keyof RequestSchemaOptions, SchemaObject][]) {
       if (value) {
         const { valid, errors } = await validateSchema(value, req[key]);
         if (!valid && errors) reqErrors[key] = errors;

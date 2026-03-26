@@ -2,13 +2,13 @@ import { integrityValidators } from './integrity/index.ts';
 import { createAjvInstance, ensureSchemaId, getPiesSchemaUri, loadSchema, pies } from './schema/index.ts';
 import { getLogger } from '../utils/index.ts';
 
-import type { AnySchemaObject, AnyValidateFunction, ErrorObject } from 'ajv/dist/core.js';
+import type { ErrorObject, SchemaObject, ValidateFunction } from 'ajv';
 import type { IntegrityDictionary, IntegrityResult } from '../types/index.d.ts';
 
 const ajv = createAjvInstance();
 
 const log = getLogger(import.meta.filename);
-const inFlightCompilations = new Map<string, Promise<AnyValidateFunction<unknown>>>();
+const inFlightCompilations = new Map<string, Promise<ValidateFunction<unknown>>>();
 
 // Only pre-cache schemas in production to avoid bombarding Github API in development
 if (process.env.NODE_ENV === 'production') await preCachePiesSchema();
@@ -64,7 +64,7 @@ export function validateIntegrity<K extends keyof IntegrityDictionary>(
  * if the schema contains syntax errors.
  */
 export async function validateSchema(
-  schema: AnySchemaObject | string,
+  schema: SchemaObject | string,
   data: unknown
 ): Promise<{ valid: boolean; errors?: ErrorObject[] }> {
   const isString = typeof schema === 'string';
@@ -77,7 +77,7 @@ export async function validateSchema(
     // Check if another request is already compiling this
     let promise = inFlightCompilations.get(schemaId);
     if (!promise) {
-      promise = (async (): Promise<AnyValidateFunction<unknown>> => {
+      promise = (async (): Promise<ValidateFunction<unknown>> => {
         try {
           const finalDef = definition ?? (await loadSchema(schemaId));
           return await ajv.compileAsync(finalDef);

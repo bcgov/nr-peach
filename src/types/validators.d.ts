@@ -1,4 +1,4 @@
-import type { AnySchemaObject } from 'ajv/dist/core.js';
+import type { SchemaObject } from 'ajv';
 import type { IncomingHttpHeaders } from 'node:http';
 
 /**
@@ -16,10 +16,10 @@ export type RequestIntegrityOptions = Partial<
 
 /** Options for validating different parts of an HTTP request. */
 export type RequestSchemaOptions = Partial<{
-  body: AnySchemaObject | string;
-  headers: AnySchemaObject & IncomingHttpHeaders;
-  params: AnySchemaObject;
-  query: AnySchemaObject;
+  body: SchemaObject | string;
+  headers: SchemaObject & IncomingHttpHeaders;
+  params: SchemaObject;
+  query: SchemaObject;
 }>;
 
 /** Describes an error encountered during data integrity validation. */
