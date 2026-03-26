@@ -18,7 +18,7 @@ for (const codeSystem of codeSystemCache) {
 export function auditEvent(data: Event, index: number): IntegrityError[] {
   const errors: IntegrityError[] = [];
   const { start_datetime, start_date, end_datetime, end_date } = data;
-  const eventStart = start_datetime ?? start_date!;
+  const eventStart = start_datetime ?? start_date;
   const eventEnd = end_datetime ?? end_date;
   if (eventEnd && eventEnd < eventStart) {
     errors.push({

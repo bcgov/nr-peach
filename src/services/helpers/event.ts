@@ -46,7 +46,7 @@ export function eventToDateTimeParts(event: Event): {
   endTime?: string;
 } {
   const { start_datetime, start_date, end_datetime, end_date } = event;
-  const eventStart = start_datetime ?? start_date!;
+  const eventStart = start_datetime ?? start_date;
   const eventEnd = end_datetime ?? end_date;
 
   return {
