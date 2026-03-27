@@ -5,11 +5,11 @@ import { createHash } from 'node:crypto';
 
 import { getLogger } from '../../utils/index.ts';
 
-import type { AnySchemaObject, Options, Plugin } from 'ajv/dist/core.js';
-import type { FormatsPluginOptions } from 'ajv-formats';
+import type { SchemaObject, Options } from 'ajv';
+import type { FormatsPlugin } from 'ajv-formats';
 
 const log = getLogger(import.meta.filename);
-const schemaCache: Record<string, AnySchemaObject> = {};
+const schemaCache: Record<string, SchemaObject> = {};
 
 /**
  * Creates and configures an instance of Ajv (Another JSON Schema Validator).
@@ -31,7 +31,7 @@ export function createAjvInstance(opts?: Options): Ajv {
     ...opts
   });
   // TS workaround: https://github.com/ajv-validator/ajv-formats/issues/85#issuecomment-2377962689
-  const addFormats = formats as unknown as Plugin<FormatsPluginOptions>;
+  const addFormats = formats as unknown as FormatsPlugin;
   return addFormats(ajv);
 }
 
@@ -40,7 +40,7 @@ export function createAjvInstance(opts?: Options): Ajv {
  * @param schema A JSON Schema object.
  * @returns The schema with a defined $id attribute.
  */
-export function ensureSchemaId(schema: AnySchemaObject): AnySchemaObject {
+export function ensureSchemaId(schema: SchemaObject): SchemaObject {
   if (schema.$id) return schema;
 
   const hash = createHash('sha1').update(stringify(schema)).digest('hex');
@@ -53,7 +53,7 @@ export function ensureSchemaId(schema: AnySchemaObject): AnySchemaObject {
  * @returns A promise that resolves to the loaded schema object.
  * @throws {unknown} An error if the schema cannot be fetched or loaded.
  */
-export async function loadSchema(schema: string): Promise<AnySchemaObject> {
+export async function loadSchema(schema: string): Promise<SchemaObject> {
   const cached = schema in schemaCache;
   log.trace({ cached, schema }, 'Loading JSON schema');
 
@@ -61,7 +61,7 @@ export async function loadSchema(schema: string): Promise<AnySchemaObject> {
     try {
       const res = await fetch(schema);
       if (!res.ok) throw new Error(`Failed to fetch schema ${schema}`);
-      schemaCache[schema] = (await res.json()) as AnySchemaObject;
+      schemaCache[schema] = (await res.json()) as SchemaObject;
     } catch (error) {
       log.error({ error }, 'loadSchema');
       throw new Error(`Failed to load schema ${schema}`, { cause: error });
