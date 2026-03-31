@@ -7,7 +7,7 @@ ARG GIT_COMMIT
 #
 # Stage 1: Build & Dependency Extraction
 #
-FROM docker.io/node:24.14.0-alpine AS build
+FROM docker.io/node:24.14.1-alpine AS build
 
 ARG APP_ROOT APP_UID
 ENV NPM_CONFIG_FUND=false NPM_CONFIG_UPDATE_NOTIFIER=false
