@@ -59,7 +59,7 @@ export function setup() {
  */
 export default function main(data: { token: string }) {
   let body: Record;
-  if (dataFile.length > 0) {
+  if (dataFile.length) {
     if (scenario.iterationInTest >= dataFile.length) {
       // eslint-disable-next-line no-console
       console.log(`Data exhausted at iteration ${scenario.iterationInTest}. Stopping test.`);

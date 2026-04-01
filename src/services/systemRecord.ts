@@ -49,7 +49,7 @@ export const findSingleSystemRecordService = async (
         );
       }
 
-      return systemRecords[0] as Selectable<PiesSystemRecord>;
+      return systemRecords[0]!;
     },
     { accessMode: 'read only' }
   );

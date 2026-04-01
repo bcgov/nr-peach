@@ -28,9 +28,9 @@ export function dateTimePartsToEvent(parts: {
     };
   } else {
     return {
-      start_date: startDate.toISOString().split('T')[0],
+      start_date: startDate.toISOString().split('T')[0]!,
       end_date: endDate ? endDate.toISOString().split('T')[0] : undefined
-    } as Event;
+    };
   }
 }
 

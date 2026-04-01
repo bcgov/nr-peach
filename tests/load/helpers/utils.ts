@@ -25,9 +25,7 @@ export function fetchBearerToken(clientId: string, secret: string, tokenEndpoint
  */
 export function parseEnv(): Record<string, string> {
   const env: Record<string, string> = {};
-  const envPath = import.meta.resolve('../.env');
-  if (!envPath) throw new Error('Could not resolve .env file path');
-  const data = open(envPath);
+  const data = open(import.meta.resolve('../.env'));
   const lines = data.split(/\r?\n/); // Handles Windows (\r\n) and Unix (\n)
 
   lines.forEach((line) => {
@@ -75,9 +73,8 @@ export function randomIntBetween(min: number, max: number): number {
  * @returns A randomly selected item from the array.
  */
 export function randomItem<T>(arrayOfItems: readonly T[]): T {
-  const item = arrayOfItems[Math.floor(secureRandom() * arrayOfItems.length)];
-  if (item === undefined || item === null) throw new Error('randomItem: Selected item is null or undefined');
-  return item;
+  const index = Math.floor(secureRandom() * (arrayOfItems.length - 1));
+  return arrayOfItems[index]!;
 }
 
 /**
