@@ -36,6 +36,7 @@ export interface IntegrityResult {
   errors?: IntegrityError[];
 }
 
+// TODO: Revisit IntegrityDictionary definition - dangling type definitions
 /** Represents a dictionary containing integrity-related configurations. */
 export interface IntegrityDictionary {
   processEventSet: ProcessEventSet;

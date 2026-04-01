@@ -44,7 +44,6 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@tsconfig/node24": "24.0.4",
     "ajv": "8.18.0",
     "ajv-formats": "3.0.1",
     "compression": "1.8.1",
