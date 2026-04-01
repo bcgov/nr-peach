@@ -8,7 +8,8 @@
   "type": "module",
   "main": "server.ts",
   "imports": {
-    "#types": "./src/types/index.d.ts"
+    "#types": "./src/types/index.d.ts",
+    "#src/*": "./src/*.ts"
   },
   "scripts": {
     "commitlint": "commitlint",

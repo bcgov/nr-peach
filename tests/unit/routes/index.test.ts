@@ -1,15 +1,15 @@
 import express from 'express';
 import request from 'supertest';
 
-import { state } from '../../../src/state.ts';
-import router from '../../../src/routes/index.ts';
+import { state } from '#src/state';
+import router from '#src/routes/index';
 
 import type { RequestHandler } from 'express';
 
 const app = express();
 app.use(router);
 
-vi.mock('../../../src/middlewares/validator.ts', () => ({
+vi.mock('#src/middlewares/validator', () => ({
   validateRequestIntegrity: () => vi.fn<RequestHandler>((_req, _res, next) => next()),
   validateRequestSchema: () => vi.fn<RequestHandler>((_req, _res, next) => next())
 }));

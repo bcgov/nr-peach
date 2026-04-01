@@ -1,29 +1,29 @@
 import express from 'express';
 import request from 'supertest';
 
-import { deleteSystemRecordController } from '../../../../src/controllers/index.ts';
+import { deleteSystemRecordController } from '#src/controllers/index';
 import {
   deleteSystemRecordsSchemaValidator,
   getSystemRecordsSchemaValidator,
   getSystemsSchemaValidator
-} from '../../../../src/validators/index.ts';
+} from '#src/validators/index';
 
-import router from '../../../../src/routes/v1/system.ts';
+import router from '#src/routes/v1/system';
 
 import type { RequestHandler } from 'express';
 
 const app = express();
 app.use(router);
 
-vi.mock('../../../../src/controllers/record.ts', () => ({
+vi.mock('#src/controllers/record', () => ({
   deleteSystemRecordController: vi.fn<RequestHandler>((_req, _res, next) => next())
 }));
 
-vi.mock('../../../../src/middlewares/auth.ts', () => ({
+vi.mock('#src/middlewares/auth', () => ({
   authz: () => vi.fn<RequestHandler>((_req, _res, next) => next())
 }));
 
-vi.mock('../../../../src/middlewares/validator.ts', () => ({
+vi.mock('#src/middlewares/validator', () => ({
   validateRequestIntegrity: () => vi.fn<RequestHandler>((_req, _res, next) => next()),
   validateRequestSchema: () => vi.fn<RequestHandler>((_req, _res, next) => next())
 }));

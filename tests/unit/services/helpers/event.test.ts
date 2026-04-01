@@ -1,8 +1,4 @@
-import {
-  dateTimePartsToEvent,
-  eventToDateTimeParts,
-  mergeDateAndTimeToISOString
-} from '../../../../src/services/helpers/event.ts';
+import { dateTimePartsToEvent, eventToDateTimeParts, mergeDateAndTimeToISOString } from '#src/services/helpers/event';
 
 import type { Event } from '#types';
 

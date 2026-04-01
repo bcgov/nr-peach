@@ -1,9 +1,9 @@
 // Always import repository.helper.ts and helpers/index.ts first to ensure mocks are set up
 import { baseRepositoryMock, executeMock } from './repository.helper.ts';
-import { transactionWrapper } from '../../../src/services/helpers/index.ts';
+import { transactionWrapper } from '#src/services/helpers/index';
 
-import { SystemRecordRepository } from '../../../src/repositories/index.ts';
-import { deleteSystemRecordService, findSingleSystemRecordService } from '../../../src/services/systemRecord.ts';
+import { SystemRecordRepository } from '#src/repositories/index';
+import { deleteSystemRecordService, findSingleSystemRecordService } from '#src/services/systemRecord';
 
 describe('deleteSystemRecordService', () => {
   const recordId = 'rec-123';

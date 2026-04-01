@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import './src/env.ts';
+import '#src/env';
 
 const { PGDATABASE, PGHOST, PGPASSWORD, PGPORT, PGUSER } = process.env;
 

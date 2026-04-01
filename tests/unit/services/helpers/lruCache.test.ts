@@ -1,8 +1,8 @@
 import stringify from 'fast-json-stable-stringify';
 import { createHash } from 'node:crypto';
 
-import { BaseRepository } from '../../../../src/repositories/base.ts';
-import { cacheableRead, cacheableUpsert, cacheWrapper, lruCache } from '../../../../src/services/helpers/lruCache.ts';
+import { BaseRepository } from '#src/repositories/base';
+import { cacheableRead, cacheableUpsert, cacheWrapper, lruCache } from '#src/services/helpers/lruCache';
 
 import type { Kysely, Transaction } from 'kysely';
 import type { DB } from '#types';

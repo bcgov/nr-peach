@@ -1,4 +1,4 @@
-import { CodingDictionary } from '../../../src/utils/coding.ts';
+import { CodingDictionary } from '#src/utils/coding';
 
 const validCodeSystem = 'https://bcgov.github.io/nr-pies/docs/spec/code_system/application_process';
 

@@ -1,11 +1,6 @@
-import * as integrity from '../../../src/validators/integrity/index.ts';
-import {
-  createAjvInstance,
-  ensureSchemaId,
-  getPiesSchemaUri,
-  loadSchema
-} from '../../../src/validators/schema/index.ts';
-import * as validator from '../../../src/validators/validator.ts';
+import * as integrity from '#src/validators/integrity/index';
+import { createAjvInstance, ensureSchemaId, getPiesSchemaUri, loadSchema } from '#src/validators/schema/index';
+import * as validator from '#src/validators/validator';
 
 import type { Mock } from 'vitest';
 
@@ -20,7 +15,7 @@ const { mockAjv, mockValidate } = vi.hoisted(() => {
   };
 });
 
-vi.mock('../../../src/validators/schema/index.ts', () => ({
+vi.mock('#src/validators/schema/index', () => ({
   createAjvInstance: vi.fn().mockReturnValue(mockAjv),
   ensureSchemaId: vi.fn(
     <T>(schema: T extends object ? T : never) =>
@@ -35,7 +30,7 @@ vi.mock('../../../src/validators/schema/index.ts', () => ({
   }
 }));
 
-vi.mock('../../../src/validators/integrity/index.ts', () => ({
+vi.mock('#src/validators/integrity/index', () => ({
   integrityValidators: {
     recordLinkage: vi.fn()
   }

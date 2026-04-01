@@ -1,9 +1,9 @@
 // Always import repository.helper.ts and helpers/index.ts first to ensure mocks are set up
 import { baseRepositoryMock, executeMock } from './repository.helper.ts';
-import { transactionWrapper } from '../../../src/services/helpers/index.ts';
+import { transactionWrapper } from '#src/services/helpers/index';
 
-import { TransactionRepository } from '../../../src/repositories/index.ts';
-import { checkDuplicateTransactionHeaderService } from '../../../src/services/header.ts';
+import { TransactionRepository } from '#src/repositories/index';
+import { checkDuplicateTransactionHeaderService } from '#src/services/header';
 
 describe('checkDuplicateTransactionHeaderService', () => {
   const transactionId = 'test-id';

@@ -1,6 +1,6 @@
 import { pinoHttp } from 'pino-http';
 
-import { getLogger } from '../../../src/utils/log.ts';
+import { getLogger } from '#src/utils/log';
 
 import type { Request, Response } from 'express';
 import type { Options } from 'pino-http';

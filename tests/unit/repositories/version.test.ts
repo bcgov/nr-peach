@@ -1,6 +1,6 @@
 import { mockDb } from './repository.helper.ts';
-import { BaseRepository } from '../../../src/repositories/base.ts';
-import { VersionRepository } from '../../../src/repositories/version.ts';
+import { BaseRepository } from '#src/repositories/base';
+import { VersionRepository } from '#src/repositories/version';
 
 describe('VersionRepository', () => {
   describe('constructor', () => {

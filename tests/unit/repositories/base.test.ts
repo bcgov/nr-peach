@@ -1,5 +1,5 @@
 import { getDefinedOperations, mockDb } from './repository.helper.ts';
-import { BaseRepository } from '../../../src/repositories/base.ts';
+import { BaseRepository } from '#src/repositories/base';
 
 import type { Kysely, Transaction } from 'kysely';
 import type { DB } from '#types';

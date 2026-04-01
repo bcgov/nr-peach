@@ -1,8 +1,8 @@
 import { load } from 'js-yaml';
 import { readFileSync } from 'node:fs';
 
-import { getDocHTML, getSpec } from '../../../src/docs/docs.ts';
-import { state } from '../../../src/state.ts';
+import { getDocHTML, getSpec } from '#src/docs/docs';
+import { state } from '#src/state';
 
 vi.mock('js-yaml', () => ({
   load: vi.fn()
@@ -12,7 +12,7 @@ vi.mock('node:fs', () => ({
   readFileSync: vi.fn()
 }));
 
-vi.mock('../../../src/state.ts', () => ({
+vi.mock('#src/state', () => ({
   state: { authMode: 'authn' }
 }));
 

@@ -1,12 +1,14 @@
 {
   "extends": "@tsconfig/node24/tsconfig.json",
   "compilerOptions": {
+    "allowImportingTsExtensions": true,
     "allowUnreachableCode": false,
     "allowUnusedLabels": false,
     "erasableSyntaxOnly": true,
     "forceConsistentCasingInFileNames": true,
     "isolatedModules": true,
     "moduleDetection": "force",
+    "moduleResolution": "nodenext",
     "noEmit": true,
     "noErrorTruncation": false,
     "noFallthroughCasesInSwitch": true,
@@ -16,7 +18,8 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "paths": {
-      "#types": ["./src/types/index.d.ts"]
+      "#types": ["./src/types/index.d.ts"],
+      "#src/*": ["./src/*"]
     },
     "resolveJsonModule": true,
     "rewriteRelativeImportExtensions": true,

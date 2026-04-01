@@ -7,7 +7,7 @@ import {
   eventToDateTimeParts,
   findWhereOrUpsert,
   transactionWrapper
-} from '../../../src/services/helpers/index.ts';
+} from '#src/services/helpers/index';
 
 import {
   CodingRepository,
@@ -18,13 +18,8 @@ import {
   SystemRecordRepository,
   TransactionRepository,
   VersionRepository
-} from '../../../src/repositories/index.ts';
-import {
-  findRecordService,
-  mergeRecordService,
-  pruneRecordService,
-  replaceRecordService
-} from '../../../src/services/record.ts';
+} from '#src/repositories/index';
+import { findRecordService, mergeRecordService, pruneRecordService, replaceRecordService } from '#src/services/record';
 
 import type { Selectable } from 'kysely';
 import type { Mock } from 'vitest';

@@ -1,14 +1,9 @@
-import * as utils from '../../../../src/utils/index.ts';
-import {
-  auditEvent,
-  auditHeader,
-  auditProcess,
-  auditProcessEvent
-} from '../../../../src/validators/integrity/auditor.ts';
+import * as utils from '#src/utils/index';
+import { auditEvent, auditHeader, auditProcess, auditProcessEvent } from '#src/validators/integrity/auditor';
 
 import type { Header, Process, ProcessEvent } from '#types';
 
-vi.mock('../../../../src/utils/coding.ts', () => ({
+vi.mock('#src/utils/coding', () => ({
   CodingDictionary: {
     SYSTEM_A: { CODE1: 'desc1', CODE2: 'desc2' },
     SYSTEM_B: { CODE3: 'desc3' }

@@ -2,9 +2,9 @@ import express from 'express';
 import jwt from 'jsonwebtoken';
 import request from 'supertest';
 
-import { state } from '../../../src/state.ts';
-import { authn, authz, jwtCache } from '../../../src/middlewares/auth.ts';
-import * as helpers from '../../../src/middlewares/helpers/index.ts';
+import { state } from '#src/state';
+import { authn, authz, jwtCache } from '#src/middlewares/auth';
+import * as helpers from '#src/middlewares/helpers/index';
 
 import type { Application, Request, RequestHandler, Response } from 'express';
 import type { JwksClient } from 'jwks-rsa';

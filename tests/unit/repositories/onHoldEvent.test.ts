@@ -1,6 +1,6 @@
 import { getDefinedOperations, mockDb } from './repository.helper.ts';
-import { BaseRepository } from '../../../src/repositories/base.ts';
-import { OnHoldEventRepository } from '../../../src/repositories/onHoldEvent.ts';
+import { BaseRepository } from '#src/repositories/base';
+import { OnHoldEventRepository } from '#src/repositories/onHoldEvent';
 
 describe('OnHoldEventRepository', () => {
   describe('constructor', () => {

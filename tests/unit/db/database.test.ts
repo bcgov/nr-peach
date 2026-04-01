@@ -5,7 +5,7 @@ import { Seeder } from 'kysely-ctl';
 import { readdirSync } from 'node:fs';
 
 import { testSystemTime } from '../vitest.setup.ts';
-import { state } from '../../../src/state.ts';
+import { state } from '#src/state';
 import {
   checkDatabaseHealth,
   checkDatabaseMigrations,
@@ -17,7 +17,7 @@ import {
   onLogEvent,
   onPoolError,
   shutdownDatabase
-} from '../../../src/db/database.ts';
+} from '#src/db/database';
 
 import type { LogEvent, QueryId, RootOperationNode } from 'kysely';
 import type { Mock, MockInstance } from 'vitest';
@@ -268,7 +268,7 @@ describe('runMigrations', () => {
       error: undefined,
       results: [{ migrationName: '001_init', status: 'Success' }]
     });
-    const { runMigrations } = await import('../../../src/db/database.ts');
+    const { runMigrations } = await import('#src/db/database');
     const result = await runMigrations();
     expect(migrateSpy).toHaveBeenCalledTimes(1);
     expect(result).toBe(true);
@@ -282,7 +282,7 @@ describe('runMigrations', () => {
         { migrationName: '002_add_table', status: 'Success' }
       ]
     });
-    const { runMigrations } = await import('../../../src/db/database.ts');
+    const { runMigrations } = await import('#src/db/database');
     const result = await runMigrations();
     expect(result).toBe(true);
   });
@@ -292,14 +292,14 @@ describe('runMigrations', () => {
       error: new Error('migration failure'),
       results: [{ migrationName: '001_init', status: 'Error' }]
     });
-    const { runMigrations } = await import('../../../src/db/database.ts');
+    const { runMigrations } = await import('#src/db/database');
     const result = await runMigrations();
     expect(result).toBe(false);
   });
 
   it('propagates if migrateToLatest throws', async () => {
     migrateSpy.mockRejectedValue(new Error('boom'));
-    const { runMigrations } = await import('../../../src/db/database.ts');
+    const { runMigrations } = await import('#src/db/database');
     await expect(runMigrations()).rejects.toThrow('boom');
   });
 });
@@ -320,7 +320,7 @@ describe('runSeeds', () => {
       error: undefined,
       results: [{ migrationName: '001_init', status: 'Success' }]
     });
-    const { runSeeds } = await import('../../../src/db/database.ts');
+    const { runSeeds } = await import('#src/db/database');
     const result = await runSeeds();
     expect(seedSpy).toHaveBeenCalledTimes(1);
     expect(result).toBe(true);
@@ -334,7 +334,7 @@ describe('runSeeds', () => {
         { migrationName: '002_add_table', status: 'Success' }
       ]
     });
-    const { runSeeds } = await import('../../../src/db/database.ts');
+    const { runSeeds } = await import('#src/db/database');
     const result = await runSeeds();
     expect(result).toBe(true);
   });
@@ -344,14 +344,14 @@ describe('runSeeds', () => {
       error: new Error('seed failure'),
       results: [{ migrationName: '001_init', status: 'Error' }]
     });
-    const { runSeeds } = await import('../../../src/db/database.ts');
+    const { runSeeds } = await import('#src/db/database');
     const result = await runSeeds();
     expect(result).toBe(false);
   });
 
   it('propagates if run throws', async () => {
     seedSpy.mockRejectedValue(new Error('boom'));
-    const { runSeeds } = await import('../../../src/db/database.ts');
+    const { runSeeds } = await import('#src/db/database');
     await expect(runSeeds()).rejects.toThrow('boom');
   });
 });

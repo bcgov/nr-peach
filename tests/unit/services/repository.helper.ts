@@ -2,8 +2,8 @@ import type { Transaction } from 'kysely';
 import type { DB } from '#types';
 
 /** Dynamically generate mocks for all repositories except BaseRepository */
-vi.mock('../../../src/repositories/index.ts', async () => {
-  const actual = await vi.importActual('../../../src/repositories/index.ts');
+vi.mock('#src/repositories/index', async () => {
+  const actual = await vi.importActual('#src/repositories/index');
   return {
     ...actual,
     ...Object.fromEntries(
@@ -20,8 +20,8 @@ vi.mock('../../../src/repositories/index.ts', async () => {
 });
 
 /** Mock the service helpers so that they are observable */
-vi.mock('../../../src/services/helpers/index.ts', async () => {
-  const actual = await vi.importActual('../../../src/services/helpers/index.ts');
+vi.mock('#src/services/helpers/index', async () => {
+  const actual = await vi.importActual('#src/services/helpers/index');
   return {
     ...actual,
     cacheableRead: vi.fn(),

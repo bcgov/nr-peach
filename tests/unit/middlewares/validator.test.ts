@@ -1,9 +1,9 @@
 import express from 'express';
 import request from 'supertest';
 
-import { validateRequestIntegrity, validateRequestSchema } from '../../../src/middlewares/validator.ts';
-import * as validators from '../../../src/validators/index.ts';
-import { IntegrityDefinitions } from '../../../src/validators/integrity/integrity.ts';
+import { validateRequestIntegrity, validateRequestSchema } from '#src/middlewares/validator';
+import * as validators from '#src/validators/index';
+import { IntegrityDefinitions } from '#src/validators/integrity/integrity';
 
 import type { Application, Request, RequestHandler, Response } from 'express';
 

@@ -1,5 +1,5 @@
-import * as auditors from '../../../../src/validators/integrity/auditor.ts';
-import { integrityValidators, IntegrityDefinitions } from '../../../../src/validators/integrity/integrity.ts';
+import * as auditors from '#src/validators/integrity/auditor';
+import { integrityValidators, IntegrityDefinitions } from '#src/validators/integrity/integrity';
 
 import type { IntegrityError, Record, RecordLinkage } from '#types';
 
