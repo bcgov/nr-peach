@@ -2,8 +2,8 @@ import { Router } from 'express';
 
 import docs from './docs.ts';
 import v1 from './v1/index.ts';
-import { state } from '../state.ts';
-import { Problem } from '../utils/index.ts';
+import { state } from '#src/state';
+import { Problem } from '#src/utils/index';
 
 import type { Request, Response } from 'express';
 

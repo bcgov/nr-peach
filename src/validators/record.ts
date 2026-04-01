@@ -1,6 +1,6 @@
 import { IntegrityDefinitions } from './integrity/index.ts';
 import { getPiesSchemaUri, pies, record_id, system_id } from './schema/index.ts';
-import { validateRequestIntegrity, validateRequestSchema } from '../middlewares/index.ts';
+import { validateRequestIntegrity, validateRequestSchema } from '#src/middlewares/index';
 
 import type { RequestHandler } from 'express';
 

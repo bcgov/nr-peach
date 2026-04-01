@@ -1,7 +1,7 @@
 import { load } from 'js-yaml';
 import { readFileSync } from 'node:fs';
 
-import { state } from '../state.ts';
+import { state } from '#src/state';
 
 /** A partial OpenAPI specification schema structure */
 interface OpenAPISpec {

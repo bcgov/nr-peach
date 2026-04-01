@@ -17,8 +17,8 @@ import {
   SystemRecordRepository,
   TransactionRepository,
   VersionRepository
-} from '../repositories/index.ts';
-import { CodingDictionary, containsSubset, getLogger, Problem } from '../utils/index.ts';
+} from '#src/repositories/index';
+import { CodingDictionary, containsSubset, getLogger, Problem } from '#src/utils/index';
 
 import type { DeleteResult, Selectable } from 'kysely';
 import type { Coding, CodingEvent, Header, PiesSystemRecord, Process, ProcessEvent, Record } from '#types';

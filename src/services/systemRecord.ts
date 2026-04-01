@@ -1,6 +1,6 @@
 import { transactionWrapper } from './helpers/index.ts';
-import { SystemRecordRepository } from '../repositories/index.ts';
-import { Problem } from '../utils/index.ts';
+import { SystemRecordRepository } from '#src/repositories/index';
+import { Problem } from '#src/utils/index';
 
 import type { Selectable, SimplifySingleResult } from 'kysely';
 import type { PiesSystemRecord } from '#types';

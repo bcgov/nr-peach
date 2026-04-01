@@ -1,4 +1,4 @@
-import { CodingDictionary, getUUIDv7Timestamp } from '../../utils/index.ts';
+import { CodingDictionary, getUUIDv7Timestamp } from '#src/utils/index';
 
 import type { Event, Header, IntegrityError, Process, ProcessEvent } from '#types';
 

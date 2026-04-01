@@ -1,4 +1,4 @@
-import { getGitRevision } from './utils/index.ts';
+import { getGitRevision } from '#src/utils/index';
 
 import type { AuthMode } from '#types';
 

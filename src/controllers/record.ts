@@ -4,7 +4,7 @@ import {
   findSingleSystemRecordService,
   pruneRecordService,
   replaceRecordService
-} from '../services/index.ts';
+} from '#src/services/index';
 
 import type { Request, Response } from 'express';
 import type { LocalContext, Record, SystemRecordQuery } from '#types';

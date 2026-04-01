@@ -1,12 +1,12 @@
 import { Router } from 'express';
 
-import { authz } from '../../middlewares/index.ts';
-import { Problem } from '../../utils/index.ts';
+import { authz } from '#src/middlewares/index';
+import { Problem } from '#src/utils/index';
 import {
   deleteRecordLinkagesSchemaValidator,
   getRecordLinkagesSchemaValidator,
   putRecordLinkagesSchemaValidator
-} from '../../validators/index.ts';
+} from '#src/validators/index';
 
 import type { Request, Response } from 'express';
 

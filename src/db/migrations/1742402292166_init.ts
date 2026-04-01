@@ -11,7 +11,7 @@ import {
   dropIndex,
   dropUpdatedAtTrigger,
   withTimestamps
-} from '../index.ts';
+} from '#src/db/index';
 
 /**
  *

@@ -4,8 +4,8 @@ import { promises as dns } from 'node:dns';
 import { readdirSync } from 'node:fs';
 import { Pool, types } from 'pg';
 
-import { state } from '../state.ts';
-import { getLogger } from '../utils/index.ts';
+import { state } from '#src/state';
+import { getLogger } from '#src/utils/index';
 
 import type { LogEvent, Migration } from 'kysely';
 import type { Seed } from 'kysely-ctl';

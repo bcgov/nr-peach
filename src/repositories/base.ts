@@ -1,6 +1,6 @@
 import { sql } from 'kysely';
 
-import { db } from '../db/index.ts';
+import { db } from '#src/db/index';
 
 import type {
   AnyColumn,

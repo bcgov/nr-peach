@@ -3,7 +3,7 @@ import formats from 'ajv-formats';
 import stringify from 'fast-json-stable-stringify';
 import { createHash } from 'node:crypto';
 
-import { getLogger } from '../../utils/index.ts';
+import { getLogger } from '#src/utils/index';
 
 import type { SchemaObject, Options } from 'ajv';
 import type { FormatsPlugin } from 'ajv-formats';

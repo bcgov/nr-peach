@@ -1,6 +1,6 @@
 import jwksRsa from 'jwks-rsa';
 
-import { getLogger } from '../../utils/index.ts';
+import { getLogger } from '#src/utils/index';
 
 import type { Request, Response } from 'express';
 import type { JwksClient } from 'jwks-rsa';

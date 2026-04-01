@@ -3,7 +3,7 @@ import { Router } from 'express';
 import records from './record.ts';
 import recordLinkages from './recordLinkage.ts';
 import systems from './system.ts';
-import { authn } from '../../middlewares/index.ts';
+import { authn } from '#src/middlewares/index';
 
 import type { Request, Response } from 'express';
 

@@ -1,6 +1,6 @@
 import { integrityValidators } from './integrity/index.ts';
 import { createAjvInstance, ensureSchemaId, getPiesSchemaUri, loadSchema, pies } from './schema/index.ts';
-import { getLogger } from '../utils/index.ts';
+import { getLogger } from '#src/utils/index';
 
 import type { ErrorObject, SchemaObject, ValidateFunction } from 'ajv';
 import type { IntegrityDictionary, IntegrityResult } from '#types';

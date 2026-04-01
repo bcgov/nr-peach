@@ -1,13 +1,13 @@
 import { Router } from 'express';
 
-import { deleteSystemRecordController } from '../../controllers/index.ts';
-import { authz } from '../../middlewares/index.ts';
-import { Problem } from '../../utils/index.ts';
+import { deleteSystemRecordController } from '#src/controllers/index';
+import { authz } from '#src/middlewares/index';
+import { Problem } from '#src/utils/index';
 import {
   deleteSystemRecordsSchemaValidator,
   getSystemRecordsSchemaValidator,
   getSystemsSchemaValidator
-} from '../../validators/index.ts';
+} from '#src/validators/index';
 
 import type { Request, Response } from 'express';
 

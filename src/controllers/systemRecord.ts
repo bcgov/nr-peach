@@ -1,4 +1,4 @@
-import { deleteSystemRecordService, findSingleSystemRecordService } from '../services/index.ts';
+import { deleteSystemRecordService, findSingleSystemRecordService } from '#src/services/index';
 
 import type { Request, Response } from 'express';
 import type { SystemRecordQuery } from '#types';

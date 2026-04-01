@@ -1,5 +1,5 @@
 import { record_id, system_id } from './schema/index.ts';
-import { validateRequestSchema } from '../middlewares/index.ts';
+import { validateRequestSchema } from '#src/middlewares/index';
 
 import type { RequestHandler } from 'express';
 

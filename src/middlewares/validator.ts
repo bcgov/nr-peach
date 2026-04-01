@@ -1,5 +1,5 @@
-import { Problem } from '../utils/index.ts';
-import { validateIntegrity, validateSchema } from '../validators/index.ts';
+import { Problem } from '#src/utils/index';
+import { validateIntegrity, validateSchema } from '#src/validators/index';
 
 import type { ErrorObject, SchemaObject } from 'ajv';
 import type { RequestHandler } from 'express';

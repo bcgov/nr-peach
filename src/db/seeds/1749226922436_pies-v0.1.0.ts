@@ -1,4 +1,4 @@
-import { CodingDictionary } from '../../utils/index.ts';
+import { CodingDictionary } from '#src/utils/index';
 
 import type { Kysely } from 'kysely';
 import type { DB } from '#types';
