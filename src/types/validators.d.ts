@@ -1,6 +1,8 @@
 import type { SchemaObject } from 'ajv';
 import type { IncomingHttpHeaders } from 'node:http';
 
+import type { Record as PiesRecord, RecordLinkage } from './elements.d.ts';
+
 /**
  * Type for validating the integrity of an object's properties.
  * @template T - The object type to validate.
@@ -36,9 +38,8 @@ export interface IntegrityResult {
   errors?: IntegrityError[];
 }
 
-// TODO: Revisit IntegrityDictionary definition - dangling type definitions
 /** Represents a dictionary containing integrity-related configurations. */
 export interface IntegrityDictionary {
-  processEventSet: ProcessEventSet;
+  record: PiesRecord;
   recordLinkage: RecordLinkage;
 }

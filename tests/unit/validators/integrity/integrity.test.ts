@@ -5,7 +5,7 @@ import type { IntegrityError, Record, RecordLinkage } from '#types';
 
 describe('IntegrityDefinitions', () => {
   it('should be immutable and map keys correctly', () => {
-    expect(IntegrityDefinitions.processEventSet).toBe('processEventSet');
+    expect(IntegrityDefinitions.record).toBe('record');
     expect(IntegrityDefinitions.recordLinkage).toBe('recordLinkage');
     expect(Object.isFrozen(IntegrityDefinitions)).toBe(true);
   });
@@ -15,7 +15,7 @@ describe('integrityValidators', () => {
   const auditHeaderSpy = vi.spyOn(auditors, 'auditHeader');
   const auditProcessEventSpy = vi.spyOn(auditors, 'auditProcessEvent');
 
-  describe('processEventSet', () => {
+  describe('record', () => {
     const mockData: Record = {
       version: '1',
       kind: 'Record',
@@ -36,7 +36,7 @@ describe('integrityValidators', () => {
       auditHeaderSpy.mockReturnValue([]);
       auditProcessEventSpy.mockReturnValue([]);
 
-      const result = integrityValidators.processEventSet(mockData);
+      const result = integrityValidators.record(mockData);
       expect(result.valid).toBe(true);
       expect(result.errors).toBeUndefined();
       expect(auditHeaderSpy).toHaveBeenCalledWith(mockData);
@@ -49,7 +49,7 @@ describe('integrityValidators', () => {
       auditHeaderSpy.mockReturnValue(headerErrors);
       auditProcessEventSpy.mockReturnValue(eventErrors);
 
-      const result = integrityValidators.processEventSet(mockData);
+      const result = integrityValidators.record(mockData);
       expect(result.valid).toBe(false);
       expect(result.errors).toEqual([...headerErrors, ...eventErrors]);
     });

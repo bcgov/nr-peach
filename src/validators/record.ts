@@ -13,7 +13,7 @@ export const getRecordSchemaValidator: RequestHandler = validateRequestSchema({
 });
 
 export const postRecordIntegrityValidator: RequestHandler = validateRequestIntegrity({
-  body: IntegrityDefinitions.processEventSet
+  body: IntegrityDefinitions.record
 });
 
 export const postRecordSchemaValidator: RequestHandler = validateRequestSchema({
@@ -29,7 +29,7 @@ export const pruneRecordSchemaValidator: RequestHandler = validateRequestSchema(
 });
 
 export const putRecordIntegrityValidator: RequestHandler = validateRequestIntegrity({
-  body: IntegrityDefinitions.processEventSet
+  body: IntegrityDefinitions.record
 });
 
 export const putRecordSchemaValidator: RequestHandler = validateRequestSchema({
