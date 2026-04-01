@@ -5,7 +5,6 @@ import { Seeder } from 'kysely-ctl';
 import { readdirSync } from 'node:fs';
 
 import { testSystemTime } from '../vitest.setup.ts';
-import { state } from '#src/state';
 import {
   checkDatabaseHealth,
   checkDatabaseMigrations,
@@ -18,6 +17,8 @@ import {
   onPoolError,
   shutdownDatabase
 } from '#src/db/database';
+import { state } from '#src/state';
+import { baseLogger } from '#src/utils/log';
 
 import type { LogEvent, QueryId, RootOperationNode } from 'kysely';
 import type { Mock, MockInstance } from 'vitest';
@@ -201,6 +202,7 @@ describe('getSeeds', () => {
 
 describe('onLogEvent', () => {
   it('should log an error when event level is "error"', () => {
+    const errorSpy = vi.spyOn(baseLogger, 'error');
     const event: LogEvent = {
       level: 'error',
       queryDurationMillis: 100,
@@ -214,10 +216,20 @@ describe('onLogEvent', () => {
     };
 
     onLogEvent(event);
-    expect(onLogEvent(event)).toBeUndefined();
+
+    expect(errorSpy).toHaveBeenCalledTimes(1);
+    expect(errorSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        durationMs: 100,
+        params: ['param1', 'param2'],
+        sql: 'SELECT * FROM test'
+      }),
+      'Query failed'
+    );
   });
 
-  it('should log a verbose message when event level is not "error"', () => {
+  it('should log a trace message when event level is not "error"', () => {
+    const traceSpy = vi.spyOn(baseLogger, 'trace');
     const event: LogEvent = {
       level: 'query',
       queryDurationMillis: 50,
@@ -230,7 +242,16 @@ describe('onLogEvent', () => {
     };
 
     onLogEvent(event);
-    expect(onLogEvent(event)).toBeUndefined();
+
+    expect(traceSpy).toHaveBeenCalledTimes(1);
+    expect(traceSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        durationMs: 50,
+        params: ['param1'],
+        sql: 'SELECT * FROM test'
+      }),
+      'Query executed'
+    );
   });
 });
 
