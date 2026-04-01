@@ -13,7 +13,7 @@ import { state } from './state.ts';
 import { getLogger, httpLogger, Problem } from './utils/index.ts';
 
 import type { NextFunction, Request, Response } from 'express';
-import type { LocalContext } from './types/index.d.ts';
+import type { LocalContext } from '#types';
 
 const log = getLogger(import.meta.filename);
 

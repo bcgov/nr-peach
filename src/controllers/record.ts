@@ -7,7 +7,7 @@ import {
 } from '../services/index.ts';
 
 import type { Request, Response } from 'express';
-import type { LocalContext, Record, SystemRecordQuery } from '../types/index.d.ts';
+import type { LocalContext, Record, SystemRecordQuery } from '#types';
 
 export const getRecordController = async (
   req: Request<never, never, never, SystemRecordQuery>,

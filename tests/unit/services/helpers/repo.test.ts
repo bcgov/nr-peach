@@ -6,7 +6,7 @@ import { findWhereOrUpsert, transactionWrapper } from '../../../../src/services/
 
 import type { Kysely, Transaction } from 'kysely';
 import type { Mock, MockInstance } from 'vitest';
-import type { DB } from '../../../../src/types/index.d.ts';
+import type { DB } from '#types';
 
 class MockRepository extends BaseRepository<'pies.version'> {
   constructor(db?: Kysely<DB> | Transaction<DB>) {

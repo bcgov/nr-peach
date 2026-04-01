@@ -3,7 +3,7 @@ import { createAjvInstance, ensureSchemaId, getPiesSchemaUri, loadSchema, pies }
 import { getLogger } from '../utils/index.ts';
 
 import type { ErrorObject, SchemaObject, ValidateFunction } from 'ajv';
-import type { IntegrityDictionary, IntegrityResult } from '../types/index.d.ts';
+import type { IntegrityDictionary, IntegrityResult } from '#types';
 
 const ajv = createAjvInstance();
 

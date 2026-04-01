@@ -5,7 +5,7 @@ import { BaseRepository } from '../../repositories/index.ts';
 import { getLogger } from '../../utils/index.ts';
 
 import type { AccessMode, FilterObject, InsertObject, IsolationLevel, Selectable, Transaction } from 'kysely';
-import type { DB } from '../../types/index.d.ts';
+import type { DB } from '#types';
 
 const log = getLogger(import.meta.filename);
 

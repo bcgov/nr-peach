@@ -3,7 +3,7 @@ import { sql } from 'kysely';
 import { BaseRepository } from './base.ts';
 
 import type { DeleteQueryBuilder, DeleteResult, Kysely, Transaction } from 'kysely';
-import type { DB } from '../types/index.d.ts';
+import type { DB } from '#types';
 
 export class ProcessEventRepository extends BaseRepository<'pies.processEvent'> {
   constructor(db?: Kysely<DB> | Transaction<DB>) {

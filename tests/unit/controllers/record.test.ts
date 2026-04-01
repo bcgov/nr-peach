@@ -11,7 +11,7 @@ import * as services from '../../../src/services/index.ts';
 import { Problem } from '../../../src/utils/index.ts';
 
 import type { Selectable } from 'kysely';
-import type { PiesSystemRecord, Record } from '../../../src/types/index.d.ts';
+import type { PiesSystemRecord, Record } from '#types';
 
 describe('Record Controllers', () => {
   const checkDuplicateTransactionHeaderServiceSpy = vi.spyOn(services, 'checkDuplicateTransactionHeaderService');

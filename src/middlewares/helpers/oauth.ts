@@ -4,7 +4,7 @@ import { getLogger } from '../../utils/index.ts';
 
 import type { Request, Response } from 'express';
 import type { JwksClient } from 'jwks-rsa';
-import type { AuthErrorAttributes } from '../../types/index.d.ts';
+import type { AuthErrorAttributes } from '#types';
 
 const log = getLogger(import.meta.filename);
 

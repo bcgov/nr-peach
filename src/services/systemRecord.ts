@@ -3,7 +3,7 @@ import { SystemRecordRepository } from '../repositories/index.ts';
 import { Problem } from '../utils/index.ts';
 
 import type { Selectable, SimplifySingleResult } from 'kysely';
-import type { PiesSystemRecord } from '../types/index.d.ts';
+import type { PiesSystemRecord } from '#types';
 
 /**
  * Deletes a single system record by its record ID and optionally by system ID.

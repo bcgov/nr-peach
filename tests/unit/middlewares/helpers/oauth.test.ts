@@ -3,7 +3,7 @@ import { getBearerToken, normalizeScopes, setAuthHeader } from '../../../../src/
 import type { Request, Response } from 'express';
 import type { JwksClient } from 'jwks-rsa';
 import type { Mock } from 'vitest';
-import type { AuthErrorAttributes } from '../../../../src/types/index.d.ts';
+import type { AuthErrorAttributes } from '#types';
 
 describe('getBearerToken', () => {
   it('extracts the Bearer token from the Authorization header', () => {

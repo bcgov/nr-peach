@@ -7,6 +7,9 @@
   "author": "NRM Permitting and Data Solutions <NRM.PermittingAndData@gov.bc.ca>",
   "type": "module",
   "main": "server.ts",
+  "imports": {
+    "#types": "./src/types/index.d.ts"
+  },
   "scripts": {
     "commitlint": "commitlint",
     "codegen": "kysely-codegen --url $(node dburl.helper.ts)",

@@ -1,7 +1,7 @@
 import * as auditors from '../../../../src/validators/integrity/auditor.ts';
 import { integrityValidators, IntegrityDefinitions } from '../../../../src/validators/integrity/integrity.ts';
 
-import type { IntegrityError, Record, RecordLinkage } from '../../../../src/types/index.d.ts';
+import type { IntegrityError, Record, RecordLinkage } from '#types';
 
 describe('IntegrityDefinitions', () => {
   it('should be immutable and map keys correctly', () => {

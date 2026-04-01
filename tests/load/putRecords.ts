@@ -5,7 +5,7 @@ import http from 'k6/http';
 
 import { fetchBearerToken, generateRecord, parseEnv } from './helpers/index.ts';
 
-import type { Record } from '../../src/types/index.d.ts';
+import type { Record } from '#types';
 
 const env = parseEnv();
 

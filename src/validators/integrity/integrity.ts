@@ -6,7 +6,7 @@ import type {
   IntegrityValidator,
   Record as PiesRecord,
   RecordLinkage as PiesRecordLinkage
-} from '../../types/index.d.ts';
+} from '#types';
 
 /** Defines immutable, idempotent integrity definitions mapping keys to values in `IntegrityDictionary`. */
 export const IntegrityDefinitions: Record<keyof IntegrityDictionary, keyof IntegrityDictionary> = Object.freeze({

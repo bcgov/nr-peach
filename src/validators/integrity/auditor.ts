@@ -1,5 +1,6 @@
 import { CodingDictionary, getUUIDv7Timestamp } from '../../utils/index.ts';
-import type { Event, Header, IntegrityError, Process, ProcessEvent } from '../../types/index.d.ts';
+
+import type { Event, Header, IntegrityError, Process, ProcessEvent } from '#types';
 
 /** A Set containing the keys of the `coding` object, representing all available code systems. */
 const codeSystemCache = new Set<keyof typeof CodingDictionary>(Object.keys(CodingDictionary));

@@ -5,7 +5,7 @@ import { getBearerToken, getJwksClient, normalizeScopes, setAuthHeader } from '.
 import { Problem } from '../utils/index.ts';
 import { state } from '../state.ts';
 
-import type { AuthErrorAttributes, AuthErrorCodes, AuthRequestHandler, SystemSource } from '../types/index.d.ts';
+import type { AuthErrorAttributes, AuthErrorCodes, AuthRequestHandler, SystemSource } from '#types';
 
 /** Default authentication error attributes */
 const defaultAttributes: AuthErrorAttributes = {

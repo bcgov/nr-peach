@@ -1,7 +1,7 @@
 import { CodingDictionary } from '../../utils/index.ts';
 
 import type { Kysely } from 'kysely';
-import type { DB } from '../../types/index.d.ts';
+import type { DB } from '#types';
 
 const VERSION = '0.1.0';
 

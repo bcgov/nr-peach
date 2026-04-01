@@ -21,7 +21,7 @@ import {
 import { CodingDictionary, containsSubset, getLogger, Problem } from '../utils/index.ts';
 
 import type { DeleteResult, Selectable } from 'kysely';
-import type { Coding, CodingEvent, Header, PiesSystemRecord, Process, ProcessEvent, Record } from '../types/index.d.ts';
+import type { Coding, CodingEvent, Header, PiesSystemRecord, Process, ProcessEvent, Record } from '#types';
 
 const log = getLogger(import.meta.filename);
 

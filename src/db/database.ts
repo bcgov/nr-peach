@@ -9,7 +9,7 @@ import { getLogger } from '../utils/index.ts';
 
 import type { LogEvent, Migration } from 'kysely';
 import type { Seed } from 'kysely-ctl';
-import type { DB } from '../types/index.d.ts';
+import type { DB } from '#types';
 
 const log = getLogger(import.meta.filename);
 
@@ -243,5 +243,3 @@ export async function runSeeds() {
 export function shutdownDatabase(cb?: () => void): Promise<void> {
   return db.destroy().then(cb); // Also invokes pool.end()
 }
-
-export * from './utils.ts';

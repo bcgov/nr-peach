@@ -4,7 +4,7 @@ import { parse } from 'node:path';
 
 import type { Request, RequestHandler, Response } from 'express';
 import type { Logger, TransportSingleOptions } from 'pino';
-import type { LocalContext } from '../types/index.d.ts';
+import type { LocalContext } from '#types';
 
 /** Define Pino logging meta-structure */
 declare module 'pino' {

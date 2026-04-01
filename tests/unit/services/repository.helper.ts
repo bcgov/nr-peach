@@ -1,5 +1,5 @@
 import type { Transaction } from 'kysely';
-import type { DB } from '../../../src/types/index.d.ts';
+import type { DB } from '#types';
 
 /** Dynamically generate mocks for all repositories except BaseRepository */
 vi.mock('../../../src/repositories/index.ts', async () => {
