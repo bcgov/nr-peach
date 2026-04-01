@@ -13,8 +13,8 @@ class MockRepository extends BaseRepository<'pies.version'> {
     super('pies.version', db);
   }
 
-  upsert = vi.fn();
-  findWhere = vi.fn();
+  override upsert = vi.fn();
+  override findWhere = vi.fn();
 }
 const mockData = { id: '0.1.0' };
 

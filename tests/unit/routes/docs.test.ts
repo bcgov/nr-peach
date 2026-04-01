@@ -48,15 +48,15 @@ describe('Docs Router', () => {
 
       expect(helmet.contentSecurityPolicy).toHaveBeenCalled();
 
-      const config = vi.mocked(helmet.contentSecurityPolicy).mock.calls[0][0];
+      const config = vi.mocked(helmet.contentSecurityPolicy).mock.calls[0]?.[0] ?? {};
       const { 'img-src': imgSrc, 'media-src': mediaSrc } = config?.directives as Record<string, unknown[]>;
       const mockRes = { locals: { cspNonce: 'test-nonce' } } as unknown as express.Response;
 
-      const imgNonceFn = imgSrc.find((fn: unknown) => typeof fn === 'function') as (
+      const imgNonceFn = imgSrc?.find((fn: unknown) => typeof fn === 'function') as (
         req: unknown,
         res: express.Response
       ) => string;
-      const mediaNonceFn = mediaSrc.find((fn: unknown) => typeof fn === 'function') as (
+      const mediaNonceFn = mediaSrc?.find((fn: unknown) => typeof fn === 'function') as (
         req: unknown,
         res: express.Response
       ) => string;

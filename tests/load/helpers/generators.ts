@@ -14,7 +14,7 @@ const RECORD_PREFIX = 'k6-test-';
  */
 export function generateCoding(): Coding {
   const codeSystem = 'https://bcgov.github.io/nr-pies/docs/spec/code_system/on_hold_process';
-  const code = randomItem(Object.entries(CodingDictionary[codeSystem]));
+  const code = randomItem(Object.entries(CodingDictionary[codeSystem] ?? {}));
   return {
     code: code[0],
     code_display: code[1].display,
@@ -63,7 +63,7 @@ export function generateOnHoldEvent(): CodingEvent {
  */
 export function generateProcess(): Process {
   const codeSystem = 'https://bcgov.github.io/nr-pies/docs/spec/code_system/application_process';
-  const code = randomItem(Object.entries(CodingDictionary[codeSystem]));
+  const code = randomItem(Object.entries(CodingDictionary[codeSystem] ?? {}));
   return {
     code: code[0],
     code_display: code[1].display,

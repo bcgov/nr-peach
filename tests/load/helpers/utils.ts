@@ -25,7 +25,9 @@ export function fetchBearerToken(clientId: string, secret: string, tokenEndpoint
  */
 export function parseEnv(): Record<string, string> {
   const env: Record<string, string> = {};
-  const data = open(import.meta.resolve('../.env'));
+  const envPath = import.meta.resolve('../.env');
+  if (!envPath) throw new Error('Could not resolve .env file path');
+  const data = open(envPath);
   const lines = data.split(/\r?\n/); // Handles Windows (\r\n) and Unix (\n)
 
   lines.forEach((line) => {
@@ -73,7 +75,9 @@ export function randomIntBetween(min: number, max: number): number {
  * @returns A randomly selected item from the array.
  */
 export function randomItem<T>(arrayOfItems: readonly T[]): T {
-  return arrayOfItems[Math.floor(secureRandom() * arrayOfItems.length)];
+  const item = arrayOfItems[Math.floor(secureRandom() * arrayOfItems.length)];
+  if (item === undefined || item === null) throw new Error('randomItem: Selected item is null or undefined');
+  return item;
 }
 
 /**
@@ -94,7 +98,7 @@ export function randomString(length: number, charset = 'abcdefghijklmnopqrstuvwx
  */
 export function secureRandom(): number {
   const view = new Uint32Array(crypto.randomBytes(4));
-  return view[0] / 4294967296; // Divide by 2^32 (4294967296) to get a value between 0 and 1
+  return (view[0] ?? 0) / 4294967296; // Divide by 2^32 (4294967296) to get a value between 0 and 1
 }
 
 /**
@@ -151,7 +155,7 @@ export function uuidv7(): string {
     '7' +
     rand.slice(0, 3) + // 12 bits random
     '-' +
-    ((Number.parseInt(rand[3], 16) & 0x3) | 0x8).toString(16) +
+    ((Number.parseInt(rand.charAt(3), 16) & 0x3) | 0x8).toString(16) +
     rand.slice(4, 7) +
     '-' +
     rand.slice(7, 19); // remaining 62 bits random

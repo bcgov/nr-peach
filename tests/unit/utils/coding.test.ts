@@ -9,8 +9,9 @@ describe('CodingDictionary', () => {
 
   it('should contain known codes with correct structure', () => {
     const codes = CodingDictionary[validCodeSystem];
+    expect(codes).toBeDefined();
     expect(codes).toHaveProperty('APPLICATION');
-    expect(codes.APPLICATION).toEqual({
+    expect(codes?.APPLICATION).toEqual({
       codeSet: ['APPLICATION'],
       display: 'Application'
     });

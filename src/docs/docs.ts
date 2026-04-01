@@ -50,10 +50,10 @@ export function getDocHTML(version = 'v1'): string {
 export function getSpec(): OpenAPISpec {
   const rawSpec = readFileSync('src/docs/openapi.yaml', 'utf8');
   const spec = load(rawSpec) as OpenAPISpec;
-  spec.servers[0].url = '/api/v1';
-  if (process.env.AUTH_ISSUER) {
+  if (spec.servers?.[0]) spec.servers[0].url = '/api/v1';
+  if (process.env.AUTH_ISSUER && spec.components.securitySchemes?.OpenID) {
     // eslint-disable-next-line max-len
-    spec.components.securitySchemes!.OpenID.openIdConnectUrl = `${process.env.AUTH_ISSUER}/.well-known/openid-configuration`;
+    spec.components.securitySchemes.OpenID.openIdConnectUrl = `${process.env.AUTH_ISSUER}/.well-known/openid-configuration`;
   }
   if (state.authMode && state.authMode === 'none') {
     delete spec.security;

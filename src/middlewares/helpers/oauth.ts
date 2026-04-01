@@ -25,7 +25,7 @@ export function getBearerToken(req: Request): string | undefined | null {
   const [scheme, token] = parts;
   if (parts.length !== 2 || scheme !== 'Bearer') return null;
 
-  return /^[A-Za-z0-9\-._~+/]+=*$/.test(token) ? token : null; // RFC 6750 Section 2.1
+  return token && /^[A-Za-z0-9\-._~+/]+=*$/.test(token) ? token : null; // RFC 6750 Section 2.1
 }
 
 /**

@@ -73,7 +73,7 @@ describe('getSpec', () => {
     const spec = getSpec();
     expect(readFileSync).toHaveBeenCalledWith('src/docs/openapi.yaml', 'utf8');
     expect(load).toHaveBeenCalledWith('yaml');
-    expect(spec.servers[0].url).toBe('/api/v1');
+    expect(spec.servers?.[0]?.url).toBe('/api/v1');
   });
 
   it('should update openIdConnectUrl if AUTH_ISSUER is set', () => {

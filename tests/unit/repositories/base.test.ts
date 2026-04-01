@@ -64,7 +64,14 @@ describe('BaseRepository', () => {
       expect(compiled.sql).toBe(
         'insert into "schema"."test_table" ("id", "foo", "bar") values ($1, $2, $3), ($4, $5, $6) returning *'
       );
-      expect(compiled.parameters).toEqual([data[0].id, data[0].foo, data[0].bar, data[1].id, data[1].foo, data[1].bar]);
+      expect(compiled.parameters).toEqual([
+        data[0]?.id,
+        data[0]?.foo,
+        data[0]?.bar,
+        data[1]?.id,
+        data[1]?.foo,
+        data[1]?.bar
+      ]);
     });
   });
 
@@ -267,7 +274,14 @@ describe('BaseRepository', () => {
           'values ($1, $2, $3), ($4, $5, $6) ' +
           'on conflict ("id") do nothing returning *'
       );
-      expect(compiled.parameters).toEqual([data[0].id, data[0].foo, data[0].bar, data[1].id, data[1].foo, data[1].bar]);
+      expect(compiled.parameters).toEqual([
+        data[0]?.id,
+        data[0]?.foo,
+        data[0]?.bar,
+        data[1]?.id,
+        data[1]?.foo,
+        data[1]?.bar
+      ]);
     });
 
     it('should build an insert query with a default named constraint for the multiple entities', () => {
@@ -291,7 +305,14 @@ describe('BaseRepository', () => {
           'values ($1, $2, $3), ($4, $5, $6) ' +
           'on conflict on constraint "first_constraint" do nothing returning *'
       );
-      expect(compiled.parameters).toEqual([data[0].id, data[0].foo, data[0].bar, data[1].id, data[1].foo, data[1].bar]);
+      expect(compiled.parameters).toEqual([
+        data[0]?.id,
+        data[0]?.foo,
+        data[0]?.bar,
+        data[1]?.id,
+        data[1]?.foo,
+        data[1]?.bar
+      ]);
     });
 
     it('should build an insert query with a specified constraint for the multiple entities', () => {
@@ -315,7 +336,14 @@ describe('BaseRepository', () => {
           'values ($1, $2, $3), ($4, $5, $6) ' +
           'on conflict on constraint "second_constraint" do nothing returning *'
       );
-      expect(compiled.parameters).toEqual([data[0].id, data[0].foo, data[0].bar, data[1].id, data[1].foo, data[1].bar]);
+      expect(compiled.parameters).toEqual([
+        data[0]?.id,
+        data[0]?.foo,
+        data[0]?.bar,
+        data[1]?.id,
+        data[1]?.foo,
+        data[1]?.bar
+      ]);
     });
   });
 });

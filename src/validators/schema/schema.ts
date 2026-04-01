@@ -68,5 +68,7 @@ export async function loadSchema(schema: string): Promise<SchemaObject> {
     }
   }
 
-  return schemaCache[schema];
+  const result = schemaCache[schema];
+  if (!result) throw new Error(`Schema ${schema} was not found in cache after loading.`);
+  return result;
 }

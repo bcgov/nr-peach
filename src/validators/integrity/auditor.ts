@@ -6,7 +6,8 @@ const codeSystemCache = new Set<keyof typeof CodingDictionary>(Object.keys(Codin
 /** Caches sets of codes for each code system. */
 const codeSetCache: Record<string, Set<string>> = {};
 for (const codeSystem of codeSystemCache) {
-  codeSetCache[codeSystem] = new Set(Object.keys(CodingDictionary[codeSystem]));
+  const codes = CodingDictionary[codeSystem];
+  if (codes) codeSetCache[codeSystem] = new Set(Object.keys(codes));
 }
 
 /**
@@ -66,7 +67,7 @@ export function auditProcess(data: Process, index: number): IntegrityError[] {
       value: data.code_system
     });
   }
-  if (!codeSystemCache.has(data.code_system) || !codeSetCache[data.code_system].has(data.code)) {
+  if (!codeSystemCache.has(data.code_system) || !codeSetCache[data.code_system]?.has(data.code)) {
     errors.push({
       instancePath: `/process_event/${index}/process`,
       message: `Invalid Process in ProcessEvent element at index ${index}`,

@@ -30,7 +30,7 @@ export function dateTimePartsToEvent(parts: {
     return {
       start_date: startDate.toISOString().split('T')[0],
       end_date: endDate ? endDate.toISOString().split('T')[0] : undefined
-    };
+    } as Event;
   }
 }
 
@@ -50,9 +50,9 @@ export function eventToDateTimeParts(event: Event): {
   const eventEnd = end_datetime ?? end_date;
 
   return {
-    endDate: eventEnd?.split('T')[0],
-    endTime: end_datetime ? eventEnd?.split('T')[1] : undefined,
-    startDate: eventStart.split('T')[0],
+    endDate: eventEnd?.split('T')[0] ?? undefined,
+    endTime: end_datetime && eventEnd ? eventEnd.split('T')[1] : undefined,
+    startDate: eventStart?.split('T')[0] ?? '',
     startTime: start_datetime ? eventStart.split('T')[1] : undefined
   };
 }
@@ -70,17 +70,17 @@ export function mergeDateAndTimeToISOString(date: Date, time: string): string {
   const day = date.getUTCDate();
 
   // Strip anything after the time (Z, +00:00, etc.) and split
-  const cleanTime = time.split(/[Z+-]/)[0];
+  const cleanTime = time.split(/[Z+-]/)[0] ?? '';
   const timeParts = cleanTime.split(':');
   if (timeParts.length < 2) throw new Error(`Invalid time format: ${time}`);
 
-  const hour = Number.parseInt(timeParts[0], 10);
-  const minute = Number.parseInt(timeParts[1], 10);
+  const hour = Number.parseInt(timeParts[0] ?? '', 10);
+  const minute = Number.parseInt(timeParts[1] ?? '', 10);
 
   // Handle optional seconds and milliseconds
-  const secondsPart = timeParts[2]?.split('.') || ['0', '0'];
-  const second = Number.parseInt(secondsPart[0], 10);
-  const ms = Number.parseInt(secondsPart[1] || '0', 10);
+  const secondsPart = timeParts[2]?.split('.') ?? ['0', '0'];
+  const second = Number.parseInt(secondsPart[0] ?? '', 10);
+  const ms = Number.parseInt(secondsPart[1] ?? '0', 10);
   if ([hour, minute, second].some((num) => Number.isNaN(num))) {
     throw new Error(`Invalid numeric values in time: ${time}`);
   }
