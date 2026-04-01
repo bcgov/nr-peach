@@ -3,8 +3,8 @@ import helmet from 'helmet';
 import request from 'supertest';
 import { dump } from 'js-yaml';
 
-import router from '../../../src/routes/docs.ts';
-import { getDocHTML, getSpec } from '../../../src/docs/index.ts';
+import router from '#src/routes/docs';
+import { getDocHTML, getSpec } from '#src/docs/index';
 
 // Mock dependencies
 vi.mock('helmet', () => ({
@@ -17,7 +17,7 @@ vi.mock('js-yaml', () => ({
   dump: vi.fn()
 }));
 
-vi.mock('../../../src/docs/index.ts', () => ({
+vi.mock('#src/docs/index', () => ({
   getDocHTML: vi.fn(),
   getSpec: vi.fn()
 }));
@@ -44,19 +44,19 @@ describe('Docs Router', () => {
 
     it('should configure CSP with dynamic nonce for img-src and media-src', async () => {
       vi.resetModules();
-      await import('../../../src/routes/docs.ts');
+      await import('#src/routes/docs');
 
       expect(helmet.contentSecurityPolicy).toHaveBeenCalled();
 
-      const config = vi.mocked(helmet.contentSecurityPolicy).mock.calls[0][0];
+      const config = vi.mocked(helmet.contentSecurityPolicy).mock.calls[0]?.[0] ?? {};
       const { 'img-src': imgSrc, 'media-src': mediaSrc } = config?.directives as Record<string, unknown[]>;
       const mockRes = { locals: { cspNonce: 'test-nonce' } } as unknown as express.Response;
 
-      const imgNonceFn = imgSrc.find((fn: unknown) => typeof fn === 'function') as (
+      const imgNonceFn = imgSrc?.find((fn: unknown) => typeof fn === 'function') as (
         req: unknown,
         res: express.Response
       ) => string;
-      const mediaNonceFn = mediaSrc.find((fn: unknown) => typeof fn === 'function') as (
+      const mediaNonceFn = mediaSrc?.find((fn: unknown) => typeof fn === 'function') as (
         req: unknown,
         res: express.Response
       ) => string;

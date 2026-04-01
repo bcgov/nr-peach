@@ -3,11 +3,11 @@ import { LRUCache } from 'lru-cache';
 import { createHash } from 'node:crypto';
 
 import { findWhereOrUpsert } from './repo.ts';
-import { BaseRepository } from '../../repositories/index.ts';
-import { getLogger } from '../../utils/index.ts';
+import { BaseRepository } from '#src/repositories/index';
+import { getLogger } from '#src/utils/index';
 
 import type { FilterObject, InsertObject, OperandValueExpression, Selectable, Simplify } from 'kysely';
-import type { DB } from '../../types/index.d.ts';
+import type { DB } from '#types';
 
 const log = getLogger(import.meta.filename);
 

@@ -1,9 +1,9 @@
 import { transactionWrapper } from './helpers/index.ts';
-import { TransactionRepository } from '../repositories/index.ts';
-import { Problem } from '../utils/index.ts';
+import { TransactionRepository } from '#src/repositories/index';
+import { Problem } from '#src/utils/index';
 
 import type { Selectable } from 'kysely';
-import type { PiesTransaction } from '../types/index.d.ts';
+import type { PiesTransaction } from '#types';
 
 /**
  * Checks if a transaction with the given transaction ID already exists.

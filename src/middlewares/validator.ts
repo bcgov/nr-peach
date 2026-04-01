@@ -1,14 +1,9 @@
-import { Problem } from '../utils/index.ts';
-import { validateIntegrity, validateSchema } from '../validators/index.ts';
+import { Problem } from '#src/utils/index';
+import { validateIntegrity, validateSchema } from '#src/validators/index';
 
 import type { ErrorObject, SchemaObject } from 'ajv';
 import type { RequestHandler } from 'express';
-import type {
-  IntegrityDictionary,
-  IntegrityError,
-  RequestIntegrityOptions,
-  RequestSchemaOptions
-} from '../types/index.d.ts';
+import type { IntegrityDictionary, IntegrityError, RequestIntegrityOptions, RequestSchemaOptions } from '#types';
 
 /**
  * Validates the data integrity of the incoming request by checking its body, headers, params, and query.

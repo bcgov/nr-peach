@@ -1,14 +1,14 @@
 import express from 'express';
 import request from 'supertest';
 
-import { app, errorHandler } from '../../src/app.ts';
-import { state } from '../../src/state.ts';
-import * as db from '../../src/db/index.ts';
-import { Problem } from '../../src/utils/index.ts';
+import { app, errorHandler } from '#src/app';
+import { state } from '#src/state';
+import * as db from '#src/db/index';
+import { Problem } from '#src/utils/index';
 
 import type { Request, RequestHandler, Response } from 'express';
 
-vi.mock('../../src/middlewares/validator.ts', () => ({
+vi.mock('#src/middlewares/validator', () => ({
   validateRequestIntegrity: () => vi.fn<RequestHandler>((_req, _res, next) => next()),
   validateRequestSchema: () => vi.fn<RequestHandler>((_req, _res, next) => next())
 }));
@@ -61,7 +61,7 @@ describe('App', () => {
     vi.stubEnv('APP_RATEENABLE', 'true');
     vi.stubEnv('APP_RATELIMIT', '1');
 
-    const { app: rateLimitedApp } = await import('../../src/app.ts');
+    const { app: rateLimitedApp } = await import('#src/app');
 
     // First request consumes the limit
     await request(rateLimitedApp).get('/');
@@ -70,7 +70,7 @@ describe('App', () => {
     expect(response.status).toBe(429);
     expect((response.body as { detail: string }).detail).toBe('Too many requests, please try again later.');
     vi.unstubAllEnvs();
-    vi.doUnmock('../../src/db/index.ts');
+    vi.doUnmock('#src/db/index');
   });
 
   describe('errorHandler', () => {

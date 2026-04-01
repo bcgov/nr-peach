@@ -5,7 +5,7 @@ import http from 'k6/http';
 
 import { fetchBearerToken, generateRecord, parseEnv } from './helpers/index.ts';
 
-import type { Record } from '../../src/types/index.d.ts';
+import type { Record } from '#types';
 
 const env = parseEnv();
 
@@ -21,9 +21,9 @@ const DATA_FILE_PATH = __ENV.DATA_FILE_PATH ?? env.DATA_FILE_PATH;
 const MAX_RECORD_ID = +(__ENV.MAX_RECORD_ID ?? env.MAX_RECORD_ID ?? 50);
 const RECORD_PREFIX = 'k6-test-';
 const SYSTEM_ID = 'ITSM-5917';
-const TOKEN_ENDPOINT = __ENV.CLIENT_SECRET ?? env.TOKEN_ENDPOINT;
+const TOKEN_ENDPOINT = __ENV.TOKEN_ENDPOINT ?? env.TOKEN_ENDPOINT;
 
-const dataFile: readonly Record[] | undefined = (() => {
+const dataFile: readonly Record[] = (() => {
   if (DATA_FILE_PATH) {
     return new SharedArray<Record>('data', () =>
       open(DATA_FILE_PATH)
@@ -32,6 +32,7 @@ const dataFile: readonly Record[] | undefined = (() => {
         .map((line) => JSON.parse(line) as Record)
     );
   }
+  return [];
 })();
 
 export { options } from './helpers/index.ts';
@@ -41,6 +42,10 @@ export { options } from './helpers/index.ts';
  * @returns - Data created in setup to be used by VU execution
  */
 export function setup() {
+  if (!CLIENT_ID || !CLIENT_SECRET || !TOKEN_ENDPOINT) {
+    throw new Error('Missing required environment variables for authentication');
+  }
+
   const token = fetchBearerToken(CLIENT_ID, CLIENT_SECRET, TOKEN_ENDPOINT);
   console.log('Test setup complete'); // eslint-disable-line no-console
 
@@ -54,14 +59,14 @@ export function setup() {
  */
 export default function main(data: { token: string }) {
   let body: Record;
-  if (dataFile) {
+  if (dataFile.length) {
     if (scenario.iterationInTest >= dataFile.length) {
       // eslint-disable-next-line no-console
       console.log(`Data exhausted at iteration ${scenario.iterationInTest}. Stopping test.`);
       test.abort();
       return;
     }
-    body = dataFile[scenario.iterationInTest];
+    body = dataFile[scenario.iterationInTest]!;
   } else {
     body = generateRecord(5917);
   }

@@ -68,7 +68,7 @@ export function getGitRevision(): string | undefined {
 
     const content = readFileSync(gitPath, 'utf8').trim();
     const match = /^gitdir: (.+)$/.exec(content);
-    return match ? join(cwd(), match[1]) : gitPath;
+    return match?.[1] ? join(cwd(), match[1]) : gitPath;
   };
 
   const readRef = (gitDir: string, ref: string): string | undefined => {

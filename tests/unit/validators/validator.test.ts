@@ -1,11 +1,7 @@
-import * as integrity from '../../../src/validators/integrity/index.ts';
-import {
-  createAjvInstance,
-  ensureSchemaId,
-  getPiesSchemaUri,
-  loadSchema
-} from '../../../src/validators/schema/index.ts';
-import * as validator from '../../../src/validators/validator.ts';
+import * as integrity from '#src/validators/integrity/index';
+import { createAjvInstance, ensureSchemaId, getPiesSchemaUri, loadSchema } from '#src/validators/schema/index';
+import * as validator from '#src/validators/validator';
+import type { RecordLinkage } from '#types';
 
 import type { Mock } from 'vitest';
 
@@ -20,7 +16,7 @@ const { mockAjv, mockValidate } = vi.hoisted(() => {
   };
 });
 
-vi.mock('../../../src/validators/schema/index.ts', () => ({
+vi.mock('#src/validators/schema/index', () => ({
   createAjvInstance: vi.fn().mockReturnValue(mockAjv),
   ensureSchemaId: vi.fn(
     <T>(schema: T extends object ? T : never) =>
@@ -35,7 +31,7 @@ vi.mock('../../../src/validators/schema/index.ts', () => ({
   }
 }));
 
-vi.mock('../../../src/validators/integrity/index.ts', () => ({
+vi.mock('#src/validators/integrity/index', () => ({
   integrityValidators: {
     recordLinkage: vi.fn()
   }
@@ -65,7 +61,7 @@ describe('validateIntegrity', () => {
     const mockResult = { valid: true };
     (integrity.integrityValidators.recordLinkage as Mock).mockReturnValue(mockResult);
 
-    const data = { some: 'data' };
+    const data = { some: 'data' } as unknown as RecordLinkage;
     const result = validator.validateIntegrity('recordLinkage', data);
 
     expect(integrity.integrityValidators.recordLinkage).toHaveBeenCalledWith(data);
@@ -74,7 +70,7 @@ describe('validateIntegrity', () => {
 
   it('should throw if the validator for the type does not exist', () => {
     const invalidType = 'invalidType' as keyof typeof integrity.integrityValidators;
-    const data = {};
+    const data = {} as unknown as RecordLinkage;
 
     expect(() => {
       validator.validateIntegrity(invalidType, data);

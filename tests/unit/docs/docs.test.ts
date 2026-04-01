@@ -1,8 +1,8 @@
 import { load } from 'js-yaml';
 import { readFileSync } from 'node:fs';
 
-import { getDocHTML, getSpec } from '../../../src/docs/docs.ts';
-import { state } from '../../../src/state.ts';
+import { getDocHTML, getSpec } from '#src/docs/docs';
+import { state } from '#src/state';
 
 vi.mock('js-yaml', () => ({
   load: vi.fn()
@@ -12,7 +12,7 @@ vi.mock('node:fs', () => ({
   readFileSync: vi.fn()
 }));
 
-vi.mock('../../../src/state.ts', () => ({
+vi.mock('#src/state', () => ({
   state: { authMode: 'authn' }
 }));
 
@@ -73,7 +73,7 @@ describe('getSpec', () => {
     const spec = getSpec();
     expect(readFileSync).toHaveBeenCalledWith('src/docs/openapi.yaml', 'utf8');
     expect(load).toHaveBeenCalledWith('yaml');
-    expect(spec.servers[0].url).toBe('/api/v1');
+    expect(spec.servers?.[0]?.url).toBe('/api/v1');
   });
 
   it('should update openIdConnectUrl if AUTH_ISSUER is set', () => {

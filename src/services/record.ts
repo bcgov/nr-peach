@@ -17,11 +17,11 @@ import {
   SystemRecordRepository,
   TransactionRepository,
   VersionRepository
-} from '../repositories/index.ts';
-import { CodingDictionary, containsSubset, getLogger, Problem } from '../utils/index.ts';
+} from '#src/repositories/index';
+import { CodingDictionary, containsSubset, getLogger, Problem } from '#src/utils/index';
 
 import type { DeleteResult, Selectable } from 'kysely';
-import type { Coding, CodingEvent, Header, PiesSystemRecord, Process, ProcessEvent, Record } from '../types/index.d.ts';
+import type { Coding, CodingEvent, Header, PiesSystemRecord, Process, ProcessEvent, Record } from '#types';
 
 const log = getLogger(import.meta.filename);
 
@@ -67,8 +67,8 @@ export const findRecordService = (systemRecord: Selectable<PiesSystemRecord>): P
 
             const coding: Coding = {
               code: codingRaw.code,
-              code_display: CodingDictionary[codingRaw.codeSystem][codingRaw.code].display,
-              code_set: CodingDictionary[codingRaw.codeSystem][codingRaw.code].codeSet,
+              code_display: CodingDictionary[codingRaw.codeSystem]?.[codingRaw.code]?.display ?? '',
+              code_set: CodingDictionary[codingRaw.codeSystem]?.[codingRaw.code]?.codeSet ?? [codingRaw.code],
               code_system: codingRaw.codeSystem
             };
             return { coding, event } satisfies CodingEvent;
@@ -94,8 +94,8 @@ export const findRecordService = (systemRecord: Selectable<PiesSystemRecord>): P
 
             const process: Process = {
               code: coding.code,
-              code_display: CodingDictionary[coding.codeSystem][coding.code].display,
-              code_set: CodingDictionary[coding.codeSystem][coding.code].codeSet,
+              code_display: CodingDictionary[coding.codeSystem]?.[coding.code]?.display ?? '',
+              code_set: CodingDictionary[coding.codeSystem]?.[coding.code]?.codeSet ?? [coding.code],
               code_system: coding.codeSystem,
               status: pe.status ?? undefined,
               status_code: pe.statusCode ?? undefined,
@@ -122,7 +122,7 @@ export const findRecordService = (systemRecord: Selectable<PiesSystemRecord>): P
 };
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-export const mergeRecordService = (data: Record, principal?: string): Promise<void> => {
+export const mergeRecordService = (_data: Record, _principal?: string): Promise<void> => {
   throw new Error('mergeRecordService not implemented');
 };
 

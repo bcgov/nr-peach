@@ -5,7 +5,6 @@ import { Seeder } from 'kysely-ctl';
 import { readdirSync } from 'node:fs';
 
 import { testSystemTime } from '../vitest.setup.ts';
-import { state } from '../../../src/state.ts';
 import {
   checkDatabaseHealth,
   checkDatabaseMigrations,
@@ -17,11 +16,13 @@ import {
   onLogEvent,
   onPoolError,
   shutdownDatabase
-} from '../../../src/db/database.ts';
+} from '#src/db/database';
+import { state } from '#src/state';
+import { baseLogger } from '#src/utils/log';
 
 import type { LogEvent, QueryId, RootOperationNode } from 'kysely';
 import type { Mock, MockInstance } from 'vitest';
-import type { DB } from '../../../src/types/index.d.ts';
+import type { DB } from '#types';
 
 vi.mock('node:fs', () => ({
   readdirSync: vi.fn()
@@ -201,6 +202,7 @@ describe('getSeeds', () => {
 
 describe('onLogEvent', () => {
   it('should log an error when event level is "error"', () => {
+    const errorSpy = vi.spyOn(baseLogger, 'error');
     const event: LogEvent = {
       level: 'error',
       queryDurationMillis: 100,
@@ -214,10 +216,20 @@ describe('onLogEvent', () => {
     };
 
     onLogEvent(event);
-    expect(onLogEvent(event)).toBeUndefined();
+
+    expect(errorSpy).toHaveBeenCalledTimes(1);
+    expect(errorSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        durationMs: 100,
+        params: ['param1', 'param2'],
+        sql: 'SELECT * FROM test'
+      }),
+      'Query failed'
+    );
   });
 
-  it('should log a verbose message when event level is not "error"', () => {
+  it('should log a trace message when event level is not "error"', () => {
+    const traceSpy = vi.spyOn(baseLogger, 'trace');
     const event: LogEvent = {
       level: 'query',
       queryDurationMillis: 50,
@@ -230,7 +242,16 @@ describe('onLogEvent', () => {
     };
 
     onLogEvent(event);
-    expect(onLogEvent(event)).toBeUndefined();
+
+    expect(traceSpy).toHaveBeenCalledTimes(1);
+    expect(traceSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        durationMs: 50,
+        params: ['param1'],
+        sql: 'SELECT * FROM test'
+      }),
+      'Query executed'
+    );
   });
 });
 
@@ -268,7 +289,7 @@ describe('runMigrations', () => {
       error: undefined,
       results: [{ migrationName: '001_init', status: 'Success' }]
     });
-    const { runMigrations } = await import('../../../src/db/database.ts');
+    const { runMigrations } = await import('#src/db/database');
     const result = await runMigrations();
     expect(migrateSpy).toHaveBeenCalledTimes(1);
     expect(result).toBe(true);
@@ -282,7 +303,7 @@ describe('runMigrations', () => {
         { migrationName: '002_add_table', status: 'Success' }
       ]
     });
-    const { runMigrations } = await import('../../../src/db/database.ts');
+    const { runMigrations } = await import('#src/db/database');
     const result = await runMigrations();
     expect(result).toBe(true);
   });
@@ -292,14 +313,14 @@ describe('runMigrations', () => {
       error: new Error('migration failure'),
       results: [{ migrationName: '001_init', status: 'Error' }]
     });
-    const { runMigrations } = await import('../../../src/db/database.ts');
+    const { runMigrations } = await import('#src/db/database');
     const result = await runMigrations();
     expect(result).toBe(false);
   });
 
   it('propagates if migrateToLatest throws', async () => {
     migrateSpy.mockRejectedValue(new Error('boom'));
-    const { runMigrations } = await import('../../../src/db/database.ts');
+    const { runMigrations } = await import('#src/db/database');
     await expect(runMigrations()).rejects.toThrow('boom');
   });
 });
@@ -320,7 +341,7 @@ describe('runSeeds', () => {
       error: undefined,
       results: [{ migrationName: '001_init', status: 'Success' }]
     });
-    const { runSeeds } = await import('../../../src/db/database.ts');
+    const { runSeeds } = await import('#src/db/database');
     const result = await runSeeds();
     expect(seedSpy).toHaveBeenCalledTimes(1);
     expect(result).toBe(true);
@@ -334,7 +355,7 @@ describe('runSeeds', () => {
         { migrationName: '002_add_table', status: 'Success' }
       ]
     });
-    const { runSeeds } = await import('../../../src/db/database.ts');
+    const { runSeeds } = await import('#src/db/database');
     const result = await runSeeds();
     expect(result).toBe(true);
   });
@@ -344,14 +365,14 @@ describe('runSeeds', () => {
       error: new Error('seed failure'),
       results: [{ migrationName: '001_init', status: 'Error' }]
     });
-    const { runSeeds } = await import('../../../src/db/database.ts');
+    const { runSeeds } = await import('#src/db/database');
     const result = await runSeeds();
     expect(result).toBe(false);
   });
 
   it('propagates if run throws', async () => {
     seedSpy.mockRejectedValue(new Error('boom'));
-    const { runSeeds } = await import('../../../src/db/database.ts');
+    const { runSeeds } = await import('#src/db/database');
     await expect(runSeeds()).rejects.toThrow('boom');
   });
 });

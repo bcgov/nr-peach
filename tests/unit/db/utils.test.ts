@@ -11,7 +11,7 @@ import {
   dropIndex,
   dropUpdatedAtTrigger,
   withTimestamps
-} from '../../../src/db/utils.ts';
+} from '#src/db/utils';
 
 import type { CreateTableBuilder, KyselyConfig, SchemaModule } from 'kysely';
 import type { Mock } from 'vitest';

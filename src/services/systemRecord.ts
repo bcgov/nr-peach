@@ -1,9 +1,9 @@
 import { transactionWrapper } from './helpers/index.ts';
-import { SystemRecordRepository } from '../repositories/index.ts';
-import { Problem } from '../utils/index.ts';
+import { SystemRecordRepository } from '#src/repositories/index';
+import { Problem } from '#src/utils/index';
 
 import type { Selectable, SimplifySingleResult } from 'kysely';
-import type { PiesSystemRecord } from '../types/index.d.ts';
+import type { PiesSystemRecord } from '#types';
 
 /**
  * Deletes a single system record by its record ID and optionally by system ID.
@@ -49,7 +49,7 @@ export const findSingleSystemRecordService = async (
         );
       }
 
-      return systemRecords[0];
+      return systemRecords[0]!;
     },
     { accessMode: 'read only' }
   );

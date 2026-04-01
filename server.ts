@@ -2,18 +2,12 @@
 
 import { createServer } from 'node:http';
 
-import './src/env.ts';
-import { app } from './src/app.ts';
-import { state } from './src/state.ts';
-import {
-  checkDatabaseHealth,
-  checkDatabaseMigrations,
-  runMigrations,
-  runSeeds,
-  shutdownDatabase
-} from './src/db/index.ts';
-import { getJwksClient } from './src/middlewares/helpers/oauth.ts';
-import { getLogger } from './src/utils/index.ts';
+import '#src/env';
+import { app } from '#src/app';
+import { state } from '#src/state';
+import { checkDatabaseHealth, checkDatabaseMigrations, runMigrations, runSeeds, shutdownDatabase } from '#src/db/index';
+import { getJwksClient } from '#src/middlewares/helpers/index';
+import { getLogger } from '#src/utils/index';
 
 const automigrate = process.env.APP_AUTOMIGRATE?.toLowerCase() === 'true';
 const log = getLogger(import.meta.filename);

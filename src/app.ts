@@ -6,14 +6,14 @@ import { randomUUID } from 'node:crypto';
 import { rateLimit } from 'express-rate-limit';
 import favicon from 'serve-favicon';
 
-import router from './routes/index.ts';
+import router from '#src/routes/index';
 
-import { checkDatabaseHealth } from './db/index.ts';
-import { state } from './state.ts';
-import { getLogger, httpLogger, Problem } from './utils/index.ts';
+import { checkDatabaseHealth } from '#src/db/index';
+import { state } from '#src/state';
+import { getLogger, httpLogger, Problem } from '#src/utils/index';
 
 import type { NextFunction, Request, Response } from 'express';
-import type { LocalContext } from './types/index.d.ts';
+import type { LocalContext } from '#types';
 
 const log = getLogger(import.meta.filename);
 

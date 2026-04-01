@@ -1,7 +1,7 @@
 import { defineConfig } from 'kysely-ctl';
 
-import './src/env.ts';
-import { db } from './src/db/index.ts';
+import '#src/env';
+import { db } from '#src/db/index';
 
 export default defineConfig({
   kysely: db,

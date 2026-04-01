@@ -1,7 +1,7 @@
 import { BaseRepository } from './base.ts';
 
 import type { Kysely, Transaction } from 'kysely';
-import type { DB } from '../types/index.d.ts';
+import type { DB } from '#types';
 
 const CONSTRAINTS = ['record_kind_version_id_kind_unique'] as const;
 

@@ -7,6 +7,10 @@
   "author": "NRM Permitting and Data Solutions <NRM.PermittingAndData@gov.bc.ca>",
   "type": "module",
   "main": "server.ts",
+  "imports": {
+    "#types": "./src/types/index.d.ts",
+    "#src/*": "./src/*.ts"
+  },
   "scripts": {
     "commitlint": "commitlint",
     "codegen": "kysely-codegen --url $(node dburl.helper.ts)",
@@ -40,7 +44,6 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@tsconfig/node24": "24.0.4",
     "ajv": "8.18.0",
     "ajv-formats": "3.0.1",
     "compression": "1.8.1",

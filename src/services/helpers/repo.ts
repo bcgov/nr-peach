@@ -1,11 +1,11 @@
 import { DatabaseError } from 'pg';
 
-import { db } from '../../db/index.ts';
-import { BaseRepository } from '../../repositories/index.ts';
-import { getLogger } from '../../utils/index.ts';
+import { db } from '#src/db/index';
+import { BaseRepository } from '#src/repositories/index';
+import { getLogger } from '#src/utils/index';
 
 import type { AccessMode, FilterObject, InsertObject, IsolationLevel, Selectable, Transaction } from 'kysely';
-import type { DB } from '../../types/index.d.ts';
+import type { DB } from '#types';
 
 const log = getLogger(import.meta.filename);
 

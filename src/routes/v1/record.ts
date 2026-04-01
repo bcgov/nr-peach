@@ -5,8 +5,8 @@ import {
   postRecordController,
   pruneRecordController,
   putRecordController
-} from '../../controllers/index.ts';
-import { authz } from '../../middlewares/index.ts';
+} from '#src/controllers/index';
+import { authz } from '#src/middlewares/index';
 import {
   getRecordSchemaValidator,
   postRecordIntegrityValidator,
@@ -14,7 +14,7 @@ import {
   pruneRecordSchemaValidator,
   putRecordIntegrityValidator,
   putRecordSchemaValidator
-} from '../../validators/index.ts';
+} from '#src/validators/index';
 
 const router = Router();
 

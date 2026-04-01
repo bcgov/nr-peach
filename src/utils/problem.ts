@@ -80,7 +80,7 @@ export default class Problem extends Error {
    * Converts the `Problem` instance to a string representation.
    * @returns A string in the format `[status] title (type)`.
    */
-  toString() {
+  override toString() {
     return `[${this.status}] ${this.title} (${this.type})`;
   }
 

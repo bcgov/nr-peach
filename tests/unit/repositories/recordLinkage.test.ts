@@ -1,6 +1,6 @@
 import { mockDb } from './repository.helper.ts';
-import { BaseRepository } from '../../../src/repositories/base.ts';
-import { RecordLinkageRepository } from '../../../src/repositories/recordLinkage.ts';
+import { BaseRepository } from '#src/repositories/base';
+import { RecordLinkageRepository } from '#src/repositories/recordLinkage';
 
 describe('RecordLinkageRepository', () => {
   describe('constructor', () => {

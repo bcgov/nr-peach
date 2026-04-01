@@ -1,11 +1,11 @@
 import express from 'express';
 import request from 'supertest';
 
-import { deleteSystemRecordController } from '../../../src/controllers/systemRecord.ts';
-import * as services from '../../../src/services/index.ts';
+import { deleteSystemRecordController } from '#src/controllers/systemRecord';
+import * as services from '#src/services/index';
 
 import type { Selectable } from 'kysely';
-import type { PiesSystemRecord } from '../../../src/types/index.d.ts';
+import type { PiesSystemRecord } from '#types';
 
 describe('System Record Controllers', () => {
   const deleteSystemRecordServiceSpy = vi.spyOn(services, 'deleteSystemRecordService');

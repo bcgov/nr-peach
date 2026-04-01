@@ -1,6 +1,6 @@
 import { mockDb } from './repository.helper.ts';
-import { BaseRepository } from '../../../src/repositories/base.ts';
-import { RecordKindRepository } from '../../../src/repositories/recordKind.ts';
+import { BaseRepository } from '#src/repositories/base';
+import { RecordKindRepository } from '#src/repositories/recordKind';
 
 describe('RecordKindRepository', () => {
   describe('constructor', () => {

@@ -1,6 +1,6 @@
 import { mockDb } from './repository.helper.ts';
-import { BaseRepository } from '../../../src/repositories/base.ts';
-import { SystemRecordRepository } from '../../../src/repositories/systemRecord.ts';
+import { BaseRepository } from '#src/repositories/base';
+import { SystemRecordRepository } from '#src/repositories/systemRecord';
 
 describe('SystemRecordRepository', () => {
   describe('constructor', () => {

@@ -1,12 +1,14 @@
-import { CodingDictionary, getUUIDv7Timestamp } from '../../utils/index.ts';
-import type { Event, Header, IntegrityError, Process, ProcessEvent } from '../../types/index.d.ts';
+import { CodingDictionary, getUUIDv7Timestamp } from '#src/utils/index';
+
+import type { Event, Header, IntegrityError, Process, ProcessEvent } from '#types';
 
 /** A Set containing the keys of the `coding` object, representing all available code systems. */
 const codeSystemCache = new Set<keyof typeof CodingDictionary>(Object.keys(CodingDictionary));
 /** Caches sets of codes for each code system. */
 const codeSetCache: Record<string, Set<string>> = {};
 for (const codeSystem of codeSystemCache) {
-  codeSetCache[codeSystem] = new Set(Object.keys(CodingDictionary[codeSystem]));
+  const codes = CodingDictionary[codeSystem];
+  if (codes) codeSetCache[codeSystem] = new Set(Object.keys(codes));
 }
 
 /**
@@ -66,7 +68,7 @@ export function auditProcess(data: Process, index: number): IntegrityError[] {
       value: data.code_system
     });
   }
-  if (!codeSystemCache.has(data.code_system) || !codeSetCache[data.code_system].has(data.code)) {
+  if (!codeSystemCache.has(data.code_system) || !codeSetCache[data.code_system]?.has(data.code)) {
     errors.push({
       instancePath: `/process_event/${index}/process`,
       message: `Invalid Process in ProcessEvent element at index ${index}`,

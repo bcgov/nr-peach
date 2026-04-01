@@ -1,10 +1,10 @@
 import jwksRsa from 'jwks-rsa';
 
-import { getLogger } from '../../utils/index.ts';
+import { getLogger } from '#src/utils/index';
 
 import type { Request, Response } from 'express';
 import type { JwksClient } from 'jwks-rsa';
-import type { AuthErrorAttributes } from '../../types/index.d.ts';
+import type { AuthErrorAttributes } from '#types';
 
 const log = getLogger(import.meta.filename);
 
@@ -25,7 +25,7 @@ export function getBearerToken(req: Request): string | undefined | null {
   const [scheme, token] = parts;
   if (parts.length !== 2 || scheme !== 'Bearer') return null;
 
-  return /^[A-Za-z0-9\-._~+/]+=*$/.test(token) ? token : null; // RFC 6750 Section 2.1
+  return token && /^[A-Za-z0-9\-._~+/]+=*$/.test(token) ? token : null; // RFC 6750 Section 2.1
 }
 
 /**

@@ -1,9 +1,9 @@
-import { getBearerToken, normalizeScopes, setAuthHeader } from '../../../../src/middlewares/helpers/oauth.ts';
+import { getBearerToken, normalizeScopes, setAuthHeader } from '#src/middlewares/helpers/oauth';
 
 import type { Request, Response } from 'express';
 import type { JwksClient } from 'jwks-rsa';
 import type { Mock } from 'vitest';
-import type { AuthErrorAttributes } from '../../../../src/types/index.d.ts';
+import type { AuthErrorAttributes } from '#types';
 
 describe('getBearerToken', () => {
   it('extracts the Bearer token from the Authorization header', () => {
@@ -61,7 +61,7 @@ describe('getJwksClient', () => {
     vi.resetModules();
     vi.unstubAllGlobals();
     delete (globalThis as Record<string, unknown>).jwksClientPromise;
-    getJwksClient = (await import('../../../../src/middlewares/helpers/oauth.ts')).getJwksClient;
+    getJwksClient = (await import('#src/middlewares/helpers/oauth')).getJwksClient;
     process.env.AUTH_ISSUER = 'https://auth.example.com/';
   });
 
@@ -116,7 +116,7 @@ describe('getJwksUri', () => {
     vi.resetModules();
     vi.unstubAllGlobals();
     delete (globalThis as Record<string, unknown>).jwksUriPromise;
-    getJwksUri = (await import('../../../../src/middlewares/helpers/oauth.ts')).getJwksUri;
+    getJwksUri = (await import('#src/middlewares/helpers/oauth')).getJwksUri;
   });
 
   afterEach(() => {

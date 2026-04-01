@@ -1,20 +1,20 @@
 import { DatabaseError } from 'pg';
 
-import { db } from '../../../../src/db/database.ts';
-import { BaseRepository } from '../../../../src/repositories/base.ts';
-import { findWhereOrUpsert, transactionWrapper } from '../../../../src/services/helpers/repo.ts';
+import { db } from '#src/db/database';
+import { BaseRepository } from '#src/repositories/base';
+import { findWhereOrUpsert, transactionWrapper } from '#src/services/helpers/repo';
 
 import type { Kysely, Transaction } from 'kysely';
 import type { Mock, MockInstance } from 'vitest';
-import type { DB } from '../../../../src/types/index.d.ts';
+import type { DB } from '#types';
 
 class MockRepository extends BaseRepository<'pies.version'> {
   constructor(db?: Kysely<DB> | Transaction<DB>) {
     super('pies.version', db);
   }
 
-  upsert = vi.fn();
-  findWhere = vi.fn();
+  override upsert = vi.fn();
+  override findWhere = vi.fn();
 }
 const mockData = { id: '0.1.0' };
 

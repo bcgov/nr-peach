@@ -1,9 +1,9 @@
 import express from 'express';
 import request from 'supertest';
 
-import { validateRequestIntegrity, validateRequestSchema } from '../../../src/middlewares/validator.ts';
-import * as validators from '../../../src/validators/index.ts';
-import { IntegrityDefinitions } from '../../../src/validators/integrity/integrity.ts';
+import { validateRequestIntegrity, validateRequestSchema } from '#src/middlewares/validator';
+import * as validators from '#src/validators/index';
+import { IntegrityDefinitions } from '#src/validators/integrity/integrity';
 
 import type { Application, Request, RequestHandler, Response } from 'express';
 
@@ -28,7 +28,7 @@ describe('validateRequestIntegrity', () => {
 
     app.post(
       '/test',
-      validateRequestIntegrity({ body: IntegrityDefinitions.processEventSet }),
+      validateRequestIntegrity({ body: IntegrityDefinitions.record }),
       mockHandler as unknown as RequestHandler
     );
 
@@ -36,7 +36,7 @@ describe('validateRequestIntegrity', () => {
 
     expect(response.status).toBe(200);
     expect(mockHandler).toHaveBeenCalledTimes(1);
-    expect(validateIntegritySpy).toHaveBeenCalledWith(IntegrityDefinitions.processEventSet, {
+    expect(validateIntegritySpy).toHaveBeenCalledWith(IntegrityDefinitions.record, {
       name: 'John Doe'
     });
   });
@@ -46,7 +46,7 @@ describe('validateRequestIntegrity', () => {
 
     app.get(
       '/test',
-      validateRequestIntegrity({ headers: IntegrityDefinitions.processEventSet }),
+      validateRequestIntegrity({ headers: IntegrityDefinitions.record }),
       mockHandler as unknown as RequestHandler
     );
 
@@ -55,7 +55,7 @@ describe('validateRequestIntegrity', () => {
     expect(response.status).toBe(200);
     expect(mockHandler).toHaveBeenCalledTimes(1);
     expect(validateIntegritySpy).toHaveBeenCalledWith(
-      IntegrityDefinitions.processEventSet,
+      IntegrityDefinitions.record,
       expect.objectContaining({
         authorization: 'Bearer token'
       })
@@ -70,7 +70,7 @@ describe('validateRequestIntegrity', () => {
 
     app.post(
       '/test',
-      validateRequestIntegrity({ body: IntegrityDefinitions.processEventSet }),
+      validateRequestIntegrity({ body: IntegrityDefinitions.record }),
       mockHandler as unknown as RequestHandler
     );
 
@@ -80,7 +80,7 @@ describe('validateRequestIntegrity', () => {
     expect(response.body.detail).toContain('body');
     expect(response.body.errors.body).toBeTruthy();
     expect(mockHandler).toHaveBeenCalledTimes(0);
-    expect(validateIntegritySpy).toHaveBeenCalledWith(IntegrityDefinitions.processEventSet, {});
+    expect(validateIntegritySpy).toHaveBeenCalledWith(IntegrityDefinitions.record, {});
   });
 
   it('should return 422 and handle multiple integrity validation errors', async () => {
@@ -97,7 +97,7 @@ describe('validateRequestIntegrity', () => {
     app.post(
       '/test',
       validateRequestIntegrity({
-        body: IntegrityDefinitions.processEventSet,
+        body: IntegrityDefinitions.record,
         query: IntegrityDefinitions.recordLinkage
       }),
       mockHandler as unknown as RequestHandler
@@ -111,7 +111,7 @@ describe('validateRequestIntegrity', () => {
     expect(response.body.errors.body).toBeTruthy();
     expect(response.body.errors.query).toBeTruthy();
     expect(mockHandler).toHaveBeenCalledTimes(0);
-    expect(validateIntegritySpy).toHaveBeenNthCalledWith(1, IntegrityDefinitions.processEventSet, {});
+    expect(validateIntegritySpy).toHaveBeenNthCalledWith(1, IntegrityDefinitions.record, {});
     expect(validateIntegritySpy).toHaveBeenNthCalledWith(2, IntegrityDefinitions.recordLinkage, {});
   });
 });

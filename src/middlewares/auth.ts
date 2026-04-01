@@ -2,10 +2,10 @@ import jwt from 'jsonwebtoken';
 import { LRUCache } from 'lru-cache';
 
 import { getBearerToken, getJwksClient, normalizeScopes, setAuthHeader } from './helpers/index.ts';
-import { Problem } from '../utils/index.ts';
-import { state } from '../state.ts';
+import { Problem } from '#src/utils/index';
+import { state } from '#src/state';
 
-import type { AuthErrorAttributes, AuthErrorCodes, AuthRequestHandler, SystemSource } from '../types/index.d.ts';
+import type { AuthErrorAttributes, AuthErrorCodes, AuthRequestHandler, SystemSource } from '#types';
 
 /** Default authentication error attributes */
 const defaultAttributes: AuthErrorAttributes = {

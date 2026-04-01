@@ -1,6 +1,6 @@
 import { sql } from 'kysely';
 
-import { db } from '../db/index.ts';
+import { db } from '#src/db/index';
 
 import type {
   AnyColumn,
@@ -14,7 +14,7 @@ import type {
   SelectQueryBuilder,
   Transaction
 } from 'kysely';
-import type { DB } from '../types/index.d.ts';
+import type { DB } from '#types';
 
 /**
  * Abstract base class for repository implementations.
@@ -175,7 +175,7 @@ export abstract class BaseRepository<TB extends keyof DB, C extends string = str
    */
   upsert(data: InsertObject<DB, TB>, constraint?: C): InsertQueryBuilder<DB, TB, Selectable<DB[TB]>> {
     return this.create(data).onConflict((oc) => {
-      if (this.constraints.length) return oc.constraint(constraint ?? this.constraints[0]).doNothing();
+      if (this.constraints[0]) return oc.constraint(constraint ?? this.constraints[0]).doNothing();
       return oc.column(this.idColumn).doNothing();
     });
   }
@@ -188,7 +188,7 @@ export abstract class BaseRepository<TB extends keyof DB, C extends string = str
    */
   upsertMany(data: readonly InsertObject<DB, TB>[], constraint?: C): InsertQueryBuilder<DB, TB, Selectable<DB[TB]>> {
     return this.createMany(data).onConflict((oc) => {
-      if (this.constraints.length) return oc.constraint(constraint ?? this.constraints[0]).doNothing();
+      if (this.constraints[0]) return oc.constraint(constraint ?? this.constraints[0]).doNothing();
       return oc.column(this.idColumn).doNothing();
     });
   }

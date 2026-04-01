@@ -1,7 +1,7 @@
 import { BaseRepository } from './base.ts';
 
 import type { Kysely, Transaction } from 'kysely';
-import type { DB } from '../types/index.d.ts';
+import type { DB } from '#types';
 
 const CONSTRAINTS = ['coding_code_code_system_version_id_unique'] as const;
 

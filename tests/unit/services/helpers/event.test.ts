@@ -1,10 +1,6 @@
-import {
-  dateTimePartsToEvent,
-  eventToDateTimeParts,
-  mergeDateAndTimeToISOString
-} from '../../../../src/services/helpers/event.ts';
+import { dateTimePartsToEvent, eventToDateTimeParts, mergeDateAndTimeToISOString } from '#src/services/helpers/event';
 
-import type { Event } from '../../../../src/types/index.d.ts';
+import type { Event } from '#types';
 
 describe('dateTimePartsToEvent', () => {
   it('returns start_datetime and end_datetime when times are provided', () => {

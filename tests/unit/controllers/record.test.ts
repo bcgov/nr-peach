@@ -6,12 +6,12 @@ import {
   postRecordController,
   pruneRecordController,
   putRecordController
-} from '../../../src/controllers/record.ts';
-import * as services from '../../../src/services/index.ts';
-import { Problem } from '../../../src/utils/index.ts';
+} from '#src/controllers/record';
+import * as services from '#src/services/index';
+import { Problem } from '#src/utils/index';
 
 import type { Selectable } from 'kysely';
-import type { PiesSystemRecord, Record } from '../../../src/types/index.d.ts';
+import type { PiesSystemRecord, Record } from '#types';
 
 describe('Record Controllers', () => {
   const checkDuplicateTransactionHeaderServiceSpy = vi.spyOn(services, 'checkDuplicateTransactionHeaderService');

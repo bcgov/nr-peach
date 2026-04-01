@@ -7,7 +7,7 @@ import {
   eventToDateTimeParts,
   findWhereOrUpsert,
   transactionWrapper
-} from '../../../src/services/helpers/index.ts';
+} from '#src/services/helpers/index';
 
 import {
   CodingRepository,
@@ -18,17 +18,12 @@ import {
   SystemRecordRepository,
   TransactionRepository,
   VersionRepository
-} from '../../../src/repositories/index.ts';
-import {
-  findRecordService,
-  mergeRecordService,
-  pruneRecordService,
-  replaceRecordService
-} from '../../../src/services/record.ts';
+} from '#src/repositories/index';
+import { findRecordService, mergeRecordService, pruneRecordService, replaceRecordService } from '#src/services/record';
 
 import type { Selectable } from 'kysely';
 import type { Mock } from 'vitest';
-import type { PiesSystemRecord, Record } from '../../../src/types/index.d.ts';
+import type { PiesSystemRecord, Record } from '#types';
 
 describe('recordService', () => {
   const systemRecord = {
@@ -81,7 +76,7 @@ describe('recordService', () => {
 
       expect(transactionWrapper).toHaveBeenCalledTimes(1);
       expect(cacheableRead).toHaveBeenNthCalledWith(1, new RecordKindRepository(), systemRecord.recordKindId);
-      expect(cacheableRead).toHaveBeenNthCalledWith(2, new CodingRepository(), processEventsRaw[0].codingId);
+      expect(cacheableRead).toHaveBeenNthCalledWith(2, new CodingRepository(), processEventsRaw[0]?.codingId);
       expect(ProcessEventRepository).toHaveBeenCalledTimes(1);
       expect(ProcessEventRepository).toHaveBeenCalledWith(expect.anything());
       expect(result).toMatchObject({
@@ -196,7 +191,7 @@ describe('recordService', () => {
 
   describe('mergeRecordService', () => {
     it('should throw a not implemented error', () => {
-      expect(() => mergeRecordService({} as Record)).toThrowError('mergeRecordService not implemented');
+      expect(() => mergeRecordService({} as Record)).toThrow('mergeRecordService not implemented');
     });
   });
 

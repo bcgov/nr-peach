@@ -15,7 +15,7 @@ const CLIENT_ID = __ENV.CLIENT_ID ?? env.CLIENT_ID;
 const CLIENT_SECRET = __ENV.CLIENT_SECRET ?? env.CLIENT_SECRET;
 const RECORD_ID = 'k6-test-1';
 const SYSTEM_ID = 'ITSM-5917';
-const TOKEN_ENDPOINT = __ENV.CLIENT_SECRET ?? env.TOKEN_ENDPOINT;
+const TOKEN_ENDPOINT = __ENV.TOKEN_ENDPOINT ?? env.TOKEN_ENDPOINT;
 
 export { options } from './helpers/index.ts';
 
@@ -24,6 +24,10 @@ export { options } from './helpers/index.ts';
  * @returns - Data created in setup to be used by VU execution
  */
 export function setup() {
+  if (!CLIENT_ID || !CLIENT_SECRET || !TOKEN_ENDPOINT) {
+    throw new Error('Missing required environment variables for authentication');
+  }
+
   const token = fetchBearerToken(CLIENT_ID, CLIENT_SECRET, TOKEN_ENDPOINT);
   const res = http.get(`${BASE_URL}${API_RECORD}?record_id=${RECORD_ID}&system_id=${SYSTEM_ID}`, {
     headers: {
