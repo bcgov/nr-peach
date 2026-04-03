@@ -92,10 +92,12 @@ resource "time_sleep" "wait_for_postgresql" {
   depends_on = [azurerm_postgresql_flexible_server.postgresql]
 }
 
-resource "azurerm_postgresql_flexible_server_configuration" "log_statement" {
-  name      = "log_statement"
+# PostgreSQL Configuration for tuning log verbosity - the server must be fully operational first
+resource "azurerm_postgresql_flexible_server_configuration" "postgres_configurations" {
+  for_each  = local.postgres_configurations
+  name      = each.key
   server_id = azurerm_postgresql_flexible_server.postgresql.id
-  value     = "all"
+  value     = each.value
 
   depends_on = [time_sleep.wait_for_postgresql]
 }
@@ -106,7 +108,7 @@ resource "azurerm_postgresql_flexible_server_configuration" "shared_preload_libr
   server_id = azurerm_postgresql_flexible_server.postgresql.id
   value     = "pg_stat_statements"
 
-  depends_on = [azurerm_postgresql_flexible_server_configuration.log_statement]
+  depends_on = [azurerm_postgresql_flexible_server_configuration.postgres_configurations]
 }
 
 # Wait for Private Endpoint to be ready before exiting module - can take 10 minutes before the IP address is available
