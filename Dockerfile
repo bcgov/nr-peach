@@ -46,8 +46,8 @@ COPY --from=build /usr/local/bin/node /usr/local/bin/node
 # Copy App Code
 WORKDIR ${APP_ROOT}
 COPY --from=build --chown=0:0 ${APP_ROOT}/node_modules ./node_modules
+COPY --chown=0:0 .env.default package*.json server.ts tsconfig.json ./
 COPY --chown=0:0 src ./src
-COPY --chown=0:0 .env.default server.ts ./
 
 # Security & Port configuration
 USER ${APP_UID}
