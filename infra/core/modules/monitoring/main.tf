@@ -2,16 +2,6 @@
 # Monitoring Module Terraform Configuration
 # -----------------------------------------
 
-moved {
-  from = azurerm_log_analytics_workspace.main
-  to   = azurerm_log_analytics_workspace.log_analytics_workspace
-}
-
-moved {
-  from = azurerm_application_insights.main
-  to   = azurerm_application_insights.appinsights
-}
-
 # Log Analytics Workspace
 resource "azurerm_log_analytics_workspace" "log_analytics_workspace" {
   name                = "${var.app_name}-log-analytics-workspace"

@@ -2,16 +2,6 @@
 # Front Door Module Terraform Configuration
 # -----------------------------------------
 
-moved {
-  from = azurerm_cdn_frontdoor_profile.main
-  to   = azurerm_cdn_frontdoor_profile.frontdoor
-}
-
-moved {
-  from = azurerm_cdn_frontdoor_firewall_policy.main_firewall_policy
-  to   = azurerm_cdn_frontdoor_firewall_policy.frontdoor_firewall_policy
-}
-
 # Front Door Profile
 resource "azurerm_cdn_frontdoor_profile" "frontdoor" {
   name                = "${var.app_name}-${var.module_name}"
