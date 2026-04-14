@@ -44,7 +44,7 @@ jobs:
             type=semver,pattern={{major}}
       - name: Build and Push to Container Registry
         id: builder
-        uses: docker/build-push-action@v7.0.0
+        uses: docker/build-push-action@v7.1.0
         with:
           context: .
           push: true
