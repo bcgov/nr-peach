@@ -144,7 +144,7 @@ jobs:
           CI: true
         run: npm run test
       - name: Save Coverage Results
-        uses: actions/upload-artifact@v7.0.0
+        uses: actions/upload-artifact@v7.0.1
         with:
           name: coverage-app
           path: ${{ github.workspace }}/coverage
