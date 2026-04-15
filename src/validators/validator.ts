@@ -33,7 +33,6 @@ export async function preCachePiesSchema(): Promise<{ valid: boolean; errors?: E
 
 /**
  * Validates the integrity of the provided data based on the specified type.
- * @template K - A key of the `IntegrityMap` that specifies the type of validation to perform.
  * @param type - The type of integrity validation to apply, corresponding to a key in `IntegrityMap`.
  * @param data - The data to validate, which must match the type associated with the specified key in `IntegrityMap`.
  * @returns An `IntegrityResult` indicating the outcome of the validation.
@@ -60,7 +59,7 @@ export function validateIntegrity<K extends keyof IntegrityDictionary>(
  * @returns A promise resolving to a validation result:
  * - `valid`: true if the data satisfies the schema.
  * - `errors`: An array of `ErrorObject` if validation fails, otherwise undefined.
- * @throws {Error} Will throw if `loadSchema` fails to fetch a remote definition or
+ * @throws Will throw if `loadSchema` fails to fetch a remote definition or
  * if the schema contains syntax errors.
  */
 export async function validateSchema(

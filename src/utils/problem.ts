@@ -34,13 +34,13 @@ export default class Problem extends Error {
    * Constructs a new `Problem` instance.
    * @param status - The HTTP status code of the problem (RFC7231, Section 6).
    * @param opts - Optional parameters for the problem details.
-   * @param opts.type - The type of the problem. Defaults to a URI based on the status code.
-   * @param opts.title - A short, human-readable summary of the problem. Defaults to the status code description.
-   * @param opts.detail - A detailed explanation of the problem.
-   * @param opts.instance - A URI reference identifying the specific occurrence of the problem.
+   * - type - The type of the problem. Defaults to a URI based on the status code.
+   * - title - A short, human-readable summary of the problem. Defaults to the status code description.
+   * - detail - A detailed explanation of the problem.
+   * - instance - A URI reference identifying the specific occurrence of the problem.
    * @param extra - Additional properties to be assigned to the problem object.
-   * @throws {Error} If the `status` is not provided or is invalid.
-   * @throws {Error} If the `title` cannot be determined.
+   * @throws If the `status` is not provided or is invalid.
+   * @throws If the `title` cannot be determined.
    */
   constructor(
     status: number,

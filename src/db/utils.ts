@@ -6,9 +6,9 @@ export const SYSTEM_USER = 'SYSTEM';
 
 /**
  * Create Audit Log Trigger for a given table.
- * @param qb Query Builder
- * @param schema Schema
- * @param table Table
+ * @param qb - Query Builder
+ * @param schema - Schema
+ * @param table - Table
  * @returns Query Builder Result
  */
 export function createAuditLogTrigger(
@@ -23,10 +23,10 @@ export function createAuditLogTrigger(
 
 /**
  * Create an index on a given table and columns.
- * @param qb Query Builder
- * @param schema Schema
- * @param table Table
- * @param columns Columns
+ * @param qb - Query Builder
+ * @param schema - Schema
+ * @param table - Table
+ * @param columns - Columns
  * @returns Query Builder Promise
  */
 export function createIndex(qb: Kysely<unknown>, schema: string, table: string, columns: string[]): Promise<void> {
@@ -40,9 +40,9 @@ export function createIndex(qb: Kysely<unknown>, schema: string, table: string, 
 
 /**
  * Create an updated at trigger for a given table.
- * @param qb Query Builder
- * @param schema Schema
- * @param table Table
+ * @param qb - Query Builder
+ * @param schema - Schema
+ * @param table - Table
  * @returns Query Builder Result
  */
 export function createUpdatedAtTrigger(
@@ -57,9 +57,9 @@ export function createUpdatedAtTrigger(
 
 /**
  * Drop Audit Log Trigger for a given table.
- * @param qb Query Builder
- * @param schema Schema
- * @param table Table
+ * @param qb - Query Builder
+ * @param schema - Schema
+ * @param table - Table
  * @returns Query Builder Promise
  */
 export function dropAuditLogTrigger(qb: Kysely<unknown>, schema: string, table: string): Promise<QueryResult<unknown>> {
@@ -68,10 +68,10 @@ export function dropAuditLogTrigger(qb: Kysely<unknown>, schema: string, table: 
 
 /**
  * Drop an index on a given table and columns.
- * @param qb Query Builder
- * @param schema Schema
- * @param table Table
- * @param columns Columns
+ * @param qb - Query Builder
+ * @param schema - Schema
+ * @param table - Table
+ * @param columns - Columns
  * @returns Query Builder Promise
  */
 export function dropIndex(qb: Kysely<unknown>, schema: string, table: string, columns: string[]): Promise<void> {
@@ -84,9 +84,9 @@ export function dropIndex(qb: Kysely<unknown>, schema: string, table: string, co
 
 /**
  * Drop an updated at trigger for a given table.
- * @param qb Query Builder
- * @param schema Schema
- * @param table Table
+ * @param qb - Query Builder
+ * @param schema - Schema
+ * @param table - Table
  * @returns Query Builder Result
  */
 export function dropUpdatedAtTrigger(
@@ -99,7 +99,7 @@ export function dropUpdatedAtTrigger(
 
 /**
  * Adds timestamps to a table builder.
- * @param qb The table builder to add timestamps to.
+ * @param qb - The table builder to add timestamps to.
  * @returns The table builder with timestamps added. Should be invoked within a $call.
  */
 export function withTimestamps<TB extends string>(qb: CreateTableBuilder<TB>): CreateTableBuilder<TB> {

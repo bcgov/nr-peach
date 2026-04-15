@@ -7,10 +7,10 @@ import type { Event } from '#types';
  * for both the start and (optionally) end. If no start time is provided, only the date parts
  * are used, formatted as ISO date strings (YYYY-MM-DD).
  * @param parts - An object containing the start and (optionally) end dates and times.
- * @param parts.startDate - The start date as a Date object.
- * @param parts.startTime - (Optional) The start time as a string (such as "14:00").
- * @param parts.endDate - (Optional) The end date as a Date object.
- * @param parts.endTime - (Optional) The end time as a string (such as "16:00").
+ * - startDate - The start date as a Date object.
+ * - startTime - (Optional) The start time as a string (such as "14:00").
+ * - endDate - (Optional) The end date as a Date object.
+ * - endTime - (Optional) The end time as a string (such as "16:00").
  * @returns An Event object with either `start_datetime`/`end_datetime` or `start_date`/`end_date` fields.
  */
 export function dateTimePartsToEvent(parts: {
@@ -62,7 +62,7 @@ export function eventToDateTimeParts(event: Event): {
  * @param date - The date object representing the date part.
  * @param time - The time string (such as "14:30:00.001" or "14:30:00+02:00"). Any timezone offsets will be removed.
  * @returns The combined date and time as an RFC 3339 string in UTC (such as "2023-06-01T14:30:00.000Z").
- * @throws {Error} If the time string is not in a valid format.
+ * @throws If the time string is not in a valid format.
  */
 export function mergeDateAndTimeToISOString(date: Date, time: string): string {
   const year = date.getUTCFullYear();

@@ -21,7 +21,7 @@ export function fetchBearerToken(clientId: string, secret: string, tokenEndpoint
 /**
  * Parses the .env file
  * @returns An object containing environment variables.
- * @throws {Error} If the .env file is not found
+ * @throws If the .env file is not found
  */
 export function parseEnv(): Record<string, string> {
   const env: Record<string, string> = {};

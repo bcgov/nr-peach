@@ -53,13 +53,13 @@ export function setup() {
 
 /**
  * 3. VU Execution
- * @param data - Data defined in setup()
- * @param data.token - Bearer token for authorization
+ * @param token - Data defined in setup()
+ * - token - Bearer token for authorization
  */
-export default function main(data: { token: string }) {
+export default function main({ token }: { token: string }) {
   const res = http.get(`${BASE_URL}${API_RECORD}?record_id=${RECORD_ID}&system_id=${SYSTEM_ID}`, {
     headers: {
-      Authorization: `Bearer ${data.token}`,
+      Authorization: `Bearer ${token}`,
       'Content-Type': 'application/json'
     }
   });
@@ -70,13 +70,13 @@ export default function main(data: { token: string }) {
 
 /**
  * 4. Teardown - Cleanup actions after the test
- * @param data - Data defined in setup()
- * @param data.token - Bearer token for authorization
+ * @param token - Data defined in setup()
+ * - token - Bearer token for authorization
  */
-export function teardown(data: { token: string }) {
+export function teardown({ token }: { token: string }) {
   http.del(`${BASE_URL}${API_SYSTEM_RECORD}?record_id=${RECORD_ID}&system_id=${SYSTEM_ID}`, null, {
     headers: {
-      Authorization: `Bearer ${data.token}`,
+      Authorization: `Bearer ${token}`,
       'Content-Type': 'application/json'
     },
     responseCallback: http.expectedStatuses(204, 404)

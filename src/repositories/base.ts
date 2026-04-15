@@ -19,10 +19,8 @@ import type { DB } from '#types';
 /**
  * Abstract base class for repository implementations.
  * Provides a common structure for schema building and database interaction.
- * @template TB - Table name type, must be a key of the `DB` schema.
- * @template C - Optional table constraint identifiers.
  * @example
- * ```typescript
+ * ```ts
  * class UserRepository extends BaseRepository<'users'> {
  *   constructor(db: Kysely<DB> | Transaction<DB>) {
  *     super('users', db);
@@ -30,7 +28,7 @@ import type { DB } from '#types';
  * }
  * ```
  * @example
- * ```
+ * ```ts
  * const CONSTRAINTS = ['first_constraint', 'second_constraint'] as const;
  *
  * class UserRepository extends BaseRepository<'users', (typeof CONSTRAINTS)[number]> {

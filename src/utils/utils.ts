@@ -18,9 +18,11 @@ const log = getLogger(import.meta.filename);
  * @param rhs - The object (Right-Hand Side) containing the keys and values to match.
  * @returns `true` if all properties in `rhs` are satisfied by `lhs`; otherwise `false`.
  * @example
+ * ```ts
  * const lhs = { id: 101, status: 'active', meta: { lastLogin: '2024-05-01' } };
  * const rhs = { status: 'active', meta: { lastLogin: '2024-05-01T00:00:00Z' } };
  * containsSubset(lhs, rhs); // returns true
+ * ```
  */
 export function containsSubset(lhs: Record<string, unknown>, rhs: Record<string, unknown>): boolean {
   return Object.keys(rhs).every((key) => {

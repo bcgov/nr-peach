@@ -54,10 +54,10 @@ export function setup() {
 
 /**
  * 3. VU Execution
- * @param data - Data defined in setup()
- * @param data.token - Bearer token for authorization
+ * @param token - Data defined in setup()
+ * - token - Bearer token for authorization
  */
-export default function main(data: { token: string }) {
+export default function main({ token }: { token: string }) {
   let body: Record;
   if (dataFile.length) {
     if (scenario.iterationInTest >= dataFile.length) {
@@ -72,7 +72,7 @@ export default function main(data: { token: string }) {
   }
   const res = http.put(`${BASE_URL}${API_RECORD}`, JSON.stringify(body), {
     headers: {
-      Authorization: `Bearer ${data.token}`,
+      Authorization: `Bearer ${token}`,
       'Content-Type': 'application/json'
     }
   });
@@ -84,15 +84,15 @@ export default function main(data: { token: string }) {
 
 /**
  * 4. Teardown - cleanup actions after the test
- * @param data - Data defined in setup()
- * @param data.token - Bearer token for authorization
+ * @param token - Data defined in setup()
+ * - token - Bearer token for authorization
  */
-export function teardown(data: { token: string }) {
+export function teardown({ token }: { token: string }) {
   if (!DATA_FILE_PATH) {
     for (let count = 1; count <= MAX_RECORD_ID; count++) {
       http.del(`${BASE_URL}${API_SYSTEM_RECORD}?record_id=${RECORD_PREFIX}${count}&system_id=${SYSTEM_ID}`, null, {
         headers: {
-          Authorization: `Bearer ${data.token}`,
+          Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json'
         },
         responseCallback: http.expectedStatuses(204, 404)

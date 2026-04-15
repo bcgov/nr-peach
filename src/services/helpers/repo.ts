@@ -13,11 +13,10 @@ const log = getLogger(import.meta.filename);
  * Finds a record in the database using the provided filter criteria. If no record is found,
  * inserts a new record with the given data. Returns the found or newly inserted record.
  * @remarks Ensure the `data` filters are constrained enough to select only one record
- * @template TB - The table name in the database schema.
  * @param repo - The repository instance used to interact with the database.
  * @param data - An object containing both filter criteria and data for insertion.
  * @returns A promise that resolves to the found or newly inserted record.
- * @throws {unknown} If the upsert operation fails to insert a new record.
+ * @throws If the upsert operation fails to insert a new record.
  */
 export async function findWhereOrUpsert<TB extends keyof DB>(
   repo: BaseRepository<TB>,
@@ -29,15 +28,14 @@ export async function findWhereOrUpsert<TB extends keyof DB>(
 
 /**
  * Executes a database operation in a transaction, retrying on serialization failures or deadlocks.
- * @template T The return type of the operation.
  * @param operation - An async function that receives a transaction object and performs database operations.
  * @param opts - Optional settings for transaction and retry logic.
- * @param opts.accessMode - The transaction access mode (default: 'read write').
- * @param opts.initialDelay - Initial delay in ms before retrying after a failure (default: 100).
- * @param opts.isolationLevel - The transaction isolation level (default: 'read committed').
- * @param opts.maxRetries - Maximum number of retry attempts (default: 3).
+ * - accessMode - The transaction access mode (default: 'read write').
+ * - initialDelay - Initial delay in ms before retrying after a failure (default: 100).
+ * - isolationLevel - The transaction isolation level (default: 'read committed').
+ * - maxRetries - Maximum number of retry attempts (default: 3).
  * @returns A promise that resolves with the operation result.
- * @throws {unknown} If the operation fails for other reasons or all retries are exhausted.
+ * @throws If the operation fails for other reasons or all retries are exhausted.
  */
 export async function transactionWrapper<T>(
   operation: (trx: Transaction<DB>) => Promise<T>,

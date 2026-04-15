@@ -34,7 +34,7 @@ export const baseLogger: Logger = pino({
 
 /**
  * Main Pino Logger
- * @param moduleName The module name to register log statements under
+ * @param moduleName - The module name to register log statements under
  * @returns A child Pino Logger
  */
 export function getLogger(moduleName: string) {

@@ -14,8 +14,7 @@ import {
 } from '#src/db/index';
 
 /**
- *
- * @param db Database
+ * @param db - Database
  */
 export async function up(db: Kysely<unknown>): Promise<void> {
   //
@@ -265,8 +264,7 @@ export async function up(db: Kysely<unknown>): Promise<void> {
 }
 
 /**
- *
- * @param db Database
+ * @param db - Database
  */
 export async function down(db: Kysely<unknown>): Promise<void> {
   //

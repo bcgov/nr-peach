@@ -9,7 +9,7 @@
  * @see https://github.com/bcherny/json-schema-to-typescript (Reference only)
  * @see https://bcherny.github.io/json-schema-to-typescript-browser/ (Use this tool)
  * @see https://bcgov.github.io/nr-pies/docs/category/message-types (The schema sources)
- * @todo Consider using the json2ts CLI tool to convert from JSON Schema to TypeScript interfaces.
+ * TODO: Consider using the json2ts CLI tool to convert from JSON Schema to TypeScript interfaces.
  */
 
 /**

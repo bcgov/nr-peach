@@ -39,9 +39,11 @@ vi.mock('kysely', async () => {
  * @returns A function that accepts a template string and its interpolated values,
  *          and returns an object containing the strings, values, and a mocked `execute` function.
  * @example
+ * ```ts
  * (sql as unknown as Mock).mockImplementation(
  *   mockSqlExecuteReturn({ rows: [{ result: 1 }] })
  * );
+ * ```
  */
 export const mockSqlExecuteReturn = (result: unknown) => {
   return (strings: TemplateStringsArray, ...values: unknown[]) => ({

@@ -7,7 +7,7 @@ const VERSION = '0.1.0';
 
 /**
  * Seed the database with PIES v0.1.0 definitions.
- * @param db Database
+ * @param db - Database
  */
 export async function seed(db: Kysely<DB>): Promise<void> {
   await db

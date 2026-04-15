@@ -13,7 +13,7 @@ const schemaCache: Record<string, SchemaObject> = {};
 
 /**
  * Creates and configures an instance of Ajv (Another JSON Schema Validator).
- * @param opts Optional configuration options to customize the Ajv instance.
+ * @param opts - Optional configuration options to customize the Ajv instance.
  *             These options are merged with the default configuration.
  *             For example, you can pass options like `strict: false` to
  *             modify Ajv's behavior.
@@ -37,7 +37,7 @@ export function createAjvInstance(opts?: Options): Ajv {
 
 /**
  * Ensures a schema has a unique $id. If missing, generates a deterministic hash based on the schema content.
- * @param schema A JSON Schema object.
+ * @param schema - A JSON Schema object.
  * @returns The schema with a defined $id attribute.
  */
 export function ensureSchemaId(schema: SchemaObject): SchemaObject {
@@ -49,9 +49,9 @@ export function ensureSchemaId(schema: SchemaObject): SchemaObject {
 
 /**
  * Loads a JSON schema from a given URI or retrieves it from the cache if already loaded.
- * @param schema The URI of the schema to load.
+ * @param schema - The URI of the schema to load.
  * @returns A promise that resolves to the loaded schema object.
- * @throws {unknown} An error if the schema cannot be fetched or loaded.
+ * @throws An error if the schema cannot be fetched or loaded.
  */
 export async function loadSchema(schema: string): Promise<SchemaObject> {
   const cached = schema in schemaCache;
