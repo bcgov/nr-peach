@@ -103,7 +103,7 @@ function cleanup(): void {
 /**
  * Handles shutting down the server and exits the process.
  * @see https://nodejs.org/api/http.html#servercloseallconnections
- * @param signal - Received termination signal (e.g., 'SIGINT', 'SIGTERM').
+ * @param signal - Received termination signal (such as, 'SIGINT', 'SIGTERM').
  */
 function shutdown(signal: NodeJS.Signals): void {
   if (state.shutdown) return;

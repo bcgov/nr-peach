@@ -19,7 +19,7 @@ variable "app_automigrate" {
 }
 
 variable "app_env" {
-  description = "The deployment environment (e.g., dev, test, prod)."
+  description = "The deployment environment (such as dev, test, prod)."
   type        = string
   nullable    = false
 
@@ -122,7 +122,7 @@ variable "database_name" {
 }
 
 variable "database_ssl_mode" {
-  description = "The SSL mode for the PostgreSQL connection (e.g., 'require', 'disable')."
+  description = "The SSL mode for the PostgreSQL connection (such as 'require', 'disable')."
   type        = string
   default     = "require"
 }
@@ -180,7 +180,7 @@ variable "module_name" {
 }
 
 variable "node_env" {
-  description = "The Node.js environment (e.g., production, development)."
+  description = "The Node.js environment (such as production, development)."
   type        = string
   default     = "production"
 }

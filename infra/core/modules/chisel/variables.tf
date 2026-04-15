@@ -1,5 +1,5 @@
 variable "app_env" {
-  description = "The deployment environment (e.g., dev, test, prod)."
+  description = "The deployment environment (such as dev, test, prod)."
   type        = string
   nullable    = false
 
