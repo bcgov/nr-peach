@@ -3,10 +3,7 @@ import type { IncomingHttpHeaders } from 'node:http';
 
 import type { Record as PiesRecord, RecordLinkage } from './elements.d.ts';
 
-/**
- * Type for validating the integrity of an object's properties.
- * @template T - The object type to validate.
- */
+/** Type for validating the integrity of an object's properties. */
 export type IntegrityValidator<T> = {
   [K in keyof T]: (value: T[K]) => IntegrityResult;
 };

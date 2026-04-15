@@ -9,7 +9,7 @@ import type { PiesTransaction } from '#types';
  * Checks if a transaction with the given transaction ID already exists.
  * If a transaction with the specified ID is found, it throws a 409 Conflict error.
  * @param transactionId - The unique identifier of the transaction to check for duplicates.
- * @throws {Problem} Throws a 409 error if the transaction already exists.
+ * @throws Throws a 409 error if the transaction already exists.
  * @returns A promise that resolves if no duplicate is found, or rejects with an error if a duplicate exists.
  */
 export const checkDuplicateTransactionHeaderService = async (

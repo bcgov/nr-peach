@@ -158,11 +158,11 @@ export async function getSeeds(): Promise<Record<string, Seed>> {
 /**
  * Handles logging of database query events based on their severity level.
  * @param event - The log event containing details about the database query.
- * @param event.level - The severity level of the event ('error' or other levels).
- * @param event.queryDurationMillis - The duration of the query execution in milliseconds.
- * @param event.error - The error object associated with the query, if any (only for 'error' level).
- * @param event.query.parameters - The parameters used in the query.
- * @param event.query.sql - The SQL query string.
+ * - level - The severity level of the event ('error' or other levels).
+ * - queryDurationMillis - The duration of the query execution in milliseconds.
+ * - error - The error object associated with the query, if any (only for 'error' level).
+ * - query.parameters - The parameters used in the query.
+ * - query.sql - The SQL query string.
  */
 export function onLogEvent(event: LogEvent): void {
   if (event.level === 'error') {
@@ -190,7 +190,7 @@ export function onLogEvent(event: LogEvent): void {
 /**
  * Handles errors emitted by the database connection pool.
  * Server assumes the worst and forces a database check on next database request.
- * @param err The error object emitted by the pool.
+ * @param err - The error object emitted by the pool.
  */
 export function onPoolError(err: Error): void {
   log.error({ clientCount: pool.totalCount, waitingCount: pool.waitingCount }, `Database has errored: ${err.message}`);

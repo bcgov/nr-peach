@@ -9,7 +9,7 @@
  * @see https://github.com/bcherny/json-schema-to-typescript (Reference only)
  * @see https://bcherny.github.io/json-schema-to-typescript-browser/ (Use this tool)
  * @see https://bcgov.github.io/nr-pies/docs/category/message-types (The schema sources)
- * @todo Consider using the json2ts CLI tool to convert from JSON Schema to TypeScript interfaces.
+ * TODO: Consider using the json2ts CLI tool to convert from JSON Schema to TypeScript interfaces.
  */
 
 /**
@@ -58,7 +58,7 @@ export interface Header {
    */
   record_id: string;
   /**
-   * The kind of record the source system stores this record as (i.e. Anchor or Permit).
+   * The kind of record the source system stores this record as (for example, Anchor or Permit).
    */
   record_kind: 'Anchor' | 'Permit';
 }
@@ -98,12 +98,12 @@ export interface Coding {
  */
 export interface Date {
   /**
-   * The start date of the event in RFC 3339 format (e.g., `2024-12-01`).
+   * The start date of the event in RFC 3339 format (such as `2024-12-01`).
    */
   start_date: string;
   start_datetime?: never;
   /**
-   * The end date of the event in RFC 3339 format (e.g., `2024-12-01`). This is optional if `start_date` is used.
+   * The end date of the event in RFC 3339 format (such as `2024-12-01`). This is optional if `start_date` is used.
    */
   end_date?: string;
   end_datetime?: never;
@@ -115,14 +115,14 @@ export interface Date {
 export interface DateTime {
   start_date?: never;
   /**
-   * The start datetime of the event in RFC 3339 format (e.g., `2024-12-01T10:00:00.0000000Z`). Only UTC time is
+   * The start datetime of the event in RFC 3339 format (such as `2024-12-01T10:00:00.0000000Z`). Only UTC time is
    * allowed.
    */
   start_datetime: string;
   end_date?: never;
   /**
-   * The end datetime of the event in RFC 3339 format (e.g., `2024-12-01T10:00:00.0000000Z`). Only UTC time is allowed.
-   * This is optional if `start_datetime` is used.
+   * The end datetime of the event in RFC 3339 format (such as `2024-12-01T10:00:00.0000000Z`). Only UTC time is
+   * allowed. This is optional if `start_datetime` is used.
    */
   end_datetime?: string;
 }
@@ -136,7 +136,7 @@ export interface ProcessEvent {
 export interface Process2 {
   /**
    * An optional description of the current condition or update of an application or authorization. Additional details
-   * about the current state are frequently conveyed (e.g., 'Pending Review', 'Under Inspection'). Statuses may be
+   * about the current state are frequently conveyed (such as 'Pending Review', 'Under Inspection'). Statuses may be
    * defined by the line of business.
    */
   status?: string;
@@ -167,7 +167,7 @@ export interface RecordLinkage2 {
    */
   linked_record_id: string;
   /**
-   * The kind of record the source system stores this linked record as (i.e. Anchor or Permit).
+   * The kind of record the source system stores this linked record as (for example, Anchor or Permit).
    */
   linked_record_kind: 'Anchor' | 'Permit';
 }

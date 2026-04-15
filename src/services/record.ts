@@ -29,7 +29,7 @@ const log = getLogger(import.meta.filename);
  * Retrieves the record for the given system record.
  * @param systemRecord - The system record for which to retrieve the record.
  * @returns A Promise that resolves to the record for the given system record.
- * @throws {Problem} 404 if no process events are found.
+ * @throws 404 if no process events are found.
  */
 export const findRecordService = (systemRecord: Selectable<PiesSystemRecord>): Promise<Record> => {
   return transactionWrapper(

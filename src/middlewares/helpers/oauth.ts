@@ -59,7 +59,7 @@ export async function getJwksClient(): Promise<JwksClient> {
  * Yields the JWKS URI from an OpenID Provider's configuration information.
  * @see https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderConfig
  * @returns The jwks_uri string from the configuration
- * @throws {Error} If fetch fails or jwks_uri is unresolvable
+ * @throws If fetch fails or jwks_uri is unresolvable
  */
 export async function getJwksUri(): Promise<string> {
   if (jwksUriPromise) {

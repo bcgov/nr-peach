@@ -10,7 +10,7 @@ import type { PiesSystemRecord } from '#types';
  * @param recordId - The unique identifier of the record to find.
  * @param systemId - (Optional) The system ID to further filter the search.
  * @returns A promise that resolves if the system record is deleted.
- * @throws {Problem} If no record is found (404) or if multiple records are found without a `systemId` (409).
+ * @throws If no record is found (404) or if multiple records are found without a `systemId` (409).
  */
 export const deleteSystemRecordService = async (
   recordId: string,
@@ -26,7 +26,7 @@ export const deleteSystemRecordService = async (
  * @param recordId - The unique identifier of the record to find.
  * @param systemId - (Optional) The system ID to further filter the search.
  * @returns A promise that resolves to the found system record.
- * @throws {Problem} If no record is found (404) or if multiple records are found without a `systemId` (409).
+ * @throws If no record is found (404) or if multiple records are found without a `systemId` (409).
  */
 export const findSingleSystemRecordService = async (
   recordId: string,

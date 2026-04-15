@@ -244,7 +244,7 @@ protects the parent Flexible Server from deletion.
 
 #### Apply Lock
 
-Replace `<ENV>` with your target environment (e.g., `dev`, `prod`):
+Replace `<ENV>` with your target environment (such as `dev`, `prod`):
 
 ```sh
 az lock create --name "app-database" --resource-group "nr-permitting-core-rg" --lock-type CanNotDelete --resource-type "Microsoft.DBforPostgreSQL/flexibleServers" --resource-name "nr-peach-<ENV>-postgresql/databases/app"
@@ -319,7 +319,7 @@ The alternative way to release the state lock is to manually delete the lock fil
 approach should be used with caution, as it can lead to inconsistencies if not done properly.
 
 - Visit your backend storage account via Azure Portal and navigate to the `tfstate` container.
-- Locate the lock file (e.g., `main.instance.tfstate`) and break the lease on it.
+- Locate the lock file (for example, `main.instance.tfstate`) and break the lease on it.
 - Remove the `Terraformlockid` metadata on the same tfstate lock file.
 
 ### Divergent States
@@ -391,15 +391,15 @@ Ref: <https://learn.microsoft.com/en-us/azure/virtual-network/network-security-g
 
 Network Rule Priorities should be set as follows:
 
-| Purpose                                                                     | Recommended Priority | Reason                                                                         |
-| --------------------------------------------------------------------------- | -------------------- | ------------------------------------------------------------------------------ |
-| Critical allow rules (i.e. Azure Front Door)                                | 100–199              | You want AFD (especially health probes) to be allowed before deny rules apply. |
-| Service-to-service allow rules (i.e. APIM -> App Service, internal systems) | 200–299              | Clear separation from AFD and still above any default deny-like rules.         |
-| DevOps / corporate IP allowlists                                            | 300–399              | Typically less critical than core platform traffic.                            |
-| Temporary troubleshooting IP rules                                          | 400–499              | Easy to add/remove without conflicting with permanent rules.                   |
-| Catch-all denies (if ever explicitly needed)                                | 800–900              | Keep at the bottom.                                                            |
+| Purpose                                                                        | Recommended Priority | Reason                                                                         |
+| ------------------------------------------------------------------------------ | -------------------- | ------------------------------------------------------------------------------ |
+| Critical allow rules (such as Azure Front Door)                                | 100–199              | You want AFD (especially health probes) to be allowed before deny rules apply. |
+| Service-to-service allow rules (such as APIM -> App Service, internal systems) | 200–299              | Clear separation from AFD and still above any default deny-like rules.         |
+| DevOps / corporate IP allowlists                                               | 300–399              | Typically less critical than core platform traffic.                            |
+| Temporary troubleshooting IP rules                                             | 400–499              | Easy to add/remove without conflicting with permanent rules.                   |
+| Catch-all denies (if ever explicitly needed)                                   | 800–900              | Keep at the bottom.                                                            |
 
-When numbering network rules, you should always start by the dividing by 10 pattern (i.e. number 200, 210, 220, etc.)
+When numbering network rules, you should always start by the dividing by 10 pattern (such as number 200, 210, 220, etc.)
 as this allows for easy addition or removal of future rules without affecting existing orderings. In Azure App Service,
 strongly consider setting `ip_restriction_default_action` to deny by default to prevent unexpected traffic from passing
 through.

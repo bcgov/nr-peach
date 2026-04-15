@@ -18,8 +18,6 @@ export const lruCache = new LRUCache<string, any>({ max: 100, ttl: 1000 * 60 * 5
 
 /**
  * Performs a read operation to retrieve a single row by primary key and optionally cache the result.
- * @template TB - The table name type, which is a key of the database schema `DB`.
- * @template ID - Primary-key type (`number` or `string`).
  * @param repo - The repository instance where the read operation will be performed.
  * @param id - Primary-key value to read.
  * @param cacheEnabled - A boolean flag indicating whether caching optimization is enabled for this operation.
@@ -41,7 +39,6 @@ export async function cacheableRead<TB extends keyof DB, ID extends OperandValue
 /**
  * Performs an upsert operation on the specified repository and optionally caches the result.
  * @remarks Ensure the `data` filters are constrained enough to select only one record
- * @template TB - The table name type, which is a key of the database schema `DB`.
  * @param repo - The repository instance where the upsert operation will be performed.
  * @param data - The data object containing both filter and insert properties for the upsert operation.
  * @param cacheEnabled - A boolean flag indicating whether caching optimization is enabled for this operation.
@@ -63,12 +60,11 @@ export function cacheableUpsert<TB extends keyof DB>(
  * Wraps an asynchronous function with caching logic.
  * Returns the cached result if available, otherwise executes the function,
  * caches its result, and returns it. Removes the cache entry if the function throws an error.
- * @template T - The return type of the function.
  * @param cacheKey - Unique cache key in the format `${keyof DB}:${string}`.
  * @param callback - The asynchronous callback function to execute if the cache miss occurs.
  * @param args - The arguments to pass to the callback function.
  * @returns A promise that resolves to the cached or freshly computed result.
- * @throws {unknown} Propagates errors after clearing the cache entry.
+ * @throws Propagates errors after clearing the cache entry.
  */
 export async function cacheWrapper<T, A extends unknown[]>(
   cacheKey: `${keyof DB}:${string}`,

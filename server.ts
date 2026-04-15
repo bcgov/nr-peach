@@ -46,7 +46,7 @@ server.on('error', onError);
 
 /**
  * Normalize a port into a number, string, or false.
- * @param val Port string value
+ * @param val - Port string value
  * @returns A number, string or false
  */
 function normalizePort(val: string): string | number | boolean {
@@ -60,9 +60,9 @@ function normalizePort(val: string): string | number | boolean {
 
 /**
  * Event listener for HTTP server "error" event.
- * @param error Error event
- * @param error.syscall System call
- * @param error.code Error code
+ * @param error - Error event
+ * - syscall - The name of the system call that failed.
+ * - code - The specific error code (such as EADDRINUSE).
  */
 function onError(error: Error & { syscall?: string; code: string }): void {
   if (error.syscall !== 'listen') throw error;
@@ -103,7 +103,7 @@ function cleanup(): void {
 /**
  * Handles shutting down the server and exits the process.
  * @see https://nodejs.org/api/http.html#servercloseallconnections
- * @param signal - Received termination signal (e.g., 'SIGINT', 'SIGTERM').
+ * @param signal - Received termination signal (such as, 'SIGINT', 'SIGTERM').
  */
 function shutdown(signal: NodeJS.Signals): void {
   if (state.shutdown) return;
@@ -119,7 +119,7 @@ function shutdown(signal: NodeJS.Signals): void {
 
 /**
  * Initializes the server by checking database health and migration maintenance
- * @throws {Error} If database health or migrations fail.
+ * @throws If database health or migrations fail.
  */
 async function startup(): Promise<void> {
   if (state.authMode) {
@@ -136,7 +136,7 @@ async function startup(): Promise<void> {
 
 /**
  * Validates the configuration settings and sets the server's auth mode
- * @throws {Error} If configuration settings are invalid or missing.
+ * @throws If configuration settings are invalid or missing.
  */
 async function validateConfig(): Promise<void> {
   const authMode = process.env.AUTH_MODE?.trim().toLowerCase();
