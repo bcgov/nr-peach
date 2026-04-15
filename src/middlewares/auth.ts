@@ -5,13 +5,13 @@ import { getBearerToken, getJwksClient, normalizeScopes, setAuthHeader } from '.
 import { Problem } from '#src/utils/index';
 import { state } from '#src/state';
 
-import type { AuthErrorAttributes, AuthErrorCodes, AuthRequestHandler, SystemSource } from '#types';
-
-/** Default authentication error attributes */
-const defaultAttributes: AuthErrorAttributes = {
-  realm: process.env.AUTH_AUDIENCE ?? 'nr-peach',
-  error: 'invalid_token'
-};
+import type {
+  AuthErrorAttributes,
+  AuthErrorCodes,
+  AuthRequestHandler,
+  AuthMethodRequestHandler,
+  SystemSource
+} from '#types';
 
 /** A map of authentication error codes to HTTP status codes. */
 const authStatusMap: Record<AuthErrorCodes, number> = {
@@ -24,15 +24,39 @@ const authStatusMap: Record<AuthErrorCodes, number> = {
 export const jwtCache = new LRUCache<string, jwt.JwtPayload>({ allowStale: false, max: 100, ttl: 1000 * 60 * 5 });
 
 /**
+ * Middleware for authentication. Checks the auth method (header, query or body) and expects header only to be present.
+ * @see https://datatracker.ietf.org/doc/html/rfc6750#section-2
+ * @returns An Express `RequestHandler` for authentication method validation.
+ */
+export function authm(): AuthMethodRequestHandler {
+  return function (req, res, next): void {
+    if (state.authMode === 'none') return next();
+
+    const attributes: AuthErrorAttributes = { realm: process.env.AUTH_AUDIENCE ?? 'nr-peach' };
+    try {
+      if (req.query.access_token) throw new Error('Bearer token must not be provided in query parameters.');
+      if (req.body?.access_token) throw new Error('Bearer token must not be provided in the request body.');
+      if (!req.headers.authorization) throw new Error('Missing bearer token');
+
+      next();
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : String(error);
+      attributes.error_description = msg;
+      new Problem(401, { detail: msg }, { realm: attributes.realm }).send(req, setAuthHeader(res, attributes));
+    }
+  };
+}
+
+/**
  * Middleware for authentication. Verifies the JWT Token in the Authorization header and ensures it is valid.
  * @see https://datatracker.ietf.org/doc/html/rfc6750
  * @returns An Express `RequestHandler` for authentication.
  */
 export function authn(): AuthRequestHandler {
   return async function (req, res, next): Promise<void> {
-    const attributes = { ...defaultAttributes };
     if (state.authMode === 'none') return next();
 
+    const attributes: AuthErrorAttributes = { realm: process.env.AUTH_AUDIENCE ?? 'nr-peach' };
     try {
       const token = getBearerToken(req);
       if (token === undefined) {
@@ -80,10 +104,11 @@ export function authn(): AuthRequestHandler {
     } catch (error) {
       const msg = error instanceof Error ? error.message : String(error);
       attributes.error_description = msg;
-      new Problem(authStatusMap[attributes.error], { detail: msg }, { realm: attributes.realm }).send(
-        req,
-        setAuthHeader(res, attributes)
-      );
+      new Problem(
+        authStatusMap[attributes.error ?? 'invalid_token'],
+        { detail: msg },
+        { realm: attributes.realm }
+      ).send(req, setAuthHeader(res, attributes));
     }
   };
 }
@@ -96,9 +121,9 @@ export function authn(): AuthRequestHandler {
  */
 export function authz(source: SystemSource): AuthRequestHandler {
   return function (req, res, next): void {
-    const attributes = { ...defaultAttributes };
     if (state.authMode && state.authMode !== 'authz') return next();
 
+    const attributes: AuthErrorAttributes = { realm: process.env.AUTH_AUDIENCE ?? 'nr-peach' };
     const system_id = req[source].system_id;
     try {
       if (!system_id) {
@@ -124,7 +149,7 @@ export function authz(source: SystemSource): AuthRequestHandler {
       const msg = error instanceof Error ? error.message : String(error);
       attributes.error_description = msg;
       new Problem(
-        authStatusMap[attributes.error],
+        authStatusMap[attributes.error ?? 'invalid_token'],
         { detail: msg },
         { realm: attributes.realm, scope: attributes.scope }
       ).send(req, setAuthHeader(res, attributes));

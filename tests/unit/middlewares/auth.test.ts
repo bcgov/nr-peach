@@ -3,7 +3,7 @@ import jwt from 'jsonwebtoken';
 import request from 'supertest';
 
 import { state } from '#src/state';
-import { authn, authz, jwtCache } from '#src/middlewares/auth';
+import { authm, authn, authz, jwtCache } from '#src/middlewares/auth';
 import * as helpers from '#src/middlewares/helpers/index';
 
 import type { Application, Request, RequestHandler, Response } from 'express';
@@ -13,7 +13,89 @@ interface BadAuthResponse {
   body: Record<string, unknown>;
   headers: Record<string, string>;
   status: number;
+  text?: string;
 }
+
+describe('authm', () => {
+  let app: Application;
+
+  beforeEach(() => {
+    state.authMode = 'authz';
+    app = express();
+    app.use(express.json());
+    app.use(express.urlencoded());
+    app.get('/test', authm(), (_req: Request, res: Response) => res.status(200).send('Success'));
+    app.post('/test', authm(), (_req: Request, res: Response) => res.status(200).send('Success'));
+  });
+
+  it('should allow all requests when authMode is set to "none"', async () => {
+    state.authMode = 'none';
+
+    const response = await request(app).get('/test?access_token=should-be-ignored');
+
+    expect(response.status).toBe(200);
+    expect(response.text).toBe('Success');
+  });
+
+  it('should allow requests with only the Authorization header', async () => {
+    const response = (await request(app).get('/test').set('Authorization', 'Bearer valid-token')) as BadAuthResponse;
+
+    expect(response.status).toBe(200);
+    expect(response.text).toBe('Success');
+  });
+
+  it('should reject requests with access_token in query parameters', async () => {
+    const response = (await request(app)
+      .get('/test?access_token=some-token')
+      .set('Authorization', 'Bearer valid-token')) as BadAuthResponse;
+
+    expect(response.status).toBe(401);
+    expect(response.body.detail).toBe('Bearer token must not be provided in query parameters.');
+    expect(response.headers['www-authenticate']).toContain(
+      'error_description="Bearer token must not be provided in query parameters."'
+    );
+  });
+
+  it('should reject requests with access_token in the json body', async () => {
+    const response = (await request(app)
+      .post('/test')
+      .set('Authorization', 'Bearer valid-token')
+      .set('Content-Type', 'application/json')
+      .send({ access_token: 'some-token' })) as BadAuthResponse;
+
+    expect(response.status).toBe(401);
+    expect(response.body.detail).toBe('Bearer token must not be provided in the request body.');
+  });
+
+  it('should reject requests with access_token in the urlencoded body', async () => {
+    const response = (await request(app)
+      .post('/test')
+      .set('Authorization', 'Bearer valid-token')
+      .set('Content-Type', 'application/x-www-form-urlencoded')
+      .send('access_token=some-token')) as BadAuthResponse;
+
+    expect(response.status).toBe(401);
+    expect(response.body.detail).toBe('Bearer token must not be provided in the request body.');
+  });
+
+  it('should reject requests missing the Authorization header', async () => {
+    const response = (await request(app).get('/test')) as BadAuthResponse;
+
+    expect(response.status).toBe(401);
+    expect(response.body.detail).toBe('Missing bearer token');
+  });
+
+  it('should use the AUTH_AUDIENCE env variable for the realm in the header', async () => {
+    const originalAudience = process.env.AUTH_AUDIENCE;
+    process.env.AUTH_AUDIENCE = 'test-realm';
+
+    const response = await request(app).get('/test');
+
+    expect(response.headers['www-authenticate']).toContain('realm="test-realm"');
+
+    process.env.AUTH_AUDIENCE = originalAudience;
+  });
+});
 
 describe('authn', () => {
   const mockHandler = vi.fn((_req: Request, res: Response) => res.status(200).send('Success'));

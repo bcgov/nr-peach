@@ -9,6 +9,7 @@ const app = express();
 app.use(router);
 
 vi.mock('#src/middlewares/auth', () => ({
+  authm: () => vi.fn<RequestHandler>((_req, _res, next) => next()),
   authn: () => vi.fn<RequestHandler>((_req, _res, next) => next()),
   authz: () => vi.fn<RequestHandler>((_req, _res, next) => next())
 }));
