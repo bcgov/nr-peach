@@ -59,11 +59,7 @@ export function authn(): AuthRequestHandler {
     const attributes: AuthErrorAttributes = { realm: process.env.AUTH_AUDIENCE ?? 'nr-peach' };
     try {
       const token = getBearerToken(req);
-      if (token === undefined) {
-        attributes.error = 'invalid_token';
-        throw new Error('Missing bearer token');
-      }
-      if (token === null) {
+      if (!token) {
         attributes.error = 'invalid_request';
         throw new Error('Invalid bearer token');
       }
@@ -78,7 +74,7 @@ export function authn(): AuthRequestHandler {
       // jwt.decode is used only to extract kid; claims are not trusted until verified
       const decoded = jwt.decode(token, { complete: true });
       if (!decoded || typeof decoded === 'string') {
-        attributes.error = 'invalid_request';
+        attributes.error = 'invalid_token';
         throw new Error('Unable to decode access token');
       }
 

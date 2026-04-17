@@ -123,24 +123,6 @@ describe('authn', () => {
     expect(mockHandler).toHaveBeenCalledTimes(1);
   });
 
-  it('should return 401 if token is not present', async () => {
-    state.authMode = 'authn';
-    getBearerTokenSpy.mockReturnValue(undefined);
-
-    app.get('/test', authn(), mockHandler as unknown as RequestHandler);
-
-    const response = (await request(app).get('/test').send()) as BadAuthResponse;
-
-    expect(response.status).toBe(401);
-    expect(response.body.detail).toBe('Missing bearer token');
-    expect(response.body.realm).toBe('nr-peach');
-    expect(response.headers['www-authenticate']).toContain('Bearer');
-    expect(response.headers['www-authenticate']).toContain('realm="nr-peach');
-    expect(response.headers['www-authenticate']).toContain('error="invalid_token"');
-    expect(response.headers['www-authenticate']).toContain('error_description="Missing bearer token"');
-    expect(mockHandler).toHaveBeenCalledTimes(0);
-  });
-
   it('should return 400 if token is invalid', async () => {
     state.authMode = 'authn';
     getBearerTokenSpy.mockReturnValue(null);
@@ -160,7 +142,7 @@ describe('authn', () => {
     expect(mockHandler).toHaveBeenCalledTimes(0);
   });
 
-  it('should return 400 if token is not decodable', async () => {
+  it('should return 401 if token is not decodable', async () => {
     state.authMode = 'authn';
     getBearerTokenSpy.mockReturnValue('invalid-token');
     decodeSpy.mockReturnValue(null);
@@ -169,12 +151,12 @@ describe('authn', () => {
 
     const response = (await request(app).get('/test').send()) as BadAuthResponse;
 
-    expect(response.status).toBe(400);
+    expect(response.status).toBe(401);
     expect(response.body.detail).toBe('Unable to decode access token');
     expect(response.body.realm).toBe('nr-peach');
     expect(response.headers['www-authenticate']).toContain('Bearer');
     expect(response.headers['www-authenticate']).toContain('realm="nr-peach');
-    expect(response.headers['www-authenticate']).toContain('error="invalid_request"');
+    expect(response.headers['www-authenticate']).toContain('error="invalid_token"');
     expect(response.headers['www-authenticate']).toContain('error_description="Unable to decode access token"');
     expect(mockHandler).toHaveBeenCalledTimes(0);
   });
