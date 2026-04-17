@@ -14,18 +14,17 @@ let jwksUriPromise: Promise<string> | null = null;
 /**
  * Extracts a valid bearer token from the Authorization header of the request.
  * @see https://datatracker.ietf.org/doc/html/rfc6750#section-2.1
+ * @see https://datatracker.ietf.org/doc/html/rfc9110#section-11.1
  * @param req - The Express request object.
- * @returns The valid bearer token as a string, undefined if not present, or null if invalid.
+ * @returns The valid bearer token string, or null if invalid.
  */
-export function getBearerToken(req: Request): string | undefined | null {
-  const auth = req.headers.authorization;
-  if (auth === undefined) return undefined;
+export function getBearerToken(req: Request): string | null {
+  const auth = req.headers.authorization ?? '';
+  const [scheme, token, ...extras] = auth.trim().split(/\s+/);
+  const isValidScheme = scheme === 'Bearer' && !extras.length; // RFC 9110 Section 11.1
+  const isWellFormed = token && /^[A-Za-z0-9\-._~+/]+=*$/.test(token); // RFC 6750 Section 2.1
 
-  const parts = auth.trim().split(' ');
-  const [scheme, token] = parts;
-  if (parts.length !== 2 || scheme !== 'Bearer') return null;
-
-  return token && /^[A-Za-z0-9\-._~+/]+=*$/.test(token) ? token : null; // RFC 6750 Section 2.1
+  return isValidScheme && isWellFormed ? token : null;
 }
 
 /**
