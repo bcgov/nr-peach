@@ -8,6 +8,13 @@ import { Problem } from '#src/utils/index';
 
 import type { Request, RequestHandler, Response } from 'express';
 
+vi.mock('#src/middlewares/auth', () => ({
+  authm: () => vi.fn<RequestHandler>((_req, _res, next) => next()),
+  authn: () => vi.fn<RequestHandler>((_req, _res, next) => next()),
+  authz: () => vi.fn<RequestHandler>((_req, _res, next) => next()),
+  isJsonBody: () => vi.fn<RequestHandler>((_req, _res, next) => next())
+}));
+
 vi.mock('#src/middlewares/validator', () => ({
   validateRequestIntegrity: () => vi.fn<RequestHandler>((_req, _res, next) => next()),
   validateRequestSchema: () => vi.fn<RequestHandler>((_req, _res, next) => next())

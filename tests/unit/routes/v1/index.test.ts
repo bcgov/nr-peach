@@ -11,7 +11,8 @@ app.use(router);
 vi.mock('#src/middlewares/auth', () => ({
   authm: () => vi.fn<RequestHandler>((_req, _res, next) => next()),
   authn: () => vi.fn<RequestHandler>((_req, _res, next) => next()),
-  authz: () => vi.fn<RequestHandler>((_req, _res, next) => next())
+  authz: () => vi.fn<RequestHandler>((_req, _res, next) => next()),
+  isJsonBody: () => vi.fn<RequestHandler>((_req, _res, next) => next())
 }));
 
 vi.mock('#src/middlewares/validator', () => ({

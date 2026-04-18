@@ -1,6 +1,6 @@
 import { Router } from 'express';
 
-import { authz } from '#src/middlewares/index';
+import { authz, isJsonBody } from '#src/middlewares/index';
 import { Problem } from '#src/utils/index';
 import {
   deleteRecordLinkagesSchemaValidator,
@@ -18,9 +18,15 @@ router.get('/record-linkages', getRecordLinkagesSchemaValidator, (req: Request, 
 });
 
 /** Put Record Linkages */
-router.put('/record-linkages', authz('body'), putRecordLinkagesSchemaValidator, (req: Request, res: Response): void => {
-  new Problem(501).send(req, res);
-});
+router.put(
+  '/record-linkages',
+  isJsonBody(),
+  authz('body'),
+  putRecordLinkagesSchemaValidator,
+  (req: Request, res: Response): void => {
+    new Problem(501).send(req, res);
+  }
+);
 
 /** Delete Record Linkages */
 router.delete(

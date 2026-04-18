@@ -6,6 +6,16 @@ import type { RequestHandler } from 'express';
 import type { IntegrityDictionary, IntegrityError, RequestIntegrityOptions, RequestSchemaOptions } from '#types';
 
 /**
+ * Middleware ensuring body content type is JSON
+ * @returns An Express `RequestHandler` that rejects non-JSON content types.
+ */
+export function isJsonBody(): RequestHandler {
+  return function (req, res, next): void {
+    return req.is('application/json') ? next() : new Problem(400, { detail: 'Invalid content type' }).send(req, res);
+  };
+}
+
+/**
  * Validates the data integrity of the incoming request by checking its body, headers, params, and query.
  * @param opts - An object containing validation schemas for `body`, `query`, `params`, or `headers`.
  * @returns An Express `RequestHandler` that validates the request integrity.

@@ -1,7 +1,7 @@
 import express from 'express';
 import request from 'supertest';
 
-import { validateRequestIntegrity, validateRequestSchema } from '#src/middlewares/validator';
+import { isJsonBody, validateRequestIntegrity, validateRequestSchema } from '#src/middlewares/validator';
 import * as validators from '#src/validators/index';
 import { IntegrityDefinitions } from '#src/validators/integrity/integrity';
 
@@ -11,6 +11,67 @@ interface BadValidationResponse {
   body: { detail: string; errors: Record<string, unknown> };
   status: number;
 }
+
+describe('isJsonBody', () => {
+  const mockHandler = vi.fn((_req: Request, res: Response) => res.status(200).send('Success'));
+  let app: Application;
+
+  beforeEach(() => {
+    app = express();
+    app.use(express.json());
+  });
+
+  it('should call next() when Content-Type is application/json', async () => {
+    app.post('/test', isJsonBody(), mockHandler as unknown as RequestHandler);
+
+    const response = await request(app).post('/test').set('Content-Type', 'application/json').send({ data: 'test' });
+
+    expect(response.status).toBe(200);
+    expect(response.text).toBe('Success');
+    expect(mockHandler).toHaveBeenCalledTimes(1);
+  });
+
+  it('should return 400 when Content-Type is missing', async () => {
+    app.post('/test', isJsonBody(), mockHandler as unknown as RequestHandler);
+
+    // .send() in supertest often sets JSON by default,
+    // so we use .set() to ensure it's empty or different
+    const response = (await request(app)
+      .post('/test')
+      .set('Content-Type', '')
+      .send('plain text')) as BadValidationResponse;
+
+    expect(response.status).toBe(400);
+    expect(response.body.detail).toBe('Invalid content type');
+    expect(mockHandler).toHaveBeenCalledTimes(0);
+  });
+
+  it('should return 400 when Content-Type is text/plain', async () => {
+    app.post('/test', isJsonBody(), mockHandler as unknown as RequestHandler);
+
+    const response = (await request(app)
+      .post('/test')
+      .set('Content-Type', 'text/plain')
+      .send('some text')) as BadValidationResponse;
+
+    expect(response.status).toBe(400);
+    expect(response.body.detail).toBe('Invalid content type');
+    expect(mockHandler).toHaveBeenCalledTimes(0);
+  });
+
+  it('should handle charset variations in application/json', async () => {
+    app.post('/test', isJsonBody(), mockHandler as unknown as RequestHandler);
+
+    // Express's req.is() handles 'application/json; charset=utf-8' correctly
+    const response = await request(app)
+      .post('/test')
+      .set('Content-Type', 'application/json; charset=utf-8')
+      .send({ data: 'test' });
+
+    expect(response.status).toBe(200);
+    expect(mockHandler).toHaveBeenCalledTimes(1);
+  });
+});
 
 describe('validateRequestIntegrity', () => {
   const mockHandler = vi.fn((_req: Request, res: Response) => res.status(200).send('Success'));
