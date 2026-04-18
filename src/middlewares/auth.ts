@@ -63,11 +63,11 @@ export function authn(): AuthRequestHandler {
         attributes.error = 'invalid_request';
         throw new Error('Invalid bearer token');
       }
-      res.locals.token = token;
+      res.locals.access_token = token;
 
       // Check cache first
       if (jwtCache.has(token)) {
-        res.locals.claims = Object.freeze(jwtCache.get(token));
+        res.locals.access_claims = Object.freeze(jwtCache.get(token));
         return next();
       }
 
@@ -88,7 +88,7 @@ export function authn(): AuthRequestHandler {
 
       if (claims && typeof claims !== 'string') {
         const frozenClaims = Object.freeze(claims);
-        res.locals.claims = frozenClaims;
+        res.locals.access_claims = frozenClaims;
 
         if (claims.exp) {
           const remainingMs = (claims.exp - Math.floor(Date.now() / 1000)) * 1000 - 5000;
@@ -128,7 +128,7 @@ export function authz(source: SystemSource): AuthRequestHandler {
       }
       attributes.scope = system_id;
 
-      const claims = res.locals.claims;
+      const claims = res.locals.access_claims;
       if (!claims) {
         attributes.error = 'invalid_token';
         throw new Error('Missing or invalid access token');

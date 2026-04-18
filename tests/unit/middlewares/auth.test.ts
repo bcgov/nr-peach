@@ -175,7 +175,7 @@ describe('authn', () => {
     const response = await request(app).get('/test').send();
 
     expect(response.status).toBe(200);
-    expect(response.body).toEqual({ claims: { sub: 'user-id' }, token: 'valid-token' });
+    expect(response.body).toEqual({ access_claims: { sub: 'user-id' }, access_token: 'valid-token' });
   });
 
   it('should return cached claims and skip verification if token is in cache', async () => {
@@ -196,7 +196,7 @@ describe('authn', () => {
     const response = await request(app).get('/test').send();
 
     expect(response.status).toBe(200);
-    expect((response.body as { claims: jwt.JwtPayload }).claims).toEqual(cachedClaims);
+    expect((response.body as { access_claims: jwt.JwtPayload }).access_claims).toEqual(cachedClaims);
     expect(verifySpy).not.toHaveBeenCalled();
     expect(getJwksClientSpy).not.toHaveBeenCalled();
   });
@@ -314,7 +314,7 @@ describe('authz', () => {
     app.get(
       '/test',
       (_req, res, next) => {
-        res.locals.claims = { scope: 'other-scope' };
+        res.locals.access_claims = { scope: 'other-scope' };
         next();
       },
       authz('query'),
@@ -341,7 +341,7 @@ describe('authz', () => {
     app.get(
       '/test',
       (_req, res, next) => {
-        res.locals.claims = { scope: 'required-scope' };
+        res.locals.access_claims = { scope: 'required-scope' };
         next();
       },
       authz('query'),
