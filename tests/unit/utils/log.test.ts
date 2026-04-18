@@ -159,7 +159,7 @@ describe('httpLogger', () => {
     it('should extract claims if present', () => {
       const req = { headers: {}, httpVersion: '1.1', ip: '127.0.0.1', path: '/api' } as Request;
       const res = {
-        locals: { claims: { azp: 'client-id', sub: 'user-id' } }
+        locals: { access_claims: { azp: 'client-id', sub: 'user-id' } }
       } as unknown as Response;
 
       const customProps = options.customProps!;

@@ -3,7 +3,7 @@ import { Router } from 'express';
 import records from './record.ts';
 import recordLinkages from './recordLinkage.ts';
 import systems from './system.ts';
-import { authn } from '#src/middlewares/index';
+import { authm, authn } from '#src/middlewares/index';
 
 import type { Request, Response } from 'express';
 
@@ -15,6 +15,7 @@ router.get('/', (_req: Request, res: Response): void => {
   });
 });
 
+router.use(authm());
 router.use(authn());
 
 router.use(records);

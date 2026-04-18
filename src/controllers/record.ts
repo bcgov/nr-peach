@@ -23,7 +23,7 @@ export const postRecordController = async (
   res: Response<never, LocalContext>
 ): Promise<void> => {
   await checkDuplicateTransactionHeaderService(req.body.transaction_id);
-  await replaceRecordService(req.body, res.locals.claims?.sub);
+  await replaceRecordService(req.body, res.locals.access_claims?.sub);
   res.status(202).end();
 };
 
@@ -41,6 +41,6 @@ export const putRecordController = async (
   res: Response<never, LocalContext>
 ): Promise<void> => {
   await checkDuplicateTransactionHeaderService(req.body.transaction_id);
-  await replaceRecordService(req.body, res.locals.claims?.sub);
+  await replaceRecordService(req.body, res.locals.access_claims?.sub);
   res.status(201).end();
 };

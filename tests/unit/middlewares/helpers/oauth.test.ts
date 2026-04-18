@@ -18,14 +18,39 @@ describe('getBearerToken', () => {
     expect(result).toBe('exampletokenvalue');
   });
 
-  it('returns undefined if the Authorization header is not present', () => {
+  it('extracts the Bearer token from the Authorization header with multiple spaces', () => {
+    const req = {
+      headers: {
+        authorization: 'Bearer  exampletokenvalue '
+      }
+    } as Request;
+
+    const result = getBearerToken(req);
+
+    expect(result).toBe('exampletokenvalue');
+  });
+
+  it('accepts lowercase "bearer" in the Authorization header', () => {
+    const req = {
+      headers: {
+        authorization: 'bearer exampletokenvalue'
+      }
+    } as Request;
+
+    const result = getBearerToken(req);
+
+    expect(result).toBe('exampletokenvalue');
+  });
+
+  it('returns null if the Authorization header is not present', () => {
+    // This should never happen assuming authm always runs prior to authn
     const req = {
       headers: {}
     } as Request;
 
     const result = getBearerToken(req);
 
-    expect(result).toBeUndefined();
+    expect(result).toBeNull();
   });
 
   it('returns null if the Authorization header does not start with "Bearer"', () => {
