@@ -41,16 +41,22 @@ export async function getJwksClient(): Promise<JwksClient> {
 
   // Promise lock to prevent multiple concurrent lookups.
   jwksClientPromise = (async () => {
-    log.debug('Fetching JWKS Client');
-    return jwksRsa({
-      cache: true,
-      cacheMaxEntries: 5,
-      cacheMaxAge: 600000, // 10 minutes
-      jwksRequestsPerMinute: 10,
-      jwksUri: await getJwksUri(),
-      rateLimit: true,
-      timeout: 30000 // 30 seconds
-    });
+    try {
+      log.debug('Fetching JWKS Client');
+      return jwksRsa({
+        cache: true,
+        cacheMaxEntries: 5,
+        cacheMaxAge: 600000, // 10 minutes
+        jwksRequestsPerMinute: 10,
+        jwksUri: await getJwksUri(),
+        rateLimit: true,
+        timeout: 30000 // 30 seconds
+      });
+    } catch (error) {
+      log.error(error, 'Failed to initialize JWKS client');
+      jwksClientPromise = null;
+      throw error;
+    }
   })();
 
   return jwksClientPromise;
@@ -70,23 +76,29 @@ export async function getJwksUri(): Promise<string> {
 
   // Promise lock to prevent multiple concurrent lookups.
   jwksUriPromise = (async () => {
-    log.debug('Fetching JWKS URI');
-    const issuer = process.env.AUTH_ISSUER;
-    if (!issuer) throw new Error('AUTH_ISSUER is not set');
+    try {
+      log.debug('Fetching JWKS URI');
+      const issuer = process.env.AUTH_ISSUER;
+      if (!issuer) throw new Error('AUTH_ISSUER is not set');
 
-    const configurationUrl = new URL(
-      '.well-known/openid-configuration',
-      issuer.endsWith('/') ? issuer : `${issuer}/`
-    ).toString();
-    const res = await fetch(configurationUrl);
-    if (!res.ok) throw new Error(`Failed to load OIDC Provider configuration: ${res.status} ${res.statusText}`);
+      const configurationUrl = new URL(
+        '.well-known/openid-configuration',
+        issuer.endsWith('/') ? issuer : `${issuer}/`
+      ).toString();
+      const res = await fetch(configurationUrl);
+      if (!res.ok) throw new Error(`Failed to load OIDC Provider configuration: ${res.status} ${res.statusText}`);
 
-    const configuration = (await res.json()) as { jwks_uri?: string };
-    if (typeof configuration.jwks_uri !== 'string') {
-      throw new TypeError('`jwks_uri` missing or invalid in OIDC Provider configuration');
+      const configuration = (await res.json()) as { jwks_uri?: string };
+      if (typeof configuration.jwks_uri !== 'string') {
+        throw new TypeError('`jwks_uri` missing or invalid in OIDC Provider configuration');
+      }
+
+      return configuration.jwks_uri;
+    } catch (error) {
+      log.error(error, 'Failed to resolve JWKS URI');
+      jwksUriPromise = null;
+      throw error;
     }
-
-    return configuration.jwks_uri;
   })();
 
   return jwksUriPromise;
