@@ -33,16 +33,28 @@ export function authm(): AuthMethodRequestHandler {
     if (state.authMode === 'none') return next();
 
     const attributes: AuthErrorAttributes = { realm: process.env.AUTH_AUDIENCE ?? 'nr-peach' };
+    let authCount = 0;
     try {
-      if (req.query.access_token) throw new Error('Bearer token must not be provided in query parameters.');
-      if (req.body?.access_token) throw new Error('Bearer token must not be provided in the request body.');
-      if (!req.headers.authorization) throw new Error('Missing bearer token');
+      if (req.query.access_token) authCount++;
+      if (req.body?.access_token) authCount++;
+      if (req.headers.authorization) authCount++;
+
+      if (authCount > 1) {
+        attributes.error = 'invalid_request';
+        throw new Error('Multiple authentication methods used.');
+      }
+      if (authCount === 1 && !req.headers.authorization) throw new Error('Unsupported authentication method.');
+      if (authCount === 0) throw new Error('Missing authorization header');
 
       next();
     } catch (error) {
       const msg = error instanceof Error ? error.message : String(error);
-      attributes.error_description = msg;
-      new Problem(401, { detail: msg }, { realm: attributes.realm }).send(req, setAuthHeader(res, attributes));
+      if (authCount > 1) attributes.error_description = msg;
+      new Problem(
+        authStatusMap[attributes.error ?? 'invalid_token'],
+        { detail: msg },
+        { realm: attributes.realm }
+      ).send(req, setAuthHeader(res, attributes));
     }
   };
 }
@@ -60,7 +72,7 @@ export function authn(): AuthRequestHandler {
     try {
       const token = getBearerToken(req);
       if (!token) {
-        attributes.error = 'invalid_request';
+        attributes.error = 'invalid_token';
         throw new Error('Invalid bearer token');
       }
       res.locals.access_token = token;
@@ -145,7 +157,7 @@ export function authz(source: SystemSource): AuthRequestHandler {
       const msg = error instanceof Error ? error.message : String(error);
       attributes.error_description = msg;
       new Problem(
-        authStatusMap[attributes.error ?? 'invalid_token'],
+        authStatusMap[attributes.error ?? 'insufficient_scope'],
         { detail: msg },
         { realm: attributes.realm, scope: attributes.scope }
       ).send(req, setAuthHeader(res, attributes));

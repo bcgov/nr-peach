@@ -44,45 +44,55 @@ describe('authm', () => {
     expect(response.text).toBe('Success');
   });
 
-  it('should reject requests with access_token in query parameters', async () => {
+  it('should reject requests with multiple authentication methods', async () => {
     const response = (await request(app)
       .get('/test?access_token=some-token')
       .set('Authorization', 'Bearer valid-token')) as BadAuthResponse;
 
+    expect(response.status).toBe(400);
+    expect(response.body.detail).toBe('Multiple authentication methods used.');
+    expect(response.headers['www-authenticate']).toEqual(expect.stringContaining('realm="nr-peach"'));
+  });
+
+  it('should reject requests with access_token in query parameters', async () => {
+    const response = (await request(app).get('/test?access_token=some-token')) as BadAuthResponse;
+
     expect(response.status).toBe(401);
-    expect(response.body.detail).toBe('Bearer token must not be provided in query parameters.');
-    expect(response.headers['www-authenticate']).toContain(
-      'error_description="Bearer token must not be provided in query parameters."'
-    );
+    expect(response.body.detail).toBe('Unsupported authentication method.');
+    expect(response.headers['www-authenticate']).toEqual(expect.stringContaining('realm="nr-peach"'));
   });
 
   it('should reject requests with access_token in the json body', async () => {
     const response = (await request(app)
       .post('/test')
-      .set('Authorization', 'Bearer valid-token')
       .set('Content-Type', 'application/json')
       .send({ access_token: 'some-token' })) as BadAuthResponse;
 
     expect(response.status).toBe(401);
-    expect(response.body.detail).toBe('Bearer token must not be provided in the request body.');
+    expect(response.body.detail).toBe('Unsupported authentication method.');
+    expect(response.headers['www-authenticate']).toEqual(expect.stringContaining('realm="nr-peach"'));
+    expect(response.headers['www-authenticate']).not.toEqual(expect.stringContaining('error'));
   });
 
   it('should reject requests with access_token in the urlencoded body', async () => {
     const response = (await request(app)
       .post('/test')
-      .set('Authorization', 'Bearer valid-token')
       .set('Content-Type', 'application/x-www-form-urlencoded')
       .send('access_token=some-token')) as BadAuthResponse;
 
     expect(response.status).toBe(401);
-    expect(response.body.detail).toBe('Bearer token must not be provided in the request body.');
+    expect(response.body.detail).toBe('Unsupported authentication method.');
+    expect(response.headers['www-authenticate']).toEqual(expect.stringContaining('realm="nr-peach"'));
+    expect(response.headers['www-authenticate']).not.toEqual(expect.stringContaining('error'));
   });
 
   it('should reject requests missing the Authorization header', async () => {
     const response = (await request(app).get('/test')) as BadAuthResponse;
 
     expect(response.status).toBe(401);
-    expect(response.body.detail).toBe('Missing bearer token');
+    expect(response.body.detail).toBe('Missing authorization header');
+    expect(response.headers['www-authenticate']).toEqual(expect.stringContaining('realm="nr-peach"'));
+    expect(response.headers['www-authenticate']).not.toEqual(expect.stringContaining('error'));
   });
 
   it('should use the AUTH_AUDIENCE env variable for the realm in the header', async () => {
@@ -92,6 +102,7 @@ describe('authm', () => {
     const response = await request(app).get('/test');
 
     expect(response.headers['www-authenticate']).toContain('realm="test-realm"');
+    expect(response.headers['www-authenticate']).not.toEqual(expect.stringContaining('error'));
 
     process.env.AUTH_AUDIENCE = originalAudience;
   });
@@ -123,7 +134,7 @@ describe('authn', () => {
     expect(mockHandler).toHaveBeenCalledTimes(1);
   });
 
-  it('should return 400 if token is invalid', async () => {
+  it('should return 401 if token is invalid', async () => {
     state.authMode = 'authn';
     getBearerTokenSpy.mockReturnValue(null);
     decodeSpy.mockReturnValue(null);
@@ -132,12 +143,12 @@ describe('authn', () => {
 
     const response = (await request(app).get('/test').send()) as BadAuthResponse;
 
-    expect(response.status).toBe(400);
+    expect(response.status).toBe(401);
     expect(response.body.detail).toBe('Invalid bearer token');
     expect(response.body.realm).toBe('nr-peach');
     expect(response.headers['www-authenticate']).toContain('Bearer');
     expect(response.headers['www-authenticate']).toContain('realm="nr-peach');
-    expect(response.headers['www-authenticate']).toContain('error="invalid_request"');
+    expect(response.headers['www-authenticate']).toContain('error="invalid_token"');
     expect(response.headers['www-authenticate']).toContain('error_description="Invalid bearer token"');
     expect(mockHandler).toHaveBeenCalledTimes(0);
   });
