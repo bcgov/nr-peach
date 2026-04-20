@@ -15,7 +15,8 @@ const app = express();
 app.use(router);
 
 vi.mock('#src/middlewares/auth', () => ({
-  authz: () => vi.fn<RequestHandler>((_req, _res, next) => next())
+  authz: () => vi.fn<RequestHandler>((_req, _res, next) => next()),
+  isJsonBody: () => vi.fn<RequestHandler>((_req, _res, next) => next())
 }));
 
 vi.mock('#src/middlewares/validator', () => ({

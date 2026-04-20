@@ -14,18 +14,19 @@ let jwksUriPromise: Promise<string> | null = null;
 /**
  * Extracts a valid bearer token from the Authorization header of the request.
  * @see https://datatracker.ietf.org/doc/html/rfc6750#section-2.1
+ * @see https://datatracker.ietf.org/doc/html/rfc7235#section-2.1
+ * @see https://datatracker.ietf.org/doc/html/rfc9110#section-11.1
  * @param req - The Express request object.
- * @returns The valid bearer token as a string, undefined if not present, or null if invalid.
+ * @returns The valid bearer token string, or null if invalid.
  */
-export function getBearerToken(req: Request): string | undefined | null {
-  const auth = req.headers.authorization;
-  if (auth === undefined) return undefined;
+export function getBearerToken(req: Request): string | null {
+  const auth = req.headers.authorization ?? '';
+  const [scheme, token, ...extras] = auth.trim().split(/\s+/);
+  // RFC 7235 Section 2.1 and RFC 9110 Section 11.1
+  const isValidScheme = scheme?.toLowerCase() === 'bearer' && !extras.length;
+  const isWellFormed = token && /^[A-Za-z0-9\-._~+/]+=*$/.test(token); // RFC 6750 Section 2.1
 
-  const parts = auth.trim().split(' ');
-  const [scheme, token] = parts;
-  if (parts.length !== 2 || scheme !== 'Bearer') return null;
-
-  return token && /^[A-Za-z0-9\-._~+/]+=*$/.test(token) ? token : null; // RFC 6750 Section 2.1
+  return isValidScheme && isWellFormed ? token : null;
 }
 
 /**
@@ -40,16 +41,22 @@ export async function getJwksClient(): Promise<JwksClient> {
 
   // Promise lock to prevent multiple concurrent lookups.
   jwksClientPromise = (async () => {
-    log.debug('Fetching JWKS Client');
-    return jwksRsa({
-      cache: true,
-      cacheMaxEntries: 5,
-      cacheMaxAge: 600000, // 10 minutes
-      jwksRequestsPerMinute: 10,
-      jwksUri: await getJwksUri(),
-      rateLimit: true,
-      timeout: 30000 // 30 seconds
-    });
+    try {
+      log.debug('Fetching JWKS Client');
+      return jwksRsa({
+        cache: true,
+        cacheMaxEntries: 5,
+        cacheMaxAge: 600000, // 10 minutes
+        jwksRequestsPerMinute: 10,
+        jwksUri: await getJwksUri(),
+        rateLimit: true,
+        timeout: 30000 // 30 seconds
+      });
+    } catch (error) {
+      log.error(error, 'Failed to initialize JWKS client');
+      jwksClientPromise = null;
+      throw error;
+    }
   })();
 
   return jwksClientPromise;
@@ -69,23 +76,29 @@ export async function getJwksUri(): Promise<string> {
 
   // Promise lock to prevent multiple concurrent lookups.
   jwksUriPromise = (async () => {
-    log.debug('Fetching JWKS URI');
-    const issuer = process.env.AUTH_ISSUER;
-    if (!issuer) throw new Error('AUTH_ISSUER is not set');
+    try {
+      log.debug('Fetching JWKS URI');
+      const issuer = process.env.AUTH_ISSUER;
+      if (!issuer) throw new Error('AUTH_ISSUER is not set');
 
-    const configurationUrl = new URL(
-      '.well-known/openid-configuration',
-      issuer.endsWith('/') ? issuer : `${issuer}/`
-    ).toString();
-    const res = await fetch(configurationUrl);
-    if (!res.ok) throw new Error(`Failed to load OIDC Provider configuration: ${res.status} ${res.statusText}`);
+      const configurationUrl = new URL(
+        '.well-known/openid-configuration',
+        issuer.endsWith('/') ? issuer : `${issuer}/`
+      ).toString();
+      const res = await fetch(configurationUrl);
+      if (!res.ok) throw new Error(`Failed to load OIDC Provider configuration: ${res.status} ${res.statusText}`);
 
-    const configuration = (await res.json()) as { jwks_uri?: string };
-    if (typeof configuration.jwks_uri !== 'string') {
-      throw new TypeError('`jwks_uri` missing or invalid in OIDC Provider configuration');
+      const configuration = (await res.json()) as { jwks_uri?: string };
+      if (typeof configuration.jwks_uri !== 'string') {
+        throw new TypeError('`jwks_uri` missing or invalid in OIDC Provider configuration');
+      }
+
+      return configuration.jwks_uri;
+    } catch (error) {
+      log.error(error, 'Failed to resolve JWKS URI');
+      jwksUriPromise = null;
+      throw error;
     }
-
-    return configuration.jwks_uri;
   })();
 
   return jwksUriPromise;

@@ -71,7 +71,7 @@ export const httpLogger: RequestHandler = pinoHttp({
   },
   customErrorMessage: (req, res, err) => `${req.method} ${req.url} ${res.statusCode} - ${err.message}`,
   customProps: (req, res: Response<unknown, LocalContext>) => {
-    const claims = res.locals?.claims;
+    const claims = res.locals?.access_claims;
     return {
       claims: claims?.azp || claims?.sub ? { azp: claims.azp, sub: claims.sub } : undefined,
       httpVersion: req.httpVersion,
