@@ -242,7 +242,7 @@ jobs:
               exit 0
             fi
 
-            echo "Waiting... (Status: $http_code, SHA: $live_sha). Retry $((count+1))/$MAX_RETRIES"
+            echo "Waiting... (Status: $http_code, SHA: ${live_sha:-unknown}). Retry $((count+1))/$MAX_RETRIES"
             sleep 10
             count=$((count+1))
           done

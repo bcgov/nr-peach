@@ -76,15 +76,15 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "frontdoor_firewall_policy" {
       operator           = "IPMatch"
     }
   }
-  # Block Non-Canadian requests
+  # Block Non-Canadian and Non-US based requests
   custom_rule {
     action   = "Block"
     enabled  = true
-    name     = "BlockByNonCAGeoMatch"
+    name     = "BlockByNonCAUSGeoMatch"
     priority = 110
     type     = "MatchRule"
     match_condition {
-      match_values       = ["CA"]
+      match_values       = ["CA", "US"]
       match_variable     = "SocketAddr"
       negation_condition = true
       operator           = "GeoMatch"
