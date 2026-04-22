@@ -227,14 +227,15 @@ jobs:
           TARGET_URL: ${{ steps.result.outputs.api_url }}
         run: |
           # Wait for and verify deployment to complete
+          set -euo pipefail
           echo "Checking health for: $TARGET_URL"
           echo "Expecting Git Revision: $EXPECTED_SHA"
 
           count=0
           while [ $count -lt $MAX_RETRIES ]; do
-            response=$(curl -s -L --max-time 5 -w "%{http_code}" "$TARGET_URL")
-            http_code=$(echo -n "$response" | tr -d '\r\n' | grep -oE '[0-9]{3}$')
-            live_sha=$(echo -n "$response" | tr -d '\r\n' | sed 's/[0-9]\{3\}$//' | jq -r '.gitRev // empty' 2>/dev/null)
+            response=$(curl -s -L --max-time 5 -w "%{http_code}" "$TARGET_URL" || echo "000")
+            http_code=$(echo -n "$response" | tr -d '\r\n' | grep -oE '[0-9]{3}$' || echo "000")
+            live_sha=$(echo -n "$response" | tr -d '\r\n' | sed 's/[0-9]\{3\}$//' | jq -r '.gitRev // empty' 2>/dev/null || echo "")
 
             if [[ "$http_code" == "200" ]] && [[ "$live_sha" == "$EXPECTED_SHA" ]]; then
               echo "Deployment successful! HTTP 200 and SHA matches."
