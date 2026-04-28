@@ -18,10 +18,10 @@ const { mockAjv, mockValidate } = vi.hoisted(() => {
 
 vi.mock('#src/validators/schema/index', () => ({
   createAjvInstance: vi.fn().mockReturnValue(mockAjv),
-  ensureSchemaId: vi.fn(
-    <T>(schema: T extends object ? T : never) =>
-      ({ ...schema, $id: `test-id-${Object.keys(schema).join('-')}` }) as T & { $id: string }
-  ),
+  ensureSchemaId: vi.fn(<T>(schema: T extends object ? T : never) => ({
+    ...schema,
+    $id: `test-id-${Object.keys(schema).join('-')}`
+  })),
   getPiesSchemaUri: vi.fn(),
   loadSchema: vi.fn(),
   pies: {
