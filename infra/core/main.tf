@@ -113,3 +113,14 @@ module "chisel" {
 
   depends_on = [module.appservice]
 }
+
+module "alert" {
+  source = "./modules/alert"
+
+  app_name             = var.app_name
+  common_tags          = var.common_tags
+  frontdoor_profile_id = module.frontdoor[0].frontdoor_profile_id
+  resource_group_name  = azurerm_resource_group.main.name
+
+  depends_on = [module.appservice, module.frontdoor, module.postgresql]
+}
