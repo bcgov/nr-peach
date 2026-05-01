@@ -71,6 +71,34 @@ resource "azurerm_linux_web_app" "api" {
   }
 }
 
+resource "azurerm_monitor_metric_alert" "api_internal_health" {
+  name                = "${var.app_name}-${var.app_env}-${var.instance_name}-${var.module_name}-internal-unhealthy"
+  resource_group_name = var.resource_group_name
+  scopes              = [azurerm_linux_web_app.api.id]
+  description         = "The container is failing internal health checks or is offline."
+  auto_mitigate       = local.default_auto_mitigate
+  frequency           = local.default_frequency
+  severity            = 1
+  window_size         = local.default_window_size
+
+  criteria {
+    metric_namespace = "Microsoft.Web/sites"
+    metric_name      = "HealthCheckStatus"
+    aggregation      = "Average"
+    operator         = "LessThan"
+    threshold        = 100
+  }
+
+  action {
+    action_group_id = var.alert_action_group_id
+  }
+
+  tags = var.common_tags
+  lifecycle {
+    ignore_changes = [tags]
+  }
+}
+
 resource "azurerm_monitor_diagnostic_setting" "api_diagnostics" {
   name                       = "${var.app_name}-${var.app_env}-${var.instance_name}-${var.module_name}-diagnostics"
   target_resource_id         = azurerm_linux_web_app.api.id
