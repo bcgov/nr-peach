@@ -34,7 +34,7 @@ resource "azurerm_monitor_metric_alert" "fd_origin_health" {
   description         = "Front Door cannot reach the backend App Service."
   auto_mitigate       = local.default_auto_mitigate
   frequency           = local.default_frequency
-  severity            = 0
+  severity            = 1
   window_size         = local.default_window_size
 
   criteria {
@@ -43,6 +43,62 @@ resource "azurerm_monitor_metric_alert" "fd_origin_health" {
     aggregation      = "Average"
     operator         = "LessThan"
     threshold        = 100
+  }
+
+  action {
+    action_group_id = azurerm_monitor_action_group.action_group.id
+  }
+
+  tags = var.common_tags
+  lifecycle {
+    ignore_changes = [tags]
+  }
+
+  depends_on = [azurerm_monitor_action_group.action_group]
+}
+
+# Database high CPU alert
+resource "azurerm_monitor_metric_alert" "db_cpu_high" {
+  name                = "${var.app_name}-${var.module_name}-db-cpu-high"
+  resource_group_name = var.resource_group_name
+  scopes              = [var.postgres_server_id]
+  description         = "Postgres CPU high. Check for expensive queries."
+  severity            = 2
+
+  criteria {
+    metric_namespace = "Microsoft.DBforPostgreSQL/flexibleServers"
+    metric_name      = "cpu_percent"
+    aggregation      = "Average"
+    operator         = "GreaterThan"
+    threshold        = 90
+  }
+
+  action {
+    action_group_id = azurerm_monitor_action_group.action_group.id
+  }
+
+  tags = var.common_tags
+  lifecycle {
+    ignore_changes = [tags]
+  }
+
+  depends_on = [azurerm_monitor_action_group.action_group]
+}
+
+# Database high connections alert
+resource "azurerm_monitor_metric_alert" "db_connections_high" {
+  name                = "${var.app_name}-${var.module_name}-db-connections-high"
+  resource_group_name = var.resource_group_name
+  scopes              = [var.postgres_server_id]
+  description         = "Postgres active connections approaching limit. Check for pool leaks."
+  severity            = 2
+
+  criteria {
+    metric_namespace = "Microsoft.DBforPostgreSQL/flexibleServers"
+    metric_name      = "active_connections"
+    aggregation      = "Average"
+    operator         = "GreaterThan"
+    threshold        = 80 # Set to ~80% of your SKU's max connections
   }
 
   action {

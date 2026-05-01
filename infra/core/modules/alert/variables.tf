@@ -26,6 +26,11 @@ variable "module_name" {
   default     = "alert"
 }
 
+variable "postgres_server_id" {
+  description = "The ID of the PostgreSQL server to monitor."
+  type        = string
+}
+
 variable "resource_group_name" {
   description = "Name of the resource group"
   type        = string
