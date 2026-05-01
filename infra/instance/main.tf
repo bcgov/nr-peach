@@ -7,6 +7,12 @@ data "azurerm_resource_group" "core" {
   name = "${var.resource_group_name}-core-rg"
 }
 
+# Core Alert Action Group
+data "azurerm_monitor_action_group" "action_group" {
+  name                = "${var.app_name}-alert-ag"
+  resource_group_name = data.azurerm_resource_group.core.name
+}
+
 # Core App Service
 data "azurerm_service_plan" "api" {
   name                = "${var.app_name}-appservice-asp"
@@ -81,6 +87,7 @@ resource "azurerm_postgresql_flexible_server_database" "postgres_database" {
 module "api" {
   source = "./modules/api"
 
+  alert_action_group_id           = data.azurerm_monitor_action_group.action_group.id
   api_frontdoor_resource_guid     = try(data.azurerm_cdn_frontdoor_profile.frontdoor[0].resource_guid, null)
   app_env                         = var.app_env
   app_name                        = var.app_name
