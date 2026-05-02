@@ -1,9 +1,3 @@
-variable "alert_emails" {
-  description = "Email recipients for application alert notifications."
-  type        = list(string)
-  default     = ["jeremy.ho@gov.bc.ca"]
-}
-
 variable "app_name" {
   description = "Name of the application"
   type        = string
