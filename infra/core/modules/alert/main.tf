@@ -8,15 +8,10 @@ resource "azurerm_monitor_action_group" "action_group" {
   resource_group_name = var.resource_group_name
   short_name          = "peach${var.module_name}"
 
-  dynamic "email_receiver" {
-    for_each = {
-      for index, email in var.alert_emails : index => email
-    }
-    content {
-      name                    = format("email-%02d", tonumber(email_receiver.key) + 1)
-      email_address           = email_receiver.value
-      use_common_alert_schema = local.default_common_alert_schema
-    }
+  arm_role_receiver {
+    name                    = "alertowners"
+    role_id                 = local.role_id
+    use_common_alert_schema = local.default_common_alert_schema
   }
 
   tags = var.common_tags
