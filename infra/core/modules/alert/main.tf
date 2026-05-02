@@ -34,7 +34,7 @@ resource "azurerm_monitor_metric_alert" "fd_origin_health" {
 
   criteria {
     metric_namespace = "Microsoft.Cdn/profiles"
-    metric_name      = "BackendHealthPercentage"
+    metric_name      = "OriginHealthPercentage"
     aggregation      = "Average"
     operator         = "LessThan"
     threshold        = 100

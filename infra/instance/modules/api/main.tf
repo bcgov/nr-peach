@@ -142,10 +142,10 @@ resource "azurerm_monitor_metric_alert" "api_cpu_anomaly" {
 
   criteria {
     metric_namespace = "Microsoft.Web/sites"
-    metric_name      = "CpuPercentage"
-    aggregation      = "Average"
+    metric_name      = "CpuTime"
+    aggregation      = "Total"
     operator         = "GreaterThan"
-    threshold        = 50 # Normal heavy load is ~10-15%. 50% is a massive, clear anomaly
+    threshold        = 150 # Normal heavy load is ~40s over a 5 minute window. 150s is a massive, clear anomaly
   }
 
   action {
@@ -174,7 +174,7 @@ resource "azurerm_monitor_metric_alert" "api_memory_anomaly" {
     metric_name      = "MemoryWorkingSet"
     aggregation      = "Average"
     operator         = "GreaterThan"
-    threshold        = 1024 # Normal load is ~250MB. 1024MB is a massive, clear anomaly
+    threshold        = 1073741824 # Normal load is ~250-300MiB. 1GiB is a massive, clear anomaly
   }
 
   action {

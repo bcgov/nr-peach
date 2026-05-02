@@ -88,7 +88,7 @@ module "api" {
   source = "./modules/api"
 
   alert_action_group_id           = data.azurerm_monitor_action_group.action_group.id
-  api_frontdoor_resource_guid     = try(data.azurerm_cdn_frontdoor_profile.frontdoor[0].resource_guid, null)
+  api_frontdoor_resource_guid     = one(data.azurerm_cdn_frontdoor_profile.frontdoor[*].resource_guid)
   app_env                         = var.app_env
   app_name                        = var.app_name
   app_service_plan_id             = data.azurerm_service_plan.api.id
@@ -105,8 +105,8 @@ module "api" {
   database_host                   = local.database_host
   database_name                   = local.database_name
   enable_frontdoor                = local.enable_frontdoor
-  frontdoor_firewall_policy_id    = try(data.azurerm_cdn_frontdoor_firewall_policy.frontdoor_firewall_policy[0].id, null)
-  frontdoor_profile_id            = try(data.azurerm_cdn_frontdoor_profile.frontdoor[0].id, null)
+  frontdoor_firewall_policy_id    = one(data.azurerm_cdn_frontdoor_firewall_policy.frontdoor_firewall_policy[*].id)
+  frontdoor_profile_id            = one(data.azurerm_cdn_frontdoor_profile.frontdoor[*].id)
   instance_name                   = var.instance_name
   log_analytics_workspace_id      = data.azurerm_log_analytics_workspace.monitoring.id
   location                        = var.location
