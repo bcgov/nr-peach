@@ -101,7 +101,7 @@ module "alert" {
 
   app_name             = var.app_name
   common_tags          = var.common_tags
-  frontdoor_profile_id = module.frontdoor[0].frontdoor_profile_id
+  frontdoor_profile_id = one(module.frontdoor[*].frontdoor_profile_id)
   postgres_server_id   = module.postgresql.database_id
   resource_group_name  = azurerm_resource_group.main.name
 
