@@ -25,6 +25,12 @@ variable "postgres_server_id" {
   type        = string
 }
 
+variable "postgresql_sku_name" {
+  description = "SKU name for PostgreSQL Flexible Server"
+  type        = string
+  nullable    = false
+}
+
 variable "resource_group_name" {
   description = "Name of the resource group"
   type        = string

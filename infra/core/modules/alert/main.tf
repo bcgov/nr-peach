@@ -58,7 +58,10 @@ resource "azurerm_monitor_metric_alert" "db_cpu_high" {
   resource_group_name = var.resource_group_name
   scopes              = [var.postgres_server_id]
   description         = "Postgres CPU high. Check for expensive queries."
+  auto_mitigate       = local.default_auto_mitigate
+  frequency           = local.default_frequency
   severity            = 2
+  window_size         = local.default_window_size
 
   criteria {
     metric_namespace = "Microsoft.DBforPostgreSQL/flexibleServers"
@@ -86,14 +89,17 @@ resource "azurerm_monitor_metric_alert" "db_connections_high" {
   resource_group_name = var.resource_group_name
   scopes              = [var.postgres_server_id]
   description         = "Postgres active connections approaching limit. Check for pool leaks."
+  auto_mitigate       = local.default_auto_mitigate
+  frequency           = local.default_frequency
   severity            = 2
+  window_size         = local.default_window_size
 
   criteria {
     metric_namespace = "Microsoft.DBforPostgreSQL/flexibleServers"
     metric_name      = "active_connections"
     aggregation      = "Average"
     operator         = "GreaterThan"
-    threshold        = 80 # Set to ~80% of your SKU's max connections
+    threshold        = local.db_conn_threshold
   }
 
   action {
