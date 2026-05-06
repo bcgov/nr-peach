@@ -5,7 +5,7 @@ output "api_app_service_url" {
 
 output "api_frontdoor_endpoint_url" {
   description = "Front Door default domain URL."
-  value       = "https://${one(azurerm_cdn_frontdoor_endpoint.api_fd_endpoint[*].host_name)}"
+  value       = try("https://${one(azurerm_cdn_frontdoor_endpoint.api_fd_endpoint[*].host_name)}", null)
 }
 output "api_frontdoor_endpoint_host_name" {
   description = "Front Door hostname (*.azurefd.net)."
