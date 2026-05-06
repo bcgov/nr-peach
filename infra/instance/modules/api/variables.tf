@@ -1,3 +1,9 @@
+variable "alert_action_group_id" {
+  description = "The ID of the Azure Monitor Action Group for alerts."
+  type        = string
+  nullable    = false
+}
+
 variable "api_frontdoor_resource_guid" {
   description = "The resource GUID of the Front Door profile for the API."
   type        = string

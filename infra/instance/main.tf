@@ -7,6 +7,12 @@ data "azurerm_resource_group" "core" {
   name = "${var.resource_group_name}-core-rg"
 }
 
+# Core Alert Action Group
+data "azurerm_monitor_action_group" "action_group" {
+  name                = "${var.app_name}-alert-ag"
+  resource_group_name = data.azurerm_resource_group.core.name
+}
+
 # Core App Service
 data "azurerm_service_plan" "api" {
   name                = "${var.app_name}-appservice-asp"
@@ -81,7 +87,8 @@ resource "azurerm_postgresql_flexible_server_database" "postgres_database" {
 module "api" {
   source = "./modules/api"
 
-  api_frontdoor_resource_guid     = try(data.azurerm_cdn_frontdoor_profile.frontdoor[0].resource_guid, null)
+  alert_action_group_id           = data.azurerm_monitor_action_group.action_group.id
+  api_frontdoor_resource_guid     = one(data.azurerm_cdn_frontdoor_profile.frontdoor[*].resource_guid)
   app_env                         = var.app_env
   app_name                        = var.app_name
   app_service_plan_id             = data.azurerm_service_plan.api.id
@@ -98,8 +105,8 @@ module "api" {
   database_host                   = local.database_host
   database_name                   = local.database_name
   enable_frontdoor                = local.enable_frontdoor
-  frontdoor_firewall_policy_id    = try(data.azurerm_cdn_frontdoor_firewall_policy.frontdoor_firewall_policy[0].id, null)
-  frontdoor_profile_id            = try(data.azurerm_cdn_frontdoor_profile.frontdoor[0].id, null)
+  frontdoor_firewall_policy_id    = one(data.azurerm_cdn_frontdoor_firewall_policy.frontdoor_firewall_policy[*].id)
+  frontdoor_profile_id            = one(data.azurerm_cdn_frontdoor_profile.frontdoor[*].id)
   instance_name                   = var.instance_name
   log_analytics_workspace_id      = data.azurerm_log_analytics_workspace.monitoring.id
   location                        = var.location
