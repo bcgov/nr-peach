@@ -32,10 +32,11 @@ resource "azurerm_monitor_metric_alert" "fd_origin_health" {
   severity            = 1
   window_size         = local.default_window_size
 
+  # Alert only triggers if the origin is unreachable for more than 5 continuous minutes.
   criteria {
     metric_namespace = "Microsoft.Cdn/profiles"
     metric_name      = "OriginHealthPercentage"
-    aggregation      = "Average"
+    aggregation      = "Minimum"
     operator         = "LessThan"
     threshold        = 100
   }

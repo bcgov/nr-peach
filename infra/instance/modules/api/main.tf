@@ -105,7 +105,7 @@ resource "azurerm_monitor_metric_alert" "app_latency_high" {
   name                = "${var.app_name}-${var.app_env}-${var.instance_name}-${var.module_name}-latency-high"
   resource_group_name = var.resource_group_name
   scopes              = [azurerm_linux_web_app.api.id]
-  description         = "The API is responding very slowly (P95 > 2s)."
+  description         = "Average response time exceeds 1 second. Possible performance degradation or unresponsive behavior."
   auto_mitigate       = local.default_auto_mitigate
   frequency           = local.default_frequency
   severity            = 2
@@ -116,7 +116,7 @@ resource "azurerm_monitor_metric_alert" "app_latency_high" {
     metric_name      = "HttpResponseTime"
     aggregation      = "Average"
     operator         = "GreaterThan"
-    threshold        = 2 # Seconds
+    threshold        = 1 # Seconds
   }
 
   action {

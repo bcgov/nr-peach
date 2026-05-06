@@ -1,6 +1,7 @@
 variable "app_name" {
   description = "Name of the application"
   type        = string
+  nullable    = false
 }
 
 variable "common_tags" {
@@ -12,6 +13,7 @@ variable "common_tags" {
 variable "frontdoor_profile_id" {
   description = "Front Door profile id for monitoring scope."
   type        = string
+  default     = null
 }
 
 variable "module_name" {
@@ -23,6 +25,7 @@ variable "module_name" {
 variable "postgres_server_id" {
   description = "The ID of the PostgreSQL server to monitor."
   type        = string
+  nullable    = false
 }
 
 variable "postgresql_sku_name" {
@@ -34,4 +37,5 @@ variable "postgresql_sku_name" {
 variable "resource_group_name" {
   description = "Name of the resource group"
   type        = string
+  nullable    = false
 }
