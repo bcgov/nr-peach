@@ -104,9 +104,9 @@ export const CodingDictionary: Record<
     }
   },
   'https://bcgov.github.io/nr-pies/docs/spec/code_system/on_hold_process': {
-    CLIENT_REQUEST: {
-      codeSet: ['CLIENT_REQUEST'],
-      display: 'Client Request'
+    APPLICANT_REQUEST: {
+      codeSet: ['APPLICANT_REQUEST'],
+      display: 'Applicant Request'
     },
     LEGAL_ACTION: {
       codeSet: ['LEGAL_ACTION'],
