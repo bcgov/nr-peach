@@ -111,12 +111,15 @@ resource "azurerm_monitor_metric_alert" "app_latency_high" {
   severity            = 2
   window_size         = local.default_window_size
 
-  criteria {
-    metric_namespace = "Microsoft.Web/sites"
-    metric_name      = "HttpResponseTime"
-    aggregation      = "Average"
-    operator         = "GreaterThan"
-    threshold        = 1 # Seconds
+  # Check every minute and only fire if condition persists for 3 consecutive minutes
+  dynamic_criteria {
+    metric_namespace         = "Microsoft.Web/sites"
+    metric_name              = "HttpResponseTime"
+    aggregation              = "Average"
+    operator                 = "GreaterThan"
+    alert_sensitivity        = "Medium"
+    evaluation_total_count   = 4
+    evaluation_failure_count = 4
   }
 
   action {
