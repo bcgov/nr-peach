@@ -26,6 +26,7 @@ export interface IntegrityError {
   instancePath: string;
   message: string;
   key: string;
+  params?: Record<string, unknown>;
   value: unknown;
 }
 

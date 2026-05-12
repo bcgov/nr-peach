@@ -24,7 +24,7 @@ export function auditEvent(data: Event, index: number): IntegrityError[] {
   const eventEnd = end_datetime ?? end_date;
   if (eventEnd && eventEnd < eventStart) {
     errors.push({
-      instancePath: `/process_event/${index}/event`,
+      instancePath: `/process_event_set/${index}/event`,
       message: `Invalid Event in ProcessEvent element at index ${index}`,
       key: end_datetime ? 'end_datetime' : 'end_date',
       value: end_datetime ?? end_date
@@ -62,7 +62,7 @@ export function auditProcess(data: Process, index: number): IntegrityError[] {
   const errors: IntegrityError[] = [];
   if (!codeSystemCache.has(data.code_system)) {
     errors.push({
-      instancePath: `/process_event/${index}/process`,
+      instancePath: `/process_event_set/${index}/process`,
       message: `Invalid Process in ProcessEvent element at index ${index}`,
       key: 'code_system',
       value: data.code_system
@@ -70,7 +70,7 @@ export function auditProcess(data: Process, index: number): IntegrityError[] {
   }
   if (!codeSystemCache.has(data.code_system) || !codeSetCache[data.code_system]?.has(data.code)) {
     errors.push({
-      instancePath: `/process_event/${index}/process`,
+      instancePath: `/process_event_set/${index}/process`,
       message: `Invalid Process in ProcessEvent element at index ${index}`,
       key: 'code',
       value: data.code
@@ -80,10 +80,41 @@ export function auditProcess(data: Process, index: number): IntegrityError[] {
 }
 
 /**
- * Audits the integrity of the `ProcessEvent` element.
+ * Audits the integrity of the `ProcessEvent` element, including duplicate checks.
  * @param data - The `ProcessEvent` array to validate.
  * @returns An array of detected `IntegrityError`s.
  */
 export function auditProcessEvent(data?: readonly ProcessEvent[]): IntegrityError[] {
-  return data?.flatMap((pe, index) => [...auditEvent(pe.event, index), ...auditProcess(pe.process, index)]) ?? [];
+  const codeInstanceMap = new Map<string, number[]>();
+  const errors: IntegrityError[] = [];
+  if (!data) return errors;
+
+  data.forEach((pe, index) => {
+    if (!pe) return;
+
+    errors.push(...auditEvent(pe.event, index), ...auditProcess(pe.process, index));
+
+    const code = pe.process.code;
+    const indices = codeInstanceMap.get(code) ?? [];
+    indices.push(index);
+    codeInstanceMap.set(code, indices);
+  });
+
+  codeInstanceMap.forEach((indices, code) => {
+    if (indices.length > 1) {
+      const list = new Intl.ListFormat('en', { style: 'long', type: 'conjunction' }).format(indices.map(String));
+      errors.push({
+        instancePath: '/process_event_set',
+        key: 'process.code',
+        params: {
+          duplicateCount: indices.length,
+          duplicateIndices: indices
+        },
+        value: code,
+        message: `must NOT have duplicate items (items ${list} are identical)`
+      });
+    }
+  });
+
+  return errors;
 }

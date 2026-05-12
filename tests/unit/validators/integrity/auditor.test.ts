@@ -20,7 +20,7 @@ describe('auditEvent', () => {
     const event = { start_datetime: '2000', end_datetime: '1000' };
     expect(auditEvent(event, 1)).toEqual([
       {
-        instancePath: '/process_event/1/event',
+        instancePath: '/process_event_set/1/event',
         message: 'Invalid Event in ProcessEvent element at index 1',
         key: 'end_datetime',
         value: '1000'
@@ -32,7 +32,7 @@ describe('auditEvent', () => {
     const event = { start_date: '5', end_date: '2' };
     expect(auditEvent(event, 2)).toEqual([
       {
-        instancePath: '/process_event/2/event',
+        instancePath: '/process_event_set/2/event',
         message: 'Invalid Event in ProcessEvent element at index 2',
         key: 'end_date',
         value: '2'
@@ -92,13 +92,13 @@ describe('auditProcess', () => {
     const process = { code_system: 'INVALID', code: 'CODE1' } as Process;
     expect(auditProcess(process, 1)).toEqual([
       {
-        instancePath: '/process_event/1/process',
+        instancePath: '/process_event_set/1/process',
         message: 'Invalid Process in ProcessEvent element at index 1',
         key: 'code_system',
         value: 'INVALID'
       },
       {
-        instancePath: '/process_event/1/process',
+        instancePath: '/process_event_set/1/process',
         message: 'Invalid Process in ProcessEvent element at index 1',
         key: 'code',
         value: 'CODE1'
@@ -110,7 +110,7 @@ describe('auditProcess', () => {
     const process = { code_system: 'SYSTEM_A', code: 'INVALID' } as Process;
     expect(auditProcess(process, 2)).toEqual([
       {
-        instancePath: '/process_event/2/process',
+        instancePath: '/process_event_set/2/process',
         message: 'Invalid Process in ProcessEvent element at index 2',
         key: 'code',
         value: 'INVALID'
@@ -120,6 +120,22 @@ describe('auditProcess', () => {
 });
 
 describe('auditProcessEvent', () => {
+  it('returns empty array when process_event_set is undefined', () => {
+    expect(auditProcessEvent()).toEqual([]);
+  });
+
+  it('skips undefined process events', () => {
+    const pes = [
+      undefined,
+      {
+        event: { start_datetime: '1', end_datetime: '2' },
+        process: { code_set: ['CODE1'], code_system: 'SYSTEM_A', code: 'CODE1' }
+      }
+    ] as unknown as ProcessEvent[];
+
+    expect(auditProcessEvent(pes)).toEqual([]);
+  });
+
   it('returns combined errors from auditEvent and auditProcess', () => {
     const pes: ProcessEvent[] = [
       {
@@ -134,19 +150,19 @@ describe('auditProcessEvent', () => {
     const errors = auditProcessEvent(pes);
     expect(errors).toEqual([
       {
-        instancePath: '/process_event/0/event',
+        instancePath: '/process_event_set/0/event',
         message: 'Invalid Event in ProcessEvent element at index 0',
         key: 'end_datetime',
         value: '5'
       },
       {
-        instancePath: '/process_event/0/process',
+        instancePath: '/process_event_set/0/process',
         message: 'Invalid Process in ProcessEvent element at index 0',
         key: 'code_system',
         value: 'INVALID'
       },
       {
-        instancePath: '/process_event/0/process',
+        instancePath: '/process_event_set/0/process',
         message: 'Invalid Process in ProcessEvent element at index 0',
         key: 'code',
         value: 'INVALID'
@@ -162,5 +178,106 @@ describe('auditProcessEvent', () => {
       }
     ];
     expect(auditProcessEvent(pes)).toEqual([]);
+  });
+
+  it('returns duplicate process.code error when same code appears more than once', () => {
+    const pes: ProcessEvent[] = [
+      {
+        event: { start_datetime: '1', end_datetime: '2' },
+        process: { code_set: ['CODE1'], code_system: 'SYSTEM_A', code: 'CODE1' }
+      },
+      {
+        event: { start_datetime: '3', end_datetime: '4' },
+        process: { code_set: ['CODE1'], code_system: 'SYSTEM_A', code: 'CODE1' }
+      }
+    ];
+
+    expect(auditProcessEvent(pes)).toEqual([
+      {
+        instancePath: '/process_event_set',
+        key: 'process.code',
+        params: {
+          duplicateCount: 2,
+          duplicateIndices: [0, 1]
+        },
+        value: 'CODE1',
+        message: 'must NOT have duplicate items (items 0 and 1 are identical)'
+      }
+    ]);
+  });
+
+  it('returns duplicate errors per repeated code and includes all duplicate indices', () => {
+    const pes: ProcessEvent[] = [
+      {
+        event: { start_datetime: '1', end_datetime: '2' },
+        process: { code_set: ['CODE1'], code_system: 'SYSTEM_A', code: 'CODE1' }
+      },
+      {
+        event: { start_datetime: '3', end_datetime: '4' },
+        process: { code_set: ['CODE2'], code_system: 'SYSTEM_A', code: 'CODE2' }
+      },
+      {
+        event: { start_datetime: '5', end_datetime: '6' },
+        process: { code_set: ['CODE1'], code_system: 'SYSTEM_A', code: 'CODE1' }
+      },
+      {
+        event: { start_datetime: '7', end_datetime: '8' },
+        process: { code_set: ['CODE2'], code_system: 'SYSTEM_A', code: 'CODE2' }
+      },
+      {
+        event: { start_datetime: '09', end_datetime: '10' },
+        process: { code_set: ['CODE1'], code_system: 'SYSTEM_A', code: 'CODE1' }
+      }
+    ];
+
+    expect(auditProcessEvent(pes)).toEqual([
+      {
+        instancePath: '/process_event_set',
+        key: 'process.code',
+        params: {
+          duplicateCount: 3,
+          duplicateIndices: [0, 2, 4]
+        },
+        value: 'CODE1',
+        message: 'must NOT have duplicate items (items 0, 2, and 4 are identical)'
+      },
+      {
+        instancePath: '/process_event_set',
+        key: 'process.code',
+        params: {
+          duplicateCount: 2,
+          duplicateIndices: [1, 3]
+        },
+        value: 'CODE2',
+        message: 'must NOT have duplicate items (items 1 and 3 are identical)'
+      }
+    ]);
+  });
+
+  it('treats a code system with no codes as valid system but invalid code', async () => {
+    vi.resetModules();
+    vi.doMock('#src/utils/index', async () => {
+      const actual = await vi.importActual<typeof import('#src/utils/index')>('#src/utils/index');
+      return {
+        ...actual,
+        CodingDictionary: {
+          SYSTEM_A: { CODE1: 'desc1' },
+          SYSTEM_EMPTY: undefined
+        }
+      };
+    });
+
+    const { auditProcess: isolatedAuditProcess } = await import('#src/validators/integrity/auditor');
+
+    expect(isolatedAuditProcess({ code_system: 'SYSTEM_EMPTY', code: 'MISSING_CODE' } as Process, 0)).toEqual([
+      {
+        instancePath: '/process_event_set/0/process',
+        message: 'Invalid Process in ProcessEvent element at index 0',
+        key: 'code',
+        value: 'MISSING_CODE'
+      }
+    ]);
+
+    vi.resetModules();
   });
 });
