@@ -1,4 +1,4 @@
-import { auditHeader, auditProcessEvent } from './auditor.ts';
+import { auditHeader, auditOnHoldEvent, auditProcessEvent } from './auditor.ts';
 
 import type {
   IntegrityDictionary,
@@ -22,7 +22,11 @@ export const integrityValidators: IntegrityValidator<IntegrityDictionary> = {
    * @returns An `IntegrityResult` indicating whether the validation was successful and any errors encountered.
    */
   record: (data: PiesRecord) => {
-    const errors: IntegrityError[] = [...auditHeader(data), ...auditProcessEvent(data.process_event_set)];
+    const errors: IntegrityError[] = [
+      ...auditHeader(data),
+      ...auditOnHoldEvent(data.on_hold_event_set),
+      ...auditProcessEvent(data.process_event_set)
+    ];
 
     return { valid: !errors.length, errors: errors.length ? errors : undefined };
   },

@@ -1,7 +1,13 @@
 import * as utils from '#src/utils/index';
-import { auditEvent, auditHeader, auditProcess, auditProcessEvent } from '#src/validators/integrity/auditor';
+import {
+  auditEvent,
+  auditHeader,
+  auditOnHoldEvent,
+  auditProcess,
+  auditProcessEvent
+} from '#src/validators/integrity/auditor';
 
-import type { Header, Process, ProcessEvent } from '#types';
+import type { CodingEvent, Header, Process, ProcessEvent } from '#types';
 
 vi.mock('#src/utils/coding', () => ({
   CodingDictionary: {
@@ -13,15 +19,15 @@ vi.mock('#src/utils/coding', () => ({
 describe('auditEvent', () => {
   it('returns no errors for valid event with start_datetime and end_datetime', () => {
     const event = { start_datetime: '1000', end_datetime: '2000' };
-    expect(auditEvent(event, 0)).toEqual([]);
+    expect(auditEvent(event, 0, 'process_event_set')).toEqual([]);
   });
 
   it('returns error if end_datetime < start_datetime', () => {
     const event = { start_datetime: '2000', end_datetime: '1000' };
-    expect(auditEvent(event, 1)).toEqual([
+    expect(auditEvent(event, 1, 'process_event_set')).toEqual([
       {
         instancePath: '/process_event_set/1/event',
-        message: 'Invalid Event in ProcessEvent element at index 1',
+        message: 'Invalid Event element in process_event_set at index 1',
         key: 'end_datetime',
         value: '1000'
       }
@@ -30,10 +36,10 @@ describe('auditEvent', () => {
 
   it('returns error if end_date < start_date', () => {
     const event = { start_date: '5', end_date: '2' };
-    expect(auditEvent(event, 2)).toEqual([
+    expect(auditEvent(event, 2, 'process_event_set')).toEqual([
       {
         instancePath: '/process_event_set/2/event',
-        message: 'Invalid Event in ProcessEvent element at index 2',
+        message: 'Invalid Event element in process_event_set at index 2',
         key: 'end_date',
         value: '2'
       }
@@ -42,7 +48,7 @@ describe('auditEvent', () => {
 
   it('returns no error if end_date is undefined', () => {
     const event = { start_date: '5' };
-    expect(auditEvent(event, 0)).toEqual([]);
+    expect(auditEvent(event, 0, 'process_event_set')).toEqual([]);
   });
 });
 
@@ -82,6 +88,74 @@ describe('auditHeader', () => {
   });
 });
 
+describe('auditOnHoldEvent', () => {
+  it('returns empty array when input is undefined', () => {
+    expect(auditOnHoldEvent()).toEqual([]);
+  });
+
+  it('returns empty array for valid CodingEvent objects', () => {
+    const events: CodingEvent[] = [
+      {
+        coding: { code_set: ['CODE1'], code_system: 'SYSTEM_A', code: 'CODE1' },
+        event: { start_datetime: '1000', end_datetime: '2000' }
+      },
+      {
+        coding: { code_set: ['CODE1'], code_system: 'SYSTEM_A', code: 'CODE1' },
+        event: { start_date: '2023-01-01', end_date: '2023-01-02' }
+      }
+    ];
+    expect(auditOnHoldEvent(events)).toEqual([]);
+  });
+
+  it('returns errors for invalid CodingEvent objects', () => {
+    const events: CodingEvent[] = [
+      {
+        coding: { code_set: ['CODE1'], code_system: 'SYSTEM_A', code: 'CODE1' },
+        event: { start_datetime: '2000', end_datetime: '1000' }
+      },
+      {
+        coding: { code_set: ['CODE1'], code_system: 'SYSTEM_A', code: 'CODE1' },
+        event: { start_date: '2023-01-02', end_date: '2023-01-01' }
+      }
+    ];
+    expect(auditOnHoldEvent(events)).toEqual([
+      {
+        instancePath: '/on_hold_event_set/0/event',
+        message: 'Invalid Event element in on_hold_event_set at index 0',
+        key: 'end_datetime',
+        value: '1000'
+      },
+      {
+        instancePath: '/on_hold_event_set/1/event',
+        message: 'Invalid Event element in on_hold_event_set at index 1',
+        key: 'end_date',
+        value: '2023-01-01'
+      }
+    ]);
+  });
+
+  it('handles mixed valid and invalid CodingEvent objects', () => {
+    const events: CodingEvent[] = [
+      {
+        coding: { code_set: ['CODE1'], code_system: 'SYSTEM_A', code: 'CODE1' },
+        event: { start_datetime: '1000', end_datetime: '2000' }
+      },
+      {
+        coding: { code_set: ['CODE1'], code_system: 'SYSTEM_A', code: 'CODE1' },
+        event: { start_datetime: '2000', end_datetime: '1000' }
+      }
+    ];
+    expect(auditOnHoldEvent(events)).toEqual([
+      {
+        instancePath: '/on_hold_event_set/1/event',
+        message: 'Invalid Event element in on_hold_event_set at index 1',
+        key: 'end_datetime',
+        value: '1000'
+      }
+    ]);
+  });
+});
+
 describe('auditProcess', () => {
   it('returns no errors for valid code_system and code', () => {
     const process = { code_system: 'SYSTEM_A', code: 'CODE1' } as Process;
@@ -93,13 +167,13 @@ describe('auditProcess', () => {
     expect(auditProcess(process, 1)).toEqual([
       {
         instancePath: '/process_event_set/1/process',
-        message: 'Invalid Process in ProcessEvent element at index 1',
+        message: 'Invalid Process element in process_event_set at index 1',
         key: 'code_system',
         value: 'INVALID'
       },
       {
         instancePath: '/process_event_set/1/process',
-        message: 'Invalid Process in ProcessEvent element at index 1',
+        message: 'Invalid Process element in process_event_set at index 1',
         key: 'code',
         value: 'CODE1'
       }
@@ -111,7 +185,7 @@ describe('auditProcess', () => {
     expect(auditProcess(process, 2)).toEqual([
       {
         instancePath: '/process_event_set/2/process',
-        message: 'Invalid Process in ProcessEvent element at index 2',
+        message: 'Invalid Process element in process_event_set at index 2',
         key: 'code',
         value: 'INVALID'
       }
@@ -151,19 +225,19 @@ describe('auditProcessEvent', () => {
     expect(errors).toEqual([
       {
         instancePath: '/process_event_set/0/event',
-        message: 'Invalid Event in ProcessEvent element at index 0',
+        message: 'Invalid Event element in process_event_set at index 0',
         key: 'end_datetime',
         value: '5'
       },
       {
         instancePath: '/process_event_set/0/process',
-        message: 'Invalid Process in ProcessEvent element at index 0',
+        message: 'Invalid Process element in process_event_set at index 0',
         key: 'code_system',
         value: 'INVALID'
       },
       {
         instancePath: '/process_event_set/0/process',
-        message: 'Invalid Process in ProcessEvent element at index 0',
+        message: 'Invalid Process element in process_event_set at index 0',
         key: 'code',
         value: 'INVALID'
       }
@@ -272,7 +346,7 @@ describe('auditProcessEvent', () => {
     expect(isolatedAuditProcess({ code_system: 'SYSTEM_EMPTY', code: 'MISSING_CODE' } as Process, 0)).toEqual([
       {
         instancePath: '/process_event_set/0/process',
-        message: 'Invalid Process in ProcessEvent element at index 0',
+        message: 'Invalid Process element in process_event_set at index 0',
         key: 'code',
         value: 'MISSING_CODE'
       }
