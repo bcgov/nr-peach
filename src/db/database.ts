@@ -1,4 +1,5 @@
-import { CamelCasePlugin, Kysely, Migrator, PostgresDialect, sql } from 'kysely';
+import { CamelCasePlugin, Kysely, PostgresDialect, sql } from 'kysely';
+import { Migrator } from 'kysely/migration';
 import { Seeder } from 'kysely-ctl';
 import { promises as dns } from 'node:dns';
 import { readdirSync } from 'node:fs';
@@ -7,7 +8,8 @@ import { Pool, types } from 'pg';
 import { state } from '#src/state';
 import { getLogger } from '#src/utils/index';
 
-import type { LogEvent, Migration } from 'kysely';
+import type { LogEvent } from 'kysely';
+import type { Migration } from 'kysely/migration';
 import type { Seed } from 'kysely-ctl';
 import type { DB } from '#types';
 

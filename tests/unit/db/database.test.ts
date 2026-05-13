@@ -1,6 +1,7 @@
 import { mockSqlExecuteReturn } from './kysely.helper.ts'; // Must be imported before everything else
 
-import { Kysely, Migrator, sql } from 'kysely';
+import { Kysely, sql } from 'kysely';
+import { Migrator } from 'kysely/migration';
 import { Seeder } from 'kysely-ctl';
 import { readdirSync } from 'node:fs';
 
