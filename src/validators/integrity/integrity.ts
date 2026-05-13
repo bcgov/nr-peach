@@ -17,8 +17,8 @@ export const IntegrityDefinitions: Record<keyof IntegrityDictionary, keyof Integ
 /** A collection of integrity validators for validating PIES data structures */
 export const integrityValidators: IntegrityValidator<IntegrityDictionary> = {
   /**
-   * Validates a `ProcessEventSet` object by checking the `code_system` and `code` fields in each `process_event`.
-   * @param data - The `ProcessEventSet` object to validate.
+   * Validates a `Record` object.
+   * @param data - The `Record` object to validate.
    * @returns An `IntegrityResult` indicating whether the validation was successful and any errors encountered.
    */
   record: (data: PiesRecord) => {

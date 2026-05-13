@@ -352,6 +352,6 @@ describe('auditProcessEvent', () => {
       }
     ]);
 
-    vi.resetModules();
+    vi.doUnmock('#src/utils/index');
   });
 });

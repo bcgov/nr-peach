@@ -14,7 +14,8 @@ for (const codeSystem of codeSystemCache) {
 /**
  * audits the integrity of the `Event` element.
  * @param data - The `Event` object to validate.
- * @param index - The index of the `ProcessEvent` in the array being validated.
+ * @param index - The index of the element in the array being validated.
+ * @param parentPath - The path of the parent array containing the event being validated.
  * @returns An array of detected `IntegrityError`s.
  */
 export function auditEvent(data: Event, index: number, parentPath: string): IntegrityError[] {
@@ -67,7 +68,8 @@ export function auditOnHoldEvent(data?: readonly CodingEvent[]): IntegrityError[
 /**
  * Audits the integrity of the `Process` element.
  * @param data - The `Process` object to validate.
- * @param index - The index of the `ProcessEvent` in the array being validated.
+ * @param index - The index of the element in the array being validated.
+ * @param parentPath - The path of the parent array containing the process being validated.
  * @returns An array of detected `IntegrityError`s.
  */
 export function auditProcess(data: Process, index: number): IntegrityError[] {
