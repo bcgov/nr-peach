@@ -14,7 +14,9 @@ describe('Validate Controllers', () => {
 
   describe('POST /some/validate', () => {
     it('should respond with 200', async () => {
-      await request(app).post('/some/validate').send({}).expect(200);
+      const result = await request(app).post('/some/validate').send({}).expect(200);
+      expect(result.ok).toBe(true);
+      expect(result.body).toEqual({});
     });
   });
 });

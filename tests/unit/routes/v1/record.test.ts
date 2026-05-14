@@ -28,7 +28,10 @@ vi.mock('#src/controllers/record', () => ({
   getRecordController: vi.fn<RequestHandler>((_req, _res, next) => next()),
   postRecordController: vi.fn<RequestHandler>((_req, _res, next) => next()),
   pruneRecordController: vi.fn<RequestHandler>((_req, _res, next) => next()),
-  putRecordController: vi.fn<RequestHandler>((_req, _res, next) => next()),
+  putRecordController: vi.fn<RequestHandler>((_req, _res, next) => next())
+}));
+
+vi.mock('#src/controllers/validate', () => ({
   validationSuccessController: vi.fn<RequestHandler>((_req, _res, next) => next())
 }));
 
