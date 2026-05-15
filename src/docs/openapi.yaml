@@ -149,6 +149,59 @@ paths:
           $ref: '#/components/responses/UnprocessableEntity'
         default:
           $ref: '#/components/responses/Error'
+  /records/validate:
+    post:
+      summary: Validates a specific system record addition
+      description: Validates a specific system record addition without making any changes.
+      operationId: postValidateRecords
+      tags:
+        - Records
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: >-
+                https://raw.githubusercontent.com/bcgov/nr-pies/refs/heads/main/docs/spec/element/message/record.schema.json
+      responses:
+        '200':
+          description: OK - Validated the Record addition without making any changes
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        default:
+          $ref: '#/components/responses/Error'
+    put:
+      summary: Validates a specific system record assertion
+      description: Validates a specific system record assertion without making any changes.
+      operationId: putValidateRecords
+      tags:
+        - Records
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: >-
+                https://raw.githubusercontent.com/bcgov/nr-pies/refs/heads/main/docs/spec/element/message/record.schema.json
+      responses:
+        '200':
+          description: OK - Validated the Record assertion without making any changes
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        default:
+          $ref: '#/components/responses/Error'
   /record-linkages:
     get:
       summary: List RecordLinkages for a specific system record
@@ -240,6 +293,33 @@ paths:
           $ref: '#/components/responses/NotFound'
         '409':
           $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        default:
+          $ref: '#/components/responses/Error'
+  /record-linkages/validate:
+    put:
+      summary: Validates a specific record linkage addition
+      description: Validates a specific record linkage without making any changes.
+      operationId: putValidateRecordLinkages
+      tags:
+        - Linkages
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: >-
+                https://raw.githubusercontent.com/bcgov/nr-pies/refs/heads/main/docs/spec/element/message/record_linkage.schema.json
+      responses:
+        '200':
+          description: OK - Validated the RecordLinkage without making any changes
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
         '422':
           $ref: '#/components/responses/UnprocessableEntity'
         default:

@@ -4,7 +4,8 @@ import {
   getRecordController,
   postRecordController,
   pruneRecordController,
-  putRecordController
+  putRecordController,
+  validationSuccessController
 } from '#src/controllers/index';
 import { authz, isJsonBody } from '#src/middlewares/index';
 import {
@@ -17,31 +18,29 @@ import {
 } from '#src/validators/index';
 
 const router = Router();
+const postMiddleware = [isJsonBody(), authz('body'), postRecordSchemaValidator, postRecordIntegrityValidator];
+const putMiddleware = [isJsonBody(), authz('body'), putRecordSchemaValidator, putRecordIntegrityValidator];
 
-/** Get Process Events */
+// Validation-Only Endpoints
+
+/** Post Records Validation */
+router.post('/records/validate', ...postMiddleware, validationSuccessController);
+
+/** Put Records Validation */
+router.put('/records/validate', ...putMiddleware, validationSuccessController);
+
+// Standard Endpoints
+
+/** Get Records */
 router.get('/records', getRecordSchemaValidator, getRecordController);
 
-/** Post Process Events */
-router.post(
-  '/records',
-  isJsonBody(),
-  authz('body'),
-  postRecordSchemaValidator,
-  postRecordIntegrityValidator,
-  postRecordController
-);
+/** Post Records */
+router.post('/records', ...postMiddleware, postRecordController);
 
-/** Prune Process Events */
+/** Prune Records */
 router.delete('/records', authz('query'), pruneRecordSchemaValidator, pruneRecordController);
 
-/** Put Process Events */
-router.put(
-  '/records',
-  isJsonBody(),
-  authz('body'),
-  putRecordSchemaValidator,
-  putRecordIntegrityValidator,
-  putRecordController
-);
+/** Put Records */
+router.put('/records', ...putMiddleware, putRecordController);
 
 export default router;

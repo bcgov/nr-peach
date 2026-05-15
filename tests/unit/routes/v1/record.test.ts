@@ -5,7 +5,8 @@ import {
   getRecordController,
   postRecordController,
   pruneRecordController,
-  putRecordController
+  putRecordController,
+  validationSuccessController
 } from '#src/controllers/index';
 import {
   getRecordSchemaValidator,
@@ -30,6 +31,10 @@ vi.mock('#src/controllers/record', () => ({
   putRecordController: vi.fn<RequestHandler>((_req, _res, next) => next())
 }));
 
+vi.mock('#src/controllers/validate', () => ({
+  validationSuccessController: vi.fn<RequestHandler>((_req, _res, next) => next())
+}));
+
 vi.mock('#src/middlewares/auth', () => ({
   authz: () => vi.fn<RequestHandler>((_req, _res, next) => next()),
   isJsonBody: () => vi.fn<RequestHandler>((_req, _res, next) => next())
@@ -40,7 +45,23 @@ vi.mock('#src/middlewares/validator', () => ({
   validateRequestSchema: () => vi.fn<RequestHandler>((_req, _res, next) => next())
 }));
 
-describe('Process Routes', () => {
+describe('Record Validation Routes', () => {
+  describe('POST /records/validate', () => {
+    it('should call the schema validator, integrity validator and controller', async () => {
+      await request(app).post('/records/validate').send({});
+      expect(validationSuccessController).toHaveBeenCalled();
+    });
+  });
+
+  describe('PUT /records/validate', () => {
+    it('should call the schema validator, integrity validator and controller', async () => {
+      await request(app).put('/records/validate').send({});
+      expect(validationSuccessController).toHaveBeenCalled();
+    });
+  });
+});
+
+describe('Record Routes', () => {
   describe('DELETE /records', () => {
     it('should call the schema validator and controller', async () => {
       await request(app).delete('/records');
