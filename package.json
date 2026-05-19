@@ -74,7 +74,7 @@
     "@types/cors": "2.8.19",
     "@types/express": "5.0.6",
     "@types/js-yaml": "4.0.9",
-    "@types/k6": "1.7.0",
+    "@types/k6": "2.0.0",
     "@types/node": "24.12.4",
     "@types/pg": "8.20.0",
     "@types/qs": "6.15.1",
