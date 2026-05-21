@@ -1,9 +1,10 @@
 import { existsSync, readFileSync, statSync } from 'node:fs';
 
 import { testSystemTime } from '../vitest.setup.ts';
-import { containsSubset, getGitRevision, getUUIDv7Timestamp, sortObject } from '#src/utils/utils';
+import { containsSubset, shallowEqual, getGitRevision, getUUIDv7Timestamp, sortObject } from '#src/utils/utils';
 
 import type { Mock } from 'vitest';
+import type { ShallowEqualAttributes } from '#types';
 
 vi.mock('node:fs', () => ({
   existsSync: vi.fn(),
@@ -238,6 +239,72 @@ describe('getUUIDv7Timestamp', () => {
 
   it('should return undefined for a malformed UUIDv7', () => {
     expect(getUUIDv7Timestamp('018e3c0d-6cbb-7cc0')).toBeUndefined();
+  });
+});
+
+describe('shallowEqual', () => {
+  it('returns true when both objects are exactly equivalent at top level', () => {
+    const c = { d: true };
+    const lhs = { a: 1, b: 'x', c };
+    const rhs = { a: 1, b: 'x', c };
+
+    expect(shallowEqual(lhs, rhs)).toBe(true);
+  });
+
+  it('returns false when lhs has extra keys (superset mismatch)', () => {
+    const lhs = { a: 1, b: 2 };
+    const rhs = { a: 1 };
+
+    expect(shallowEqual(lhs, rhs)).toBe(false);
+  });
+
+  it('returns false when rhs has extra keys (subset mismatch)', () => {
+    const lhs = { a: 1 };
+    const rhs = { a: 1, b: 2 };
+
+    expect(shallowEqual(lhs, rhs)).toBe(false);
+  });
+
+  it('returns false when nested object instances differ (no recursive traversal)', () => {
+    const lhs = { user: { id: 1, role: 'admin' } };
+    const rhs = { user: { id: 1, role: 'admin' } };
+
+    expect(shallowEqual(lhs, rhs)).toBe(false);
+  });
+
+  it('returns true only when array references match at top level', () => {
+    const values = [1, 2, 3];
+    expect(shallowEqual({ values }, { values })).toBe(true);
+    expect(shallowEqual({ values: [1, 2, 3] }, { values: [1, 2] })).toBe(false);
+    expect(shallowEqual({ values: [1, 2, 3] }, { values: [1, 2, 3] })).toBe(false);
+  });
+
+  it('returns true for functionally equivalent date strings', () => {
+    const lhs = { start_datetime: '2020-06-24T00:00:00.000Z' };
+    const rhs = { start_datetime: '2020-06-24T00:00:00Z' };
+
+    expect(shallowEqual(lhs, rhs)).toBe(true);
+  });
+
+  it('enforces attribute types via record schema', () => {
+    const lhs = { id: 1, active: true };
+    const rhs = { id: 1, active: true };
+    const schema: ShallowEqualAttributes = { id: 'number', active: 'boolean' };
+
+    expect(shallowEqual(lhs, rhs, schema)).toBe(true);
+    expect(shallowEqual(lhs, { id: '1', active: true }, schema)).toBe(false);
+  });
+
+  it('enforces attribute types via array schema with top-level attributes', () => {
+    const lhs = { id: 10, createdAt: '2024-05-01T00:00:00.000Z' };
+    const rhs = { id: 10, createdAt: '2024-05-01T00:00:00Z' };
+    const schema: ShallowEqualAttributes = [
+      { attribute: 'id', type: 'number' },
+      { attribute: 'createdAt', type: 'date' }
+    ];
+
+    expect(shallowEqual(lhs, rhs, schema)).toBe(true);
+    expect(shallowEqual(lhs, { id: 10, createdAt: 'not-a-date' }, schema)).toBe(false);
   });
 });
 

@@ -5,6 +5,8 @@ import { validate, version } from 'uuid';
 
 import { getLogger } from './log.ts';
 
+import type { ShallowEqualAttributes, ShallowEqualValueType } from '#types';
+
 const log = getLogger(import.meta.filename);
 
 /**
@@ -120,6 +122,85 @@ export function getUUIDv7Timestamp(uuid: string): number | undefined {
 
   const hexTimestamp = uuid.replaceAll('-', '').slice(0, 12);
   return Number.parseInt(hexTimestamp, 16);
+}
+
+/**
+ * Performs a strict top-level comparison between two objects.
+ * - Returns `true` only when `lhs` and `rhs` have 1:1 key parity and equal top-level values.
+ * - Extra or missing keys on either side fail the comparison.
+ * - Uses direct value comparison (no recursive traversal of nested objects).
+ * - Supports optional attribute type rules as an array of `{ attribute, type }` or a record map.
+ * - Preserves date-string equivalence behavior used in `containsSubset`.
+ * @param lhs - Left-hand object to compare.
+ * @param rhs - Right-hand object to compare.
+ * @param attributes - Optional type rules keyed by top-level attribute name (e.g. `createdAt`).
+ * @returns `true` when objects are strictly equivalent at the top level and satisfy type rules.
+ */
+export function shallowEqual(
+  lhs: Record<string, unknown>,
+  rhs: Record<string, unknown>,
+  attributes?: ShallowEqualAttributes
+): boolean {
+  const attributeTypes: Record<string, ShallowEqualValueType> = Array.isArray(attributes)
+    ? Object.fromEntries(attributes.map(({ attribute, type }) => [attribute, type]))
+    : (attributes ?? {});
+
+  const getValueType = (value: unknown): ShallowEqualValueType => {
+    if (value === null) return 'null';
+    if (Array.isArray(value)) return 'array';
+
+    switch (typeof value) {
+      case 'boolean':
+        return 'boolean';
+      case 'number':
+        return 'number';
+      case 'string':
+        return 'string';
+      case 'undefined':
+        return 'undefined';
+      default:
+        return 'object';
+    }
+  };
+
+  const isDateEquivalent = (left: unknown, right: unknown): boolean => {
+    if (typeof left !== 'string' || typeof right !== 'string') return false;
+    if (!left.includes('-') || !right.includes('-')) return false;
+
+    const leftTime = Date.parse(left);
+    const rightTime = Date.parse(right);
+
+    if (Number.isNaN(leftTime) || Number.isNaN(rightTime)) return false;
+    return leftTime === rightTime;
+  };
+
+  const compareValue = (attribute: string, left: unknown, right: unknown): boolean => {
+    const expectedType = attributeTypes[attribute];
+    if (left === right) return true;
+    if (typeof left === 'number' && typeof right === 'number' && Number.isNaN(left) && Number.isNaN(right)) return true;
+
+    const leftType = getValueType(left);
+    const rightType = getValueType(right);
+
+    if (expectedType) {
+      if (expectedType === 'date') {
+        if (!isDateEquivalent(left, right)) return false;
+      } else if (leftType !== expectedType || rightType !== expectedType) {
+        return false;
+      }
+    }
+
+    if (isDateEquivalent(left, right)) return true;
+
+    return false;
+  };
+
+  const lhsKeys = Object.keys(lhs);
+  const rhsKeys = Object.keys(rhs);
+  if (lhsKeys.length !== rhsKeys.length) return false;
+  if (!lhsKeys.every((key) => Object.hasOwn(rhs, key))) return false;
+
+  return lhsKeys.every((key) => compareValue(key, lhs[key], rhs[key]));
 }
 
 /**
