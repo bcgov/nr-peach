@@ -1,7 +1,7 @@
 import { existsSync, readFileSync, statSync } from 'node:fs';
 
 import { testSystemTime } from '../vitest.setup.ts';
-import { containsSubset, shallowEqual, getGitRevision, getUUIDv7Timestamp, sortObject } from '#src/utils/utils';
+import { containsSubset, getGitRevision, getUUIDv7Timestamp, shallowEqual, sortObject } from '#src/utils/utils';
 
 import type { Mock } from 'vitest';
 

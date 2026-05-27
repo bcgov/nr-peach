@@ -176,7 +176,7 @@ export const replaceRecordService = (data: PiesRecord, principal?: string): Prom
     });
 
     // Calculate on hold events
-    const oheOld = (await new OnHoldEventRepository(trx).findWhere({ systemRecordId: systemRecord.id }).execute()).map(
+    const oheDb = (await new OnHoldEventRepository(trx).findWhere({ systemRecordId: systemRecord.id }).execute()).map(
       (ohe) => ({
         id: ohe.id,
         codingId: ohe.codingId,
@@ -199,7 +199,7 @@ export const replaceRecordService = (data: PiesRecord, principal?: string): Prom
         });
 
         const ceNew = { codingId, ...ce.event };
-        const oheMatched = oheOld.find((ce) => {
+        const oheMatched = oheDb.find((ce) => {
           const ceOld: Record<string, unknown> = {};
           for (const [key, value] of Object.entries(ce) as [string, unknown][]) {
             if (key === 'id' || value === undefined) continue;
@@ -224,7 +224,7 @@ export const replaceRecordService = (data: PiesRecord, principal?: string): Prom
     const oheAdd = oheResults.filter((r) => typeof r !== 'number');
 
     // Calculate process events
-    const peOld = (await new ProcessEventRepository(trx).findWhere({ systemRecordId: systemRecord.id }).execute()).map(
+    const peDb = (await new ProcessEventRepository(trx).findWhere({ systemRecordId: systemRecord.id }).execute()).map(
       (pe) => ({
         id: pe.id,
         codingId: pe.codingId,
@@ -256,7 +256,7 @@ export const replaceRecordService = (data: PiesRecord, principal?: string): Prom
           statusDescription: pe.process.status_description,
           ...pe.event
         };
-        const peMatched = peOld.find((pe) => {
+        const peMatched = peDb.find((pe) => {
           const peOld: Record<string, unknown> = {};
           for (const [key, value] of Object.entries(pe) as [string, unknown][]) {
             if (key === 'id' || value === undefined) continue;
@@ -294,9 +294,9 @@ export const replaceRecordService = (data: PiesRecord, principal?: string): Prom
 
     // Update event tables
     await Promise.all([
-      oheMatchedIds.length < oheOld.length &&
+      oheMatchedIds.length < oheDb.length &&
         new OnHoldEventRepository(trx).deleteExcept(oheMatchedIds, { systemRecordId: systemRecord.id }).execute(),
-      peMatchedIds.length < peOld.length &&
+      peMatchedIds.length < peDb.length &&
         new ProcessEventRepository(trx).deleteExcept(peMatchedIds, { systemRecordId: systemRecord.id }).execute()
     ]);
     await Promise.all([

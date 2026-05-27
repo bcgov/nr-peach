@@ -123,14 +123,14 @@ export function getUUIDv7Timestamp(uuid: string): number | undefined {
 }
 
 /**
- * Performs a strict top-level comparison between two objects.
- * - Returns `true` only when `lhs` and `rhs` have 1:1 key parity and equal top-level values.
+ * Performs a top-level comparison between two objects.
+ * - Returns `true` only when `lhs` and `rhs` have 1:1 key parity and equivalent top-level values.
  * - Extra or missing keys on either side fail the comparison.
  * - Uses direct value comparison (no recursive traversal of nested objects).
+ * - Treats `null` and `undefined` as equivalent (nullish equivalence).
  * - Supports an optional allowlist of expected keys.
  * - When expected keys are provided, any key in `lhs` or `rhs` not in that list fails the comparison.
  * - Expected keys may be omitted from both objects without failing the comparison.
- * - Preserves date-string equivalence behavior used in `containsSubset`.
  * @param lhs - Left-hand object to compare.
  * @param rhs - Right-hand object to compare.
  * @param expectedKeys - Optional allowlist of top-level keys.
@@ -142,37 +142,33 @@ export function shallowEqual(
   expectedKeys?: string[]
 ): boolean {
   const isDateEquivalent = (left: unknown, right: unknown): boolean => {
-    if (typeof left !== 'string' || typeof right !== 'string') return false;
-    if (!left.includes('-') || !right.includes('-')) return false;
+    if (typeof left !== 'string' && typeof left !== 'number') return false;
+    if (typeof right !== 'string' && typeof right !== 'number') return false;
 
-    const leftTime = Date.parse(left);
-    const rightTime = Date.parse(right);
+    const leftTime = Date.parse(left.toString());
+    const rightTime = Date.parse(right.toString());
 
     if (Number.isNaN(leftTime) || Number.isNaN(rightTime)) return false;
     return leftTime === rightTime;
   };
 
   const compareValue = (left: unknown, right: unknown): boolean => {
-    if (left === right) return true;
-    if (typeof left === 'number' && typeof right === 'number' && Number.isNaN(left) && Number.isNaN(right)) return true;
-
-    if (isDateEquivalent(left, right)) return true;
-
-    return false;
+    if (Object.is(left ?? null, right ?? null)) return true;
+    return isDateEquivalent(left, right);
   };
 
   const lhsKeys = Object.keys(lhs);
   const rhsKeys = Object.keys(rhs);
 
+  if (lhsKeys.length !== rhsKeys.length) return false;
+
   if (expectedKeys) {
     const allowed = new Set(expectedKeys);
-    if (lhsKeys.some((key) => !allowed.has(key)) || rhsKeys.some((key) => !allowed.has(key))) return false;
+    const hasInvalidKey = (key: string) => !allowed.has(key);
+    if (lhsKeys.some(hasInvalidKey) || rhsKeys.some(hasInvalidKey)) return false;
   }
 
-  if (lhsKeys.length !== rhsKeys.length) return false;
-  if (!lhsKeys.every((key) => Object.hasOwn(rhs, key))) return false;
-
-  return lhsKeys.every((key) => compareValue(lhs[key], rhs[key]));
+  return lhsKeys.every((key) => Object.hasOwn(rhs, key) && compareValue(lhs[key], rhs[key]));
 }
 
 /**
