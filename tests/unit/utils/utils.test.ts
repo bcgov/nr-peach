@@ -4,7 +4,6 @@ import { testSystemTime } from '../vitest.setup.ts';
 import { containsSubset, shallowEqual, getGitRevision, getUUIDv7Timestamp, sortObject } from '#src/utils/utils';
 
 import type { Mock } from 'vitest';
-import type { ShallowEqualAttributes } from '#types';
 
 vi.mock('node:fs', () => ({
   existsSync: vi.fn(),
@@ -286,25 +285,32 @@ describe('shallowEqual', () => {
     expect(shallowEqual(lhs, rhs)).toBe(true);
   });
 
-  it('enforces attribute types via record schema', () => {
+  it('returns true when provided keys include all object keys', () => {
     const lhs = { id: 1, active: true };
     const rhs = { id: 1, active: true };
-    const schema: ShallowEqualAttributes = { id: 'number', active: 'boolean' };
 
-    expect(shallowEqual(lhs, rhs, schema)).toBe(true);
-    expect(shallowEqual(lhs, { id: '1', active: true }, schema)).toBe(false);
+    expect(shallowEqual(lhs, rhs, ['id', 'active', 'createdAt'])).toBe(true);
   });
 
-  it('enforces attribute types via array schema with top-level attributes', () => {
-    const lhs = { id: 10, createdAt: '2024-05-01T00:00:00.000Z' };
-    const rhs = { id: 10, createdAt: '2024-05-01T00:00:00Z' };
-    const schema: ShallowEqualAttributes = [
-      { attribute: 'id', type: 'number' },
-      { attribute: 'createdAt', type: 'date' }
-    ];
+  it('returns false when lhs contains a key outside the provided key set', () => {
+    const lhs = { id: 10, createdAt: '2024-05-01T00:00:00.000Z', source: 'A' };
+    const rhs = { id: 10, createdAt: '2024-05-01T00:00:00Z', source: 'A' };
 
-    expect(shallowEqual(lhs, rhs, schema)).toBe(true);
-    expect(shallowEqual(lhs, { id: 10, createdAt: 'not-a-date' }, schema)).toBe(false);
+    expect(shallowEqual(lhs, rhs, ['id', 'createdAt'])).toBe(false);
+  });
+
+  it('returns false when rhs contains a key outside the provided key set', () => {
+    const lhs = { id: 10, createdAt: '2024-05-01T00:00:00.000Z' };
+    const rhs = { id: 10, createdAt: '2024-05-01T00:00:00Z', source: 'A' };
+
+    expect(shallowEqual(lhs, rhs, ['id', 'createdAt'])).toBe(false);
+  });
+
+  it('returns false when values differ even if keys are allowed', () => {
+    const lhs = { id: 10, createdAt: '2024-05-01T00:00:00.000Z' };
+    const rhs = { id: 11, createdAt: '2024-05-01T00:00:00Z' };
+
+    expect(shallowEqual(lhs, rhs, ['id', 'createdAt'])).toBe(false);
   });
 });
 

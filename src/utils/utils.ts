@@ -5,8 +5,6 @@ import { validate, version } from 'uuid';
 
 import { getLogger } from './log.ts';
 
-import type { ShallowEqualAttributes, ShallowEqualValueType } from '#types';
-
 const log = getLogger(import.meta.filename);
 
 /**
@@ -129,40 +127,20 @@ export function getUUIDv7Timestamp(uuid: string): number | undefined {
  * - Returns `true` only when `lhs` and `rhs` have 1:1 key parity and equal top-level values.
  * - Extra or missing keys on either side fail the comparison.
  * - Uses direct value comparison (no recursive traversal of nested objects).
- * - Supports optional attribute type rules as an array of `{ attribute, type }` or a record map.
+ * - Supports an optional allowlist of expected keys.
+ * - When expected keys are provided, any key in `lhs` or `rhs` not in that list fails the comparison.
+ * - Expected keys may be omitted from both objects without failing the comparison.
  * - Preserves date-string equivalence behavior used in `containsSubset`.
  * @param lhs - Left-hand object to compare.
  * @param rhs - Right-hand object to compare.
- * @param attributes - Optional type rules keyed by top-level attribute name (e.g. `createdAt`).
- * @returns `true` when objects are strictly equivalent at the top level and satisfy type rules.
+ * @param expectedKeys - Optional allowlist of top-level keys.
+ * @returns `true` when objects are strictly equivalent at the top level and satisfy key constraints.
  */
 export function shallowEqual(
   lhs: Record<string, unknown>,
   rhs: Record<string, unknown>,
-  attributes?: ShallowEqualAttributes
+  expectedKeys?: string[]
 ): boolean {
-  const attributeTypes: Record<string, ShallowEqualValueType> = Array.isArray(attributes)
-    ? Object.fromEntries(attributes.map(({ attribute, type }) => [attribute, type]))
-    : (attributes ?? {});
-
-  const getValueType = (value: unknown): ShallowEqualValueType => {
-    if (value === null) return 'null';
-    if (Array.isArray(value)) return 'array';
-
-    switch (typeof value) {
-      case 'boolean':
-        return 'boolean';
-      case 'number':
-        return 'number';
-      case 'string':
-        return 'string';
-      case 'undefined':
-        return 'undefined';
-      default:
-        return 'object';
-    }
-  };
-
   const isDateEquivalent = (left: unknown, right: unknown): boolean => {
     if (typeof left !== 'string' || typeof right !== 'string') return false;
     if (!left.includes('-') || !right.includes('-')) return false;
@@ -174,21 +152,9 @@ export function shallowEqual(
     return leftTime === rightTime;
   };
 
-  const compareValue = (attribute: string, left: unknown, right: unknown): boolean => {
-    const expectedType = attributeTypes[attribute];
+  const compareValue = (left: unknown, right: unknown): boolean => {
     if (left === right) return true;
     if (typeof left === 'number' && typeof right === 'number' && Number.isNaN(left) && Number.isNaN(right)) return true;
-
-    const leftType = getValueType(left);
-    const rightType = getValueType(right);
-
-    if (expectedType) {
-      if (expectedType === 'date') {
-        if (!isDateEquivalent(left, right)) return false;
-      } else if (leftType !== expectedType || rightType !== expectedType) {
-        return false;
-      }
-    }
 
     if (isDateEquivalent(left, right)) return true;
 
@@ -197,10 +163,16 @@ export function shallowEqual(
 
   const lhsKeys = Object.keys(lhs);
   const rhsKeys = Object.keys(rhs);
+
+  if (expectedKeys) {
+    const allowed = new Set(expectedKeys);
+    if (lhsKeys.some((key) => !allowed.has(key)) || rhsKeys.some((key) => !allowed.has(key))) return false;
+  }
+
   if (lhsKeys.length !== rhsKeys.length) return false;
   if (!lhsKeys.every((key) => Object.hasOwn(rhs, key))) return false;
 
-  return lhsKeys.every((key) => compareValue(key, lhs[key], rhs[key]));
+  return lhsKeys.every((key) => compareValue(lhs[key], rhs[key]));
 }
 
 /**
