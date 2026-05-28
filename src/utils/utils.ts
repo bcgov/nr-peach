@@ -127,7 +127,7 @@ export function getUUIDv7Timestamp(uuid: string): number | undefined {
  * - Returns `true` only when `lhs` and `rhs` have 1:1 key parity and equivalent top-level values.
  * - Extra or missing keys on either side fail the comparison.
  * - Uses direct value comparison (no recursive traversal of nested objects).
- * - Treats `null` and `undefined` as equivalent (nullish equivalence).
+ * - Treats `null` and explicit `undefined` values as equivalent (nullish equivalence).
  * - Supports an optional allowlist of expected keys.
  * - When expected keys are provided, any key in `lhs` or `rhs` not in that list fails the comparison.
  * - Expected keys may be omitted from both objects without failing the comparison.
@@ -142,9 +142,12 @@ export function shallowEqual(
   expectedKeys?: string[]
 ): boolean {
   const isDateEquivalent = (left: unknown, right: unknown): boolean => {
+    if (typeof left !== typeof right) return false;
     if (typeof left !== 'string' && typeof left !== 'number') return false;
     if (typeof right !== 'string' && typeof right !== 'number') return false;
 
+    // Date parse required to handle variations in microsecond precision representation
+    // (e.g. "2024-05-01T00:00:00Z" vs "2024-05-01T00:00:00.000Z")
     const leftTime = Date.parse(left.toString());
     const rightTime = Date.parse(right.toString());
 
@@ -153,8 +156,7 @@ export function shallowEqual(
   };
 
   const compareValue = (left: unknown, right: unknown): boolean => {
-    if (Object.is(left ?? null, right ?? null)) return true;
-    return isDateEquivalent(left, right);
+    return Object.is(left ?? null, right ?? null) || isDateEquivalent(left, right);
   };
 
   const lhsKeys = Object.keys(lhs);
@@ -163,8 +165,7 @@ export function shallowEqual(
   if (lhsKeys.length !== rhsKeys.length) return false;
 
   if (expectedKeys) {
-    const allowed = new Set(expectedKeys);
-    const hasInvalidKey = (key: string) => !allowed.has(key);
+    const hasInvalidKey = (key: string) => !expectedKeys.includes(key);
     if (lhsKeys.some(hasInvalidKey) || rhsKeys.some(hasInvalidKey)) return false;
   }
 

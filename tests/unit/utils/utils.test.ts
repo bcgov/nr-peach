@@ -250,6 +250,13 @@ describe('shallowEqual', () => {
     expect(shallowEqual(lhs, rhs)).toBe(true);
   });
 
+  it('returns false when values are effectively equivalent unix timestamps', () => {
+    const lhs = { a: 1 };
+    const rhs = { a: '1' };
+
+    expect(shallowEqual(lhs, rhs)).toBe(false);
+  });
+
   it('returns false when lhs has extra keys (superset mismatch)', () => {
     const lhs = { a: 1, b: 2 };
     const rhs = { a: 1 };
@@ -262,6 +269,27 @@ describe('shallowEqual', () => {
     const rhs = { a: 1, b: 2 };
 
     expect(shallowEqual(lhs, rhs)).toBe(false);
+  });
+
+  it('returns false when values contain an implicit null mismatch', () => {
+    const lhs = { a: 1 };
+    const rhs = { a: 1, b: null };
+
+    expect(shallowEqual(lhs, rhs)).toBe(false);
+  });
+
+  it('returns false when values contain an implicit undefined mismatch', () => {
+    const lhs = { a: 1 };
+    const rhs = { a: 1, b: undefined };
+
+    expect(shallowEqual(lhs, rhs)).toBe(false);
+  });
+
+  it('returns true when comparing null and explicit undefined values for the same key', () => {
+    const lhs = { a: 1, b: null };
+    const rhs = { a: 1, b: undefined };
+
+    expect(shallowEqual(lhs, rhs)).toBe(true);
   });
 
   it('returns false when nested object instances differ (no recursive traversal)', () => {
