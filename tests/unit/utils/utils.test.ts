@@ -1,7 +1,7 @@
 import { existsSync, readFileSync, statSync } from 'node:fs';
 
 import { testSystemTime } from '../vitest.setup.ts';
-import { containsSubset, getGitRevision, getUUIDv7Timestamp, sortObject } from '#src/utils/utils';
+import { containsSubset, getGitRevision, getUUIDv7Timestamp, shallowEqual, sortObject } from '#src/utils/utils';
 
 import type { Mock } from 'vitest';
 
@@ -238,6 +238,107 @@ describe('getUUIDv7Timestamp', () => {
 
   it('should return undefined for a malformed UUIDv7', () => {
     expect(getUUIDv7Timestamp('018e3c0d-6cbb-7cc0')).toBeUndefined();
+  });
+});
+
+describe('shallowEqual', () => {
+  it('returns true when both objects are exactly equivalent at top level', () => {
+    const c = { d: true };
+    const lhs = { a: 1, b: 'x', c };
+    const rhs = { a: 1, b: 'x', c };
+
+    expect(shallowEqual(lhs, rhs)).toBe(true);
+  });
+
+  it('returns false when values are effectively equivalent unix timestamps', () => {
+    const lhs = { a: 1 };
+    const rhs = { a: '1' };
+
+    expect(shallowEqual(lhs, rhs)).toBe(false);
+  });
+
+  it('returns false when lhs has extra keys (superset mismatch)', () => {
+    const lhs = { a: 1, b: 2 };
+    const rhs = { a: 1 };
+
+    expect(shallowEqual(lhs, rhs)).toBe(false);
+  });
+
+  it('returns false when rhs has extra keys (subset mismatch)', () => {
+    const lhs = { a: 1 };
+    const rhs = { a: 1, b: 2 };
+
+    expect(shallowEqual(lhs, rhs)).toBe(false);
+  });
+
+  it('returns false when values contain an implicit null mismatch', () => {
+    const lhs = { a: 1 };
+    const rhs = { a: 1, b: null };
+
+    expect(shallowEqual(lhs, rhs)).toBe(false);
+  });
+
+  it('returns false when values contain an implicit undefined mismatch', () => {
+    const lhs = { a: 1 };
+    const rhs = { a: 1, b: undefined };
+
+    expect(shallowEqual(lhs, rhs)).toBe(false);
+  });
+
+  it('returns true when comparing null and explicit undefined values for the same key', () => {
+    const lhs = { a: 1, b: null };
+    const rhs = { a: 1, b: undefined };
+
+    expect(shallowEqual(lhs, rhs)).toBe(true);
+  });
+
+  it('returns false when nested object instances differ (no recursive traversal)', () => {
+    const lhs = { user: { id: 1, role: 'admin' } };
+    const rhs = { user: { id: 1, role: 'admin' } };
+
+    expect(shallowEqual(lhs, rhs)).toBe(false);
+  });
+
+  it('returns true only when array references match at top level', () => {
+    const values = [1, 2, 3];
+    expect(shallowEqual({ values }, { values })).toBe(true);
+    expect(shallowEqual({ values: [1, 2, 3] }, { values: [1, 2] })).toBe(false);
+    expect(shallowEqual({ values: [1, 2, 3] }, { values: [1, 2, 3] })).toBe(false);
+  });
+
+  it('returns true for functionally equivalent date strings', () => {
+    const lhs = { start_datetime: '2020-06-24T00:00:00.000Z' };
+    const rhs = { start_datetime: '2020-06-24T00:00:00Z' };
+
+    expect(shallowEqual(lhs, rhs)).toBe(true);
+  });
+
+  it('returns true when provided keys include all object keys', () => {
+    const lhs = { id: 1, active: true };
+    const rhs = { id: 1, active: true };
+
+    expect(shallowEqual(lhs, rhs, ['id', 'active', 'createdAt'])).toBe(true);
+  });
+
+  it('returns false when lhs contains a key outside the provided key set', () => {
+    const lhs = { id: 10, createdAt: '2024-05-01T00:00:00.000Z', source: 'A' };
+    const rhs = { id: 10, createdAt: '2024-05-01T00:00:00Z', source: 'A' };
+
+    expect(shallowEqual(lhs, rhs, ['id', 'createdAt'])).toBe(false);
+  });
+
+  it('returns false when rhs contains a key outside the provided key set', () => {
+    const lhs = { id: 10, createdAt: '2024-05-01T00:00:00.000Z' };
+    const rhs = { id: 10, createdAt: '2024-05-01T00:00:00Z', source: 'A' };
+
+    expect(shallowEqual(lhs, rhs, ['id', 'createdAt'])).toBe(false);
+  });
+
+  it('returns false when values differ even if keys are allowed', () => {
+    const lhs = { id: 10, createdAt: '2024-05-01T00:00:00.000Z' };
+    const rhs = { id: 11, createdAt: '2024-05-01T00:00:00Z' };
+
+    expect(shallowEqual(lhs, rhs, ['id', 'createdAt'])).toBe(false);
   });
 });
 

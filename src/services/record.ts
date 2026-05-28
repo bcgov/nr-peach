@@ -18,10 +18,18 @@ import {
   TransactionRepository,
   VersionRepository
 } from '#src/repositories/index';
-import { CodingDictionary, containsSubset, getLogger, Problem } from '#src/utils/index';
+import { CodingDictionary, getLogger, Problem, shallowEqual } from '#src/utils/index';
 
 import type { DeleteResult, Selectable } from 'kysely';
-import type { Coding, CodingEvent, Header, PiesSystemRecord, Process, ProcessEvent, Record } from '#types';
+import type {
+  Coding,
+  CodingEvent,
+  Header,
+  PiesSystemRecord,
+  Process,
+  ProcessEvent,
+  Record as PiesRecord
+} from '#types';
 
 const log = getLogger(import.meta.filename);
 
@@ -31,7 +39,7 @@ const log = getLogger(import.meta.filename);
  * @returns A Promise that resolves to the record for the given system record.
  * @throws 404 if no process events are found.
  */
-export const findRecordService = (systemRecord: Selectable<PiesSystemRecord>): Promise<Record> => {
+export const findRecordService = (systemRecord: Selectable<PiesSystemRecord>): Promise<PiesRecord> => {
   return transactionWrapper(
     async (trx) => {
       const recordKind = await cacheableRead(new RecordKindRepository(trx), systemRecord.recordKindId).catch(
@@ -115,14 +123,14 @@ export const findRecordService = (systemRecord: Selectable<PiesSystemRecord>): P
         record_kind: recordKind.kind as Header['record_kind'],
         on_hold_event_set: onHoldEvents,
         process_event_set: processEvents
-      } satisfies Record;
+      } satisfies PiesRecord;
     },
     { accessMode: 'read only' }
   );
 };
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-export const mergeRecordService = (_data: Record, _principal?: string): Promise<void> => {
+export const mergeRecordService = (_data: PiesRecord, _principal?: string): Promise<void> => {
   throw new Error('mergeRecordService not implemented');
 };
 
@@ -148,7 +156,7 @@ export const pruneRecordService = async (
  * @param principal - The authenticated identity performing the operation.
  * @returns A promise that resolves when the operation is complete.
  */
-export const replaceRecordService = (data: Record, principal?: string): Promise<void> => {
+export const replaceRecordService = (data: PiesRecord, principal?: string): Promise<void> => {
   return transactionWrapper(async (trx) => {
     // Update atomic fact tables
     await Promise.all([
@@ -168,7 +176,7 @@ export const replaceRecordService = (data: Record, principal?: string): Promise<
     });
 
     // Calculate on hold events
-    const oheOld = (await new OnHoldEventRepository(trx).findWhere({ systemRecordId: systemRecord.id }).execute()).map(
+    const oheDb = (await new OnHoldEventRepository(trx).findWhere({ systemRecordId: systemRecord.id }).execute()).map(
       (ohe) => ({
         id: ohe.id,
         codingId: ohe.codingId,
@@ -191,7 +199,15 @@ export const replaceRecordService = (data: Record, principal?: string): Promise<
         });
 
         const ceNew = { codingId, ...ce.event };
-        const oheMatched = oheOld.find((ceOld) => containsSubset(ceOld, ceNew));
+        const oheMatched = oheDb.find((ce) => {
+          const ceOld: Record<string, unknown> = {};
+          for (const [key, value] of Object.entries(ce) as [string, unknown][]) {
+            if (key === 'id' || value === undefined) continue;
+            ceOld[key] = value;
+          }
+
+          return shallowEqual(ceOld, ceNew, ['codingId', 'end_date', 'end_datetime', 'start_date', 'start_datetime']);
+        });
 
         if (oheMatched) return oheMatched.id;
         return {
@@ -208,7 +224,7 @@ export const replaceRecordService = (data: Record, principal?: string): Promise<
     const oheAdd = oheResults.filter((r) => typeof r !== 'number');
 
     // Calculate process events
-    const peOld = (await new ProcessEventRepository(trx).findWhere({ systemRecordId: systemRecord.id }).execute()).map(
+    const peDb = (await new ProcessEventRepository(trx).findWhere({ systemRecordId: systemRecord.id }).execute()).map(
       (pe) => ({
         id: pe.id,
         codingId: pe.codingId,
@@ -240,9 +256,26 @@ export const replaceRecordService = (data: Record, principal?: string): Promise<
           statusDescription: pe.process.status_description,
           ...pe.event
         };
-        const matched = peOld.find((old) => containsSubset(old, peNew));
+        const peMatched = peDb.find((pe) => {
+          const peOld: Record<string, unknown> = {};
+          for (const [key, value] of Object.entries(pe) as [string, unknown][]) {
+            if (key === 'id' || value === undefined) continue;
+            peOld[key] = value;
+          }
 
-        if (matched) return matched.id;
+          return shallowEqual(peOld, peNew, [
+            'codingId',
+            'end_date',
+            'end_datetime',
+            'start_date',
+            'start_datetime',
+            'status',
+            'statusCode',
+            'statusDescription'
+          ]);
+        });
+
+        if (peMatched) return peMatched.id;
         return {
           codingId,
           status: pe.process.status,
@@ -261,9 +294,9 @@ export const replaceRecordService = (data: Record, principal?: string): Promise<
 
     // Update event tables
     await Promise.all([
-      oheMatchedIds.length < oheOld.length &&
+      oheMatchedIds.length < oheDb.length &&
         new OnHoldEventRepository(trx).deleteExcept(oheMatchedIds, { systemRecordId: systemRecord.id }).execute(),
-      peMatchedIds.length < peOld.length &&
+      peMatchedIds.length < peDb.length &&
         new ProcessEventRepository(trx).deleteExcept(peMatchedIds, { systemRecordId: systemRecord.id }).execute()
     ]);
     await Promise.all([

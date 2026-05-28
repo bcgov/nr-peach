@@ -123,6 +123,56 @@ export function getUUIDv7Timestamp(uuid: string): number | undefined {
 }
 
 /**
+ * Performs a top-level comparison between two objects.
+ * - Returns `true` only when `lhs` and `rhs` have 1:1 key parity and equivalent top-level values.
+ * - Extra or missing keys on either side fail the comparison.
+ * - Uses direct value comparison (no recursive traversal of nested objects).
+ * - Treats `null` and explicit `undefined` values as equivalent (nullish equivalence).
+ * - Supports an optional allowlist of expected keys.
+ * - When expected keys are provided, any key in `lhs` or `rhs` not in that list fails the comparison.
+ * - Expected keys may be omitted from both objects without failing the comparison.
+ * @param lhs - Left-hand object to compare.
+ * @param rhs - Right-hand object to compare.
+ * @param expectedKeys - Optional allowlist of top-level keys.
+ * @returns `true` when objects are strictly equivalent at the top level and satisfy key constraints.
+ */
+export function shallowEqual(
+  lhs: Record<string, unknown>,
+  rhs: Record<string, unknown>,
+  expectedKeys?: string[]
+): boolean {
+  const isDateEquivalent = (left: unknown, right: unknown): boolean => {
+    if (typeof left !== typeof right) return false;
+    if (typeof left !== 'string' && typeof left !== 'number') return false;
+    if (typeof right !== 'string' && typeof right !== 'number') return false;
+
+    // Date parse required to handle variations in microsecond precision representation
+    // (e.g. "2024-05-01T00:00:00Z" vs "2024-05-01T00:00:00.000Z")
+    const leftTime = Date.parse(left.toString());
+    const rightTime = Date.parse(right.toString());
+
+    if (Number.isNaN(leftTime) || Number.isNaN(rightTime)) return false;
+    return leftTime === rightTime;
+  };
+
+  const compareValue = (left: unknown, right: unknown): boolean => {
+    return Object.is(left ?? null, right ?? null) || isDateEquivalent(left, right);
+  };
+
+  const lhsKeys = Object.keys(lhs);
+  const rhsKeys = Object.keys(rhs);
+
+  if (lhsKeys.length !== rhsKeys.length) return false;
+
+  if (expectedKeys) {
+    const hasInvalidKey = (key: string) => !expectedKeys.includes(key);
+    if (lhsKeys.some(hasInvalidKey) || rhsKeys.some(hasInvalidKey)) return false;
+  }
+
+  return lhsKeys.every((key) => Object.hasOwn(rhs, key) && compareValue(lhs[key], rhs[key]));
+}
+
+/**
  * Sorts an object's keys in ascending order and returns a new object.
  * @param obj - The object to sort.
  * @returns A new object with sorted keys.
