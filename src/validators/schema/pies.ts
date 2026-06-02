@@ -7,6 +7,7 @@ export const pies = Object.freeze({
   spec: {
     dir: 'docs/spec/element',
     data: {
+      asset: 'data/asset',
       code: 'data/code',
       coding: 'data/coding',
       event: 'data/event',

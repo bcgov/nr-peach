@@ -49,7 +49,7 @@ export interface Header {
    */
   kind: 'Record' | 'RecordLinkage';
   /**
-   * A valid NRIDS IT Service Management code which identifies the source system, service or asset that the data
+   * A valid CSNR IT Service Management code which identifies the source system, service or asset that the data
    * originates from.
    */
   system_id: string;
@@ -158,7 +158,7 @@ export type RecordLinkage1 = Header;
 
 export interface RecordLinkage2 {
   /**
-   * A valid NRIDS IT Service Management code which identifies the source system, service or asset that the linked data
+   * A valid CSNR IT Service Management code which identifies the source system, service or asset that the linked data
    * originates from.
    */
   linked_system_id: string;
