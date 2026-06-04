@@ -1,5 +1,5 @@
 import type { RequestHandler } from 'express';
-import type { LocalContext } from './controllers.d.ts';
+import type { LocalContext } from './controllers.ts';
 
 /**
  * Represents an error that occurred during authentication.
