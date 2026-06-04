@@ -20,6 +20,38 @@ resource "azurerm_monitor_action_group" "action_group" {
   }
 }
 
+# Front Door 5xx error rate alert (if Front Door is enabled)
+resource "azurerm_monitor_metric_alert" "fd_error_rate_5xx" {
+  count               = local.enable_frontdoor ? 1 : 0
+  name                = "${var.app_name}-${var.module_name}-fd-high-error-rate-5xx"
+  resource_group_name = var.resource_group_name
+  scopes              = [var.frontdoor_profile_id]
+  description         = "Front Door receiving an elevated 5xx server error rate."
+  auto_mitigate       = local.default_auto_mitigate
+  frequency           = local.default_frequency
+  severity            = 1
+  window_size         = local.default_window_size
+
+  criteria {
+    metric_namespace = "Microsoft.Cdn/profiles"
+    metric_name      = "Percentage5XX"
+    aggregation      = "Average"
+    operator         = "GreaterThan"
+    threshold        = 5
+  }
+
+  action {
+    action_group_id = azurerm_monitor_action_group.action_group.id
+  }
+
+  tags = var.common_tags
+  lifecycle {
+    ignore_changes = [tags]
+  }
+
+  depends_on = [azurerm_monitor_action_group.action_group]
+}
+
 # Front Door origin health alert (if Front Door is enabled)
 resource "azurerm_monitor_metric_alert" "fd_origin_health" {
   count               = local.enable_frontdoor ? 1 : 0
@@ -29,16 +61,16 @@ resource "azurerm_monitor_metric_alert" "fd_origin_health" {
   description         = "Front Door cannot reach the backend App Service."
   auto_mitigate       = local.default_auto_mitigate
   frequency           = local.default_frequency
-  severity            = 1
+  severity            = 2
   window_size         = local.default_window_size
 
-  # Alert only triggers if the origin is unreachable for more than 5 continuous minutes.
+  # Alert only triggers if the origin remains abnormally unhealthy over the 5 minute window.
   criteria {
     metric_namespace = "Microsoft.Cdn/profiles"
     metric_name      = "OriginHealthPercentage"
-    aggregation      = "Minimum"
+    aggregation      = "Average"
     operator         = "LessThan"
-    threshold        = 100
+    threshold        = 80
   }
 
   action {
