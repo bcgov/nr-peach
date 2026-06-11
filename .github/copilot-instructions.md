@@ -17,7 +17,9 @@ NR Permitting Exchange, Aggregation and Collection Hub
 4. **Git Flow:**
    - **Branches:** Use Conventional prefixes with ticket IDs (e.g., `feature/ABC-123-description`, `fix/`, `chore/`).
    - **Commits:** Follow Conventional Commits format (e.g., `feat(scope): summary`, `fix(scope): summary`).
-5. **Specialized Sub-Rules:** Refer to `.github/instructions/copilot-typescript.md` for strict TypeScript typing and ESLint configurations.
+5. **Specialized Sub-Rules:**
+   - **Documentation:** Refer to `.github/instructions/documentation.instructions.md` for documentation punctuation, style, and formatting guidance.
+   - **TypeScript:** Refer to `.github/instructions/copilot-typescript.md` for strict TypeScript typing and ESLint configurations.
 6. **Infrastructure:** Changes under `infra/` must pass TFLint constraints defined in the validate workflow.
 7. **Scope Limiting:** Avoid global workspace searches unless instructions are demonstrably incomplete or a command fails.
 
