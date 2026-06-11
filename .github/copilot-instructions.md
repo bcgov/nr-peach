@@ -1,18 +1,24 @@
-# nr-peach Copilot Guidance
+# nr-peach Copilot Instructions
 
-This repository implements the NR Permitting Exchange, Aggregation and Collection Hub
+NR Permitting Exchange, Aggregation and Collection Hub
 
 ## Context & Stack
 
-- Node.js (v24 strictly required to match CI) | TypeScript 6 (ESM)
-- Core: Express 5, Kysely (Migrations/Seeds in `src/db/`), pino, pg
-- Testing: Vitest (unit tests in `tests/unit/`), ESLint + Prettier for lint/format.
-- CI Workflow: `.github/workflows/validate.yaml`
+- **Runtime:** Node.js v24 (strictly required to match CI).
+- **Core:** Express 5 | Kysely | pino | pg.
+- **Validation:** Vitest (`tests/unit/`) | ESLint | Prettier.
+- **CI Pipeline:** Defined in `.github/workflows/validate.yaml`.
 
 ## Agent Execution Rules
 
-1. Never guess commands. Always inspect `package.json` for canonical scripts.
-2. Local validation sequence must follow: `npm run lint` -> `npm run test:shuffle`. Do not write code that breaks these.
-3. CI runs `npm ci --ignore-scripts`. Do not rely on package `postinstall` hooks for environment setup or artifacts.
-4. If modifying Terraform under `infra/`, ensure compliance with TFLint rules defined in the validate workflow.
-5. Trust these constraints. Do not perform global workspace searches unless an explicit command fails.
+1. **No Guessing:** Inspect `package.json` for canonical scripts before executing commands.
+2. **Local Validation Lineup:** Run `npm run lint` followed by `npm run test:shuffle`.
+3. **CI Constraints:** CI runs `npm ci --ignore-scripts`. Do not rely on package `postinstall` hooks.
+4. **Git Flow:**
+   - **Branches:** Use Conventional prefixes with ticket IDs (e.g., `feature/ABC-123-description`, `fix/`, `chore/`).
+   - **Commits:** Follow Conventional Commits format (e.g., `feat(scope): summary`, `fix(scope): summary`).
+5. **Specialized Sub-Rules:** Refer to `.github/instructions/copilot-typescript.md` for strict TypeScript typing and ESLint configurations.
+6. **Infrastructure:** Changes under `infra/` must pass TFLint constraints defined in the validate workflow.
+7. **Scope Limiting:** Avoid global workspace searches unless instructions are demonstrably incomplete or a command fails.
+
+Keep guidance brief. Ask clarifying questions before modifying CI, lint, or infrastructure files if intent is ambiguous.
