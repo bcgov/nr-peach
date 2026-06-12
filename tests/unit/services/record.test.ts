@@ -10,12 +10,12 @@ import {
 } from '#src/services/helpers/index';
 
 import {
+  AssetRepository,
   CodingRepository,
   OnHoldEventRepository,
   ProcessEventRepository,
   RecordKindRepository,
   SystemRepository,
-  SystemRecordRepository,
   TransactionRepository,
   VersionRepository
 } from '#src/repositories/index';
@@ -23,7 +23,7 @@ import { findRecordService, mergeRecordService, pruneRecordService, replaceRecor
 
 import type { Selectable } from 'kysely';
 import type { Mock } from 'vitest';
-import type { PiesSystemRecord, Record } from '#types';
+import type { PiesAsset, Record } from '#types';
 
 describe('recordService', () => {
   const systemRecord = {
@@ -31,7 +31,7 @@ describe('recordService', () => {
     recordKindId: 2,
     systemId: 'sys-1',
     recordId: 'rec-1'
-  } as Selectable<PiesSystemRecord>;
+  } as Selectable<PiesAsset>;
 
   describe('findRecordService', () => {
     const processEventsRaw = [
@@ -292,7 +292,7 @@ describe('recordService', () => {
       (RecordKindRepository as Mock).mockImplementation(function () {
         return { upsert: cacheableUpsert };
       });
-      (SystemRecordRepository as Mock).mockImplementation(function () {
+      (AssetRepository as Mock).mockImplementation(function () {
         return { upsert: cacheableUpsert };
       });
       (OnHoldEventRepository as Mock).mockImplementation(function () {

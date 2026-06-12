@@ -84,7 +84,7 @@ describe('findSingleAssetService', () => {
     });
   });
 
-  it('throws conflict error if multiple assets found without systemId specified', async () => {
+  it('throws conflict error if multiple records found without systemId specified', async () => {
     executeMock.execute.mockResolvedValue([mockRecord, mockRecord]);
 
     await expect(findSingleAssetService(recordId)).rejects.toMatchObject({

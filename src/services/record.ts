@@ -9,53 +9,39 @@ import {
   transactionWrapper
 } from './helpers/index.ts';
 import {
+  AssetRepository,
   CodingRepository,
   OnHoldEventRepository,
   ProcessEventRepository,
   RecordKindRepository,
   SystemRepository,
-  SystemRecordRepository,
   TransactionRepository,
   VersionRepository
 } from '#src/repositories/index';
 import { CodingDictionary, getLogger, Problem, shallowEqual } from '#src/utils/index';
 
 import type { DeleteResult, Selectable } from 'kysely';
-import type {
-  Coding,
-  CodingEvent,
-  Header,
-  PiesSystemRecord,
-  Process,
-  ProcessEvent,
-  Record as PiesRecord
-} from '#types';
+import type { Coding, CodingEvent, Header, PiesAsset, Process, ProcessEvent, Record as PiesRecord } from '#types';
 
 const log = getLogger(import.meta.filename);
 
 /**
- * Retrieves the record for the given system record.
- * @param systemRecord - The system record for which to retrieve the record.
- * @returns A Promise that resolves to the record for the given system record.
+ * Retrieves the record for the given asset.
+ * @param asset - The asset for which to retrieve the record.
+ * @returns A Promise that resolves to the record for the given asset.
  * @throws 404 if no process events are found.
  */
-export const findRecordService = (systemRecord: Selectable<PiesSystemRecord>): Promise<PiesRecord> => {
+export const findRecordService = (asset: Selectable<PiesAsset>): Promise<PiesRecord> => {
   return transactionWrapper(
     async (trx) => {
-      const recordKind = await cacheableRead(new RecordKindRepository(trx), systemRecord.recordKindId).catch(
-        (error) => {
-          log.warn(`No record kind found, ${error}`);
-          throw new Problem(404, { detail: 'No record kind found.' });
-        }
-      );
+      const recordKind = await cacheableRead(new RecordKindRepository(trx), asset.recordKindId).catch((error) => {
+        log.warn(`No record kind found, ${error}`);
+        throw new Problem(404, { detail: 'No record kind found.' });
+      });
 
-      const processEventsRaw = await new ProcessEventRepository(trx)
-        .findWhere({ systemRecordId: systemRecord.id })
-        .execute();
+      const processEventsRaw = await new ProcessEventRepository(trx).findWhere({ systemRecordId: asset.id }).execute();
 
-      const onHoldEventsRaw = await new OnHoldEventRepository(trx)
-        .findWhere({ systemRecordId: systemRecord.id })
-        .execute();
+      const onHoldEventsRaw = await new OnHoldEventRepository(trx).findWhere({ systemRecordId: asset.id }).execute();
 
       let onHoldEvents: CodingEvent[] | undefined;
       if (onHoldEventsRaw.length) {
@@ -118,8 +104,8 @@ export const findRecordService = (systemRecord: Selectable<PiesSystemRecord>): P
         transaction_id: uuidv7(),
         version: recordKind.versionId,
         kind: 'Record',
-        system_id: systemRecord.systemId,
-        record_id: systemRecord.recordId,
+        system_id: asset.systemId,
+        record_id: asset.recordId,
         record_kind: recordKind.kind as Header['record_kind'],
         on_hold_event_set: onHoldEvents,
         process_event_set: processEvents
@@ -135,17 +121,15 @@ export const mergeRecordService = (_data: PiesRecord, _principal?: string): Prom
 };
 
 /**
- * Prunes the record for the given system record.
- * @param systemRecord - The system record to prune.
+ * Prunes the record for the given asset.
+ * @param asset - The asset to prune.
  * @returns A Promise that resolves when the operation is complete.
  */
-export const pruneRecordService = async (
-  systemRecord: Selectable<PiesSystemRecord>
-): Promise<readonly DeleteResult[][]> => {
+export const pruneRecordService = async (asset: Selectable<PiesAsset>): Promise<readonly DeleteResult[][]> => {
   return transactionWrapper(async (trx) => {
     return await Promise.all([
-      new OnHoldEventRepository(trx).prune(systemRecord.id).execute(),
-      new ProcessEventRepository(trx).prune(systemRecord.id).execute()
+      new OnHoldEventRepository(trx).prune(asset.id).execute(),
+      new ProcessEventRepository(trx).prune(asset.id).execute()
     ]);
   });
 };
@@ -169,14 +153,14 @@ export const replaceRecordService = (data: PiesRecord, principal?: string): Prom
       kind: data.record_kind,
       versionId: data.version
     });
-    const systemRecord = await findWhereOrUpsert(new SystemRecordRepository(trx), {
+    const asset = await findWhereOrUpsert(new AssetRepository(trx), {
       recordId: data.record_id,
       recordKindId: recordKind.id,
       systemId: data.system_id
     });
 
     // Calculate on hold events
-    const oheDb = (await new OnHoldEventRepository(trx).findWhere({ systemRecordId: systemRecord.id }).execute()).map(
+    const oheDb = (await new OnHoldEventRepository(trx).findWhere({ systemRecordId: asset.id }).execute()).map(
       (ohe) => ({
         id: ohe.id,
         codingId: ohe.codingId,
@@ -212,7 +196,7 @@ export const replaceRecordService = (data: PiesRecord, principal?: string): Prom
         if (oheMatched) return oheMatched.id;
         return {
           codingId,
-          systemRecordId: systemRecord.id,
+          systemRecordId: asset.id,
           transactionId: data.transaction_id,
           ...eventToDateTimeParts(ce.event),
           createdBy: principal
@@ -224,7 +208,7 @@ export const replaceRecordService = (data: PiesRecord, principal?: string): Prom
     const oheAdd = oheResults.filter((r) => typeof r !== 'number');
 
     // Calculate process events
-    const peDb = (await new ProcessEventRepository(trx).findWhere({ systemRecordId: systemRecord.id }).execute()).map(
+    const peDb = (await new ProcessEventRepository(trx).findWhere({ systemRecordId: asset.id }).execute()).map(
       (pe) => ({
         id: pe.id,
         codingId: pe.codingId,
@@ -281,7 +265,7 @@ export const replaceRecordService = (data: PiesRecord, principal?: string): Prom
           status: pe.process.status,
           statusCode: pe.process.status_code,
           statusDescription: pe.process.status_description,
-          systemRecordId: systemRecord.id,
+          systemRecordId: asset.id,
           transactionId: data.transaction_id,
           ...eventToDateTimeParts(pe.event),
           createdBy: principal
@@ -295,9 +279,9 @@ export const replaceRecordService = (data: PiesRecord, principal?: string): Prom
     // Update event tables
     await Promise.all([
       oheMatchedIds.length < oheDb.length &&
-        new OnHoldEventRepository(trx).deleteExcept(oheMatchedIds, { systemRecordId: systemRecord.id }).execute(),
+        new OnHoldEventRepository(trx).deleteExcept(oheMatchedIds, { systemRecordId: asset.id }).execute(),
       peMatchedIds.length < peDb.length &&
-        new ProcessEventRepository(trx).deleteExcept(peMatchedIds, { systemRecordId: systemRecord.id }).execute()
+        new ProcessEventRepository(trx).deleteExcept(peMatchedIds, { systemRecordId: asset.id }).execute()
     ]);
     await Promise.all([
       oheAdd.length && new OnHoldEventRepository(trx).createMany(oheAdd).execute(),
