@@ -55,7 +55,7 @@ jobs:
       contents: read
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v6.0.2
+        uses: actions/checkout@v6.0.3
       - name: Setup TFLint
         uses: terraform-linters/setup-tflint@v6.2.2
       - name: Cache TFLint plugins
@@ -84,7 +84,7 @@ jobs:
       contents: read
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v6.0.2
+        uses: actions/checkout@v6.0.3
       - name: Setup Node.js
         uses: actions/setup-node@v6.4.0
         with:
@@ -120,7 +120,7 @@ jobs:
       statuses: write
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v6.0.2
+        uses: actions/checkout@v6.0.3
       - name: Setup Node.js
         uses: actions/setup-node@v6.4.0
         with:
@@ -171,7 +171,7 @@ jobs:
       contents: read
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v6.0.2
+        uses: actions/checkout@v6.0.3
         with:
           fetch-depth: 0
       - name: Cache Node modules
@@ -192,6 +192,6 @@ jobs:
           name: coverage-app
           path: ${{ github.workspace }}/coverage
       - name: SonarCloud Scan
-        uses: SonarSource/sonarqube-scan-action@7006c4492b2e0ee0f816d36501671557c97f5995 # v8
+        uses: SonarSource/sonarqube-scan-action@713881670b6b3676cda39549040e2d88c70d582e # v8
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
