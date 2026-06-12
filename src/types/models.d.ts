@@ -10,6 +10,17 @@ export type Generated<T> =
 
 export type Timestamp = ColumnType<Date, Date | string, Date | string>;
 
+export interface PiesAsset {
+  createdAt: Generated<Timestamp>;
+  createdBy: Generated<string>;
+  id: Generated<number>;
+  recordId: string;
+  recordKindId: number;
+  systemId: string;
+  updatedAt: Timestamp | null;
+  updatedBy: string | null;
+}
+
 export interface PiesCoding {
   code: string;
   codeSystem: string;
@@ -83,17 +94,6 @@ export interface PiesSystem {
   updatedBy: string | null;
 }
 
-export interface PiesSystemRecord {
-  createdAt: Generated<Timestamp>;
-  createdBy: Generated<string>;
-  id: Generated<number>;
-  recordId: string;
-  recordKindId: number;
-  systemId: string;
-  updatedAt: Timestamp | null;
-  updatedBy: string | null;
-}
-
 export interface PiesTransaction {
   createdAt: Generated<Timestamp>;
   createdBy: Generated<string>;
@@ -111,13 +111,13 @@ export interface PiesVersion {
 }
 
 export interface DB {
+  'pies.asset': PiesAsset;
   'pies.coding': PiesCoding;
   'pies.onHoldEvent': PiesOnHoldEvent;
   'pies.processEvent': PiesProcessEvent;
   'pies.recordKind': PiesRecordKind;
   'pies.recordLinkage': PiesRecordLinkage;
   'pies.system': PiesSystem;
-  'pies.systemRecord': PiesSystemRecord;
   'pies.transaction': PiesTransaction;
   'pies.version': PiesVersion;
 }

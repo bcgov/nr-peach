@@ -11,16 +11,16 @@ import * as services from '#src/services/index';
 import { Problem } from '#src/utils/index';
 
 import type { Selectable } from 'kysely';
-import type { PiesSystemRecord, Record } from '#types';
+import type { PiesAsset, Record } from '#types';
 
 describe('Record Controllers', () => {
   const checkDuplicateTransactionHeaderServiceSpy = vi.spyOn(services, 'checkDuplicateTransactionHeaderService');
   const findRecordServiceSpy = vi.spyOn(services, 'findRecordService');
-  const findSingleSystemRecordServiceSpy = vi.spyOn(services, 'findSingleSystemRecordService');
+  const findSingleAssetServiceSpy = vi.spyOn(services, 'findSingleAssetService');
   const pruneRecordServiceSpy = vi.spyOn(services, 'pruneRecordService');
   const replaceRecordServiceSpy = vi.spyOn(services, 'replaceRecordService');
 
-  const fakeSystemRecord = { id: 1 } as Selectable<PiesSystemRecord>;
+  const fakeAsset = { id: 1 } as Selectable<PiesAsset>;
   const fakeResult = {} as Record;
 
   let app: express.Application;
@@ -36,25 +36,25 @@ describe('Record Controllers', () => {
 
   describe('DELETE /records', () => {
     it('should call services and respond with 204', async () => {
-      findSingleSystemRecordServiceSpy.mockResolvedValue(fakeSystemRecord);
+      findSingleAssetServiceSpy.mockResolvedValue(fakeAsset);
       pruneRecordServiceSpy.mockResolvedValue([]);
 
       await request(app).delete('/records').query({ record_id: 'rec1', system_id: 'sys1' }).expect(204);
 
-      expect(findSingleSystemRecordServiceSpy).toHaveBeenCalledWith('rec1', 'sys1');
-      expect(pruneRecordServiceSpy).toHaveBeenCalledWith(fakeSystemRecord);
+      expect(findSingleAssetServiceSpy).toHaveBeenCalledWith('rec1', 'sys1');
+      expect(pruneRecordServiceSpy).toHaveBeenCalledWith(fakeAsset);
     });
   });
 
   describe('GET /records', () => {
     it('should call services and respond with 200 and result', async () => {
-      findSingleSystemRecordServiceSpy.mockResolvedValue(fakeSystemRecord);
+      findSingleAssetServiceSpy.mockResolvedValue(fakeAsset);
       findRecordServiceSpy.mockResolvedValue(fakeResult);
 
       const res = await request(app).get('/records').query({ record_id: 'rec2', system_id: 'sys2' }).expect(200);
 
-      expect(findSingleSystemRecordServiceSpy).toHaveBeenCalledWith('rec2', 'sys2');
-      expect(findRecordServiceSpy).toHaveBeenCalledWith(fakeSystemRecord);
+      expect(findSingleAssetServiceSpy).toHaveBeenCalledWith('rec2', 'sys2');
+      expect(findRecordServiceSpy).toHaveBeenCalledWith(fakeAsset);
       expect(res.body).toEqual(fakeResult);
     });
   });

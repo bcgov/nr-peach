@@ -5,13 +5,13 @@ import { deleteSystemRecordController } from '#src/controllers/systemRecord';
 import * as services from '#src/services/index';
 
 import type { Selectable } from 'kysely';
-import type { PiesSystemRecord } from '#types';
+import type { PiesAsset } from '#types';
 
 describe('System Record Controllers', () => {
-  const deleteSystemRecordServiceSpy = vi.spyOn(services, 'deleteSystemRecordService');
-  const findSingleSystemRecordServiceSpy = vi.spyOn(services, 'findSingleSystemRecordService');
+  const deleteAssetServiceSpy = vi.spyOn(services, 'deleteAssetService');
+  const findSingleAssetServiceSpy = vi.spyOn(services, 'findSingleAssetService');
 
-  const fakeSystemRecord = { id: 1 } as Selectable<PiesSystemRecord>;
+  const fakeAsset = { id: 1 } as Selectable<PiesAsset>;
 
   let app: express.Application;
 
@@ -23,13 +23,13 @@ describe('System Record Controllers', () => {
 
   describe('DELETE /system-records', () => {
     it('should call services and respond with 204', async () => {
-      findSingleSystemRecordServiceSpy.mockResolvedValue(fakeSystemRecord);
-      deleteSystemRecordServiceSpy.mockResolvedValue(undefined);
+      findSingleAssetServiceSpy.mockResolvedValue(fakeAsset);
+      deleteAssetServiceSpy.mockResolvedValue(undefined);
 
       await request(app).delete('/system-records').query({ record_id: 'rec1', system_id: 'sys1' }).expect(204);
 
-      expect(findSingleSystemRecordServiceSpy).toHaveBeenCalledWith('rec1', 'sys1');
-      expect(deleteSystemRecordServiceSpy).toHaveBeenCalledWith('rec1', 'sys1');
+      expect(findSingleAssetServiceSpy).toHaveBeenCalledWith('rec1', 'sys1');
+      expect(deleteAssetServiceSpy).toHaveBeenCalledWith('rec1', 'sys1');
     });
   });
 });
