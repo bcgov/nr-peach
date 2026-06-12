@@ -11,10 +11,11 @@ metadata:
 
 Before starting, gather these explicit details. If missing, ask the user to clarify:
 
-1. **Intent:** `create` | `modify` | `delete`.
+1. **Intent:** `create` | `modify` | `delete`. Ask for clarification and context if ambiguous.
 2. **Target Table Name(s)**.
-3. **Column Delta:** Comprehensive list of names, types, nullability, defaults, or constraints.
-4. **Execution Mode:** Generate content only, or execute `npm run migrate:make` directly via shell tool.
+3. **Column Delta** Comprehensive list of names, types, nullability, defaults, or constraints.
+4. **Migration Suffix:** A concise, descriptive 2-3 word lowercase phrase (e.g., `add_notes`, `rename_title`, `drop_legacy`). If this is not provided, suggest a few options based on the intent and changes described.
+5. **Safety Confirmation:** For destructive changes, require the user to type a specific confirmation phrase to proceed.
 
 ## Step-by-Step Execution Loop
 
@@ -22,24 +23,17 @@ Before starting, gather these explicit details. If missing, ask the user to clar
 
 - If intent is `delete` or a destructive `modify`, halt and demand the explicit safety confirmation phrase: `CONFIRM DROP <table_name>`. Do not proceed without it.
 
-## Step 2: Suffix Generation
+## Step 2: Migration Scaffolding
 
-- Generate a hyphenated, 2-to-3 word descriptive lowercase suffix (e.g., `add-notes`, `rename-title`, `drop-legacy`).
+- Run the shell tool: `npm run migrate:make -- --name <suffix>`.
+- Write ONLY the schema modifications within the `up` and `down` functions of the newly generated file using exact Kysely query builder syntax. No raw string queries.
+- Prioritize using Kysely schema builder methods. Only use raw SQL for operations that Kysely does not support, and even then, prefer Kysely's `sql` tagged template for consistency.
+- Reference previous schemas for general structure, but ensure the new migration is fully self-contained and reversible.
+- Reference the Kysely documentation for any syntax or method questions
+  - https://kysely-org.github.io/kysely-apidoc/index.html
+  - https://kysely.dev/docs/migrations
 
-## Step 3: Migration Scaffolding
-
-- If the user selected direct execution, run the shell tool: `npm run migrate:make -- --name <suffix>`.
-- Write the schema modifications within the `up` and `down` functions using exact Kysely query builder syntax. No raw string queries.
-
-## Step 4: Repository Co-Scaffolding
-
-Analyze the schema change and immediately apply matching codebase changes:
-
-- **`create`**: Scaffold a new CRUD service file under `src/repositories/<table>.ts` following existing project signatures, and export new schema types in `src/types/`.
-- **`modify`**: Update matching properties across existing files in `src/repositories/` and structural interfaces in `src/types/`. Avoid breaking changes when possible.
-- **`delete`**: Remove the corresponding `src/repositories/<table>.ts` file, clear local seed files utilizing it, and strip related imports.
-
-## Step 5: Post-Scaffold Gate
+## Step 3: Kysely Scaffold Gate
 
 Run the following local test suites via the shell tool to validate the structural shift:
 
@@ -50,6 +44,16 @@ Run the following local test suites via the shell tool to validate the structura
 5. `npm run typecheck` (Ensure compilation)
 6. `npm run lint:fix` && `npm run format` (Clean up styles)
 7. `npm run test:shuffle` (Verify zero down-stream unit breaks)
+
+If any of these steps fail, halt and report the specific error. Do not proceed to repository scaffolding until all tests pass successfully.
+
+## Step 4: Repository Co-Scaffolding
+
+Analyze the schema change and immediately apply matching codebase changes:
+
+- **`create`**: Scaffold a new CRUD service file under `src/repositories/<table>.ts` following existing project signatures, and export new schema types in `src/types/`.
+- **`modify`**: Update matching properties across existing files in `src/repositories/` and structural interfaces in `src/types/`. Avoid breaking changes when possible.
+- **`delete`**: Remove the corresponding `src/repositories/<table>.ts` file, clear local seed files utilizing it, and strip related imports.
 
 ## Hard Rules & Validation Checklist
 
