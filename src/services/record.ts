@@ -39,9 +39,9 @@ export const findRecordService = (asset: Selectable<PiesAsset>): Promise<PiesRec
         throw new Problem(404, { detail: 'No record kind found.' });
       });
 
-      const processEventsRaw = await new ProcessEventRepository(trx).findWhere({ systemRecordId: asset.id }).execute();
+      const processEventsRaw = await new ProcessEventRepository(trx).findWhere({ assetId: asset.id }).execute();
 
-      const onHoldEventsRaw = await new OnHoldEventRepository(trx).findWhere({ systemRecordId: asset.id }).execute();
+      const onHoldEventsRaw = await new OnHoldEventRepository(trx).findWhere({ assetId: asset.id }).execute();
 
       let onHoldEvents: CodingEvent[] | undefined;
       if (onHoldEventsRaw.length) {
@@ -160,18 +160,16 @@ export const replaceRecordService = (data: PiesRecord, principal?: string): Prom
     });
 
     // Calculate on hold events
-    const oheDb = (await new OnHoldEventRepository(trx).findWhere({ systemRecordId: asset.id }).execute()).map(
-      (ohe) => ({
-        id: ohe.id,
-        codingId: ohe.codingId,
-        ...dateTimePartsToEvent({
-          startDate: ohe.startDate,
-          startTime: ohe.startTime ?? undefined,
-          endDate: ohe.endDate ?? undefined,
-          endTime: ohe.endTime ?? undefined
-        })
+    const oheDb = (await new OnHoldEventRepository(trx).findWhere({ assetId: asset.id }).execute()).map((ohe) => ({
+      id: ohe.id,
+      codingId: ohe.codingId,
+      ...dateTimePartsToEvent({
+        startDate: ohe.startDate,
+        startTime: ohe.startTime ?? undefined,
+        endDate: ohe.endDate ?? undefined,
+        endTime: ohe.endTime ?? undefined
       })
-    );
+    }));
 
     // Map to a union type of number | object
     const oheResults = await Promise.all(
@@ -195,8 +193,8 @@ export const replaceRecordService = (data: PiesRecord, principal?: string): Prom
 
         if (oheMatched) return oheMatched.id;
         return {
+          assetId: asset.id,
           codingId,
-          systemRecordId: asset.id,
           transactionId: data.transaction_id,
           ...eventToDateTimeParts(ce.event),
           createdBy: principal
@@ -208,21 +206,19 @@ export const replaceRecordService = (data: PiesRecord, principal?: string): Prom
     const oheAdd = oheResults.filter((r) => typeof r !== 'number');
 
     // Calculate process events
-    const peDb = (await new ProcessEventRepository(trx).findWhere({ systemRecordId: asset.id }).execute()).map(
-      (pe) => ({
-        id: pe.id,
-        codingId: pe.codingId,
-        status: pe.status,
-        statusCode: pe.statusCode,
-        statusDescription: pe.statusDescription,
-        ...dateTimePartsToEvent({
-          startDate: pe.startDate,
-          startTime: pe.startTime ?? undefined,
-          endDate: pe.endDate ?? undefined,
-          endTime: pe.endTime ?? undefined
-        })
+    const peDb = (await new ProcessEventRepository(trx).findWhere({ assetId: asset.id }).execute()).map((pe) => ({
+      id: pe.id,
+      codingId: pe.codingId,
+      status: pe.status,
+      statusCode: pe.statusCode,
+      statusDescription: pe.statusDescription,
+      ...dateTimePartsToEvent({
+        startDate: pe.startDate,
+        startTime: pe.startTime ?? undefined,
+        endDate: pe.endDate ?? undefined,
+        endTime: pe.endTime ?? undefined
       })
-    );
+    }));
 
     // Map to a union type: number (matched ID) | object (new record)
     const peResults = await Promise.all(
@@ -261,11 +257,11 @@ export const replaceRecordService = (data: PiesRecord, principal?: string): Prom
 
         if (peMatched) return peMatched.id;
         return {
+          assetId: asset.id,
           codingId,
           status: pe.process.status,
           statusCode: pe.process.status_code,
           statusDescription: pe.process.status_description,
-          systemRecordId: asset.id,
           transactionId: data.transaction_id,
           ...eventToDateTimeParts(pe.event),
           createdBy: principal
@@ -279,9 +275,9 @@ export const replaceRecordService = (data: PiesRecord, principal?: string): Prom
     // Update event tables
     await Promise.all([
       oheMatchedIds.length < oheDb.length &&
-        new OnHoldEventRepository(trx).deleteExcept(oheMatchedIds, { systemRecordId: asset.id }).execute(),
+        new OnHoldEventRepository(trx).deleteExcept(oheMatchedIds, { assetId: asset.id }).execute(),
       peMatchedIds.length < peDb.length &&
-        new ProcessEventRepository(trx).deleteExcept(peMatchedIds, { systemRecordId: asset.id }).execute()
+        new ProcessEventRepository(trx).deleteExcept(peMatchedIds, { assetId: asset.id }).execute()
     ]);
     await Promise.all([
       oheAdd.length && new OnHoldEventRepository(trx).createMany(oheAdd).execute(),

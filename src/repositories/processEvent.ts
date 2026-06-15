@@ -11,11 +11,11 @@ export class ProcessEventRepository extends BaseRepository<'pies.processEvent'> 
   }
 
   /**
-   * Deletes all process event entities associated with a specific system record.
-   * @param systemRecordId - The ID of the system record whose process events should be deleted.
+   * Deletes all process event entities associated with a specific asset.
+   * @param assetId - The ID of the asset whose process events should be deleted.
    * @returns A query builder instance configured to delete the specified records.
    */
-  prune(systemRecordId: number): DeleteQueryBuilder<DB, 'pies.processEvent', DeleteResult> {
-    return this.db.deleteFrom(this.tableName).where(sql.ref('system_record_id'), '=', systemRecordId);
+  prune(assetId: number): DeleteQueryBuilder<DB, 'pies.processEvent', DeleteResult> {
+    return this.db.deleteFrom(this.tableName).where(sql.ref('asset_id'), '=', assetId);
   }
 }

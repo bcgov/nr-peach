@@ -33,6 +33,7 @@ export interface PiesCoding {
 }
 
 export interface PiesOnHoldEvent {
+  assetId: number;
   codingId: number;
   createdAt: Generated<Timestamp>;
   createdBy: Generated<string>;
@@ -41,13 +42,13 @@ export interface PiesOnHoldEvent {
   id: Generated<number>;
   startDate: Timestamp;
   startTime: string | null;
-  systemRecordId: number;
   transactionId: string;
   updatedAt: Timestamp | null;
   updatedBy: string | null;
 }
 
 export interface PiesProcessEvent {
+  assetId: number;
   codingId: number;
   createdAt: Generated<Timestamp>;
   createdBy: Generated<string>;
@@ -59,7 +60,6 @@ export interface PiesProcessEvent {
   status: string | null;
   statusCode: string | null;
   statusDescription: string | null;
-  systemRecordId: number;
   transactionId: string;
   updatedAt: Timestamp | null;
   updatedBy: string | null;
@@ -76,11 +76,11 @@ export interface PiesRecordKind {
 }
 
 export interface PiesRecordLinkage {
+  assetId: number;
   createdAt: Generated<Timestamp>;
   createdBy: Generated<string>;
   id: Generated<number>;
-  linkedSystemRecordId: number;
-  systemRecordId: number;
+  linkedAssetId: number;
   transactionId: string;
   updatedAt: Timestamp | null;
   updatedBy: string | null;

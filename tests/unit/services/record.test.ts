@@ -333,11 +333,11 @@ describe('recordService', () => {
 
       await replaceRecordService(recordData);
 
-      expect(findWhereMock).toHaveBeenCalledWith({ systemRecordId: 1 });
+      expect(findWhereMock).toHaveBeenCalledWith({ assetId: 1 });
       expect(createManyMock).toHaveBeenCalledWith([
         {
           codingId: 1,
-          systemRecordId: 1,
+          assetId: 1,
           transactionId: recordData.transaction_id,
           startDate: '2024-01-01',
           startTime: '00:00:00',
@@ -373,8 +373,8 @@ describe('recordService', () => {
 
       await replaceRecordService(recordData);
 
-      expect(findWhereMock).toHaveBeenCalledWith({ systemRecordId: 1 });
-      expect(deleteExceptMock).toHaveBeenCalledWith([], { systemRecordId: 1 });
+      expect(findWhereMock).toHaveBeenCalledWith({ assetId: 1 });
+      expect(deleteExceptMock).toHaveBeenCalledWith([], { assetId: 1 });
     });
 
     it('should preserve matched on hold events', async () => {
@@ -403,7 +403,7 @@ describe('recordService', () => {
 
       await replaceRecordService(recordData);
 
-      expect(findWhereMock).toHaveBeenCalledWith({ systemRecordId: 1 });
+      expect(findWhereMock).toHaveBeenCalledWith({ assetId: 1 });
       expect(deleteExceptMock).toHaveBeenCalledTimes(0);
     });
 
@@ -420,14 +420,14 @@ describe('recordService', () => {
 
       await replaceRecordService(recordData);
 
-      expect(findWhereMock).toHaveBeenCalledWith({ systemRecordId: 1 });
+      expect(findWhereMock).toHaveBeenCalledWith({ assetId: 1 });
       expect(createManyMock).toHaveBeenCalledWith([
         {
           codingId: 1,
           status: 'active',
           statusCode: 'A',
           statusDescription: 'Active',
-          systemRecordId: 1,
+          assetId: 1,
           transactionId: recordData.transaction_id,
           startDate: '2024-01-01',
           startTime: '00:00:00',
@@ -466,8 +466,8 @@ describe('recordService', () => {
 
       await replaceRecordService(recordData);
 
-      expect(findWhereMock).toHaveBeenCalledWith({ systemRecordId: 1 });
-      expect(deleteExceptMock).toHaveBeenCalledWith([], { systemRecordId: 1 });
+      expect(findWhereMock).toHaveBeenCalledWith({ assetId: 1 });
+      expect(deleteExceptMock).toHaveBeenCalledWith([], { assetId: 1 });
     });
 
     it('should preserve matched process events', async () => {
@@ -499,7 +499,7 @@ describe('recordService', () => {
 
       await replaceRecordService(recordData);
 
-      expect(findWhereMock).toHaveBeenCalledWith({ systemRecordId: 1 });
+      expect(findWhereMock).toHaveBeenCalledWith({ assetId: 1 });
       expect(deleteExceptMock).toHaveBeenCalledTimes(0);
     });
   });

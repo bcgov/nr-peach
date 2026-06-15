@@ -1,3 +1,5 @@
+import { sql } from 'kysely';
+
 import type { Kysely } from 'kysely';
 
 import {
@@ -13,56 +15,101 @@ import {
  * @param db - Database
  */
 export async function up(db: Kysely<unknown>): Promise<void> {
-  // pies.system_record -> pies.asset
+  // Drop asset triggers and indexes before renaming
   await dropAuditLogTrigger(db, 'pies', 'system_record');
   await dropUpdatedAtTrigger(db, 'pies', 'system_record');
   await dropIndex(db, 'pies', 'system_record', ['record_id']);
   await dropIndex(db, 'pies', 'system_record', ['system_id']);
 
-  // Rename table
+  // Rename the main table and its unique constraint
   await db.schema.withSchema('pies').alterTable('system_record').renameTo('asset').execute();
-
-  // Rename unique constraint
   await db.schema
     .withSchema('pies')
     .alterTable('asset')
     .renameConstraint('system_record_system_id_record_id_unique', 'asset_system_id_record_id_unique')
     .execute();
 
-  // Recreate triggers with new table name
+  // Recreate asset triggers and indexes
   await createUpdatedAtTrigger(db, 'pies', 'asset');
   await createAuditLogTrigger(db, 'pies', 'asset');
-
-  // Recreate indexes with new table name
   await createIndex(db, 'pies', 'asset', ['record_id']);
   await createIndex(db, 'pies', 'asset', ['system_id']);
+
+  // Drop dependent index that uses old column names
+  await db.schema.withSchema('pies').dropIndex('record_linkage_undirected').ifExists().execute();
+
+  // Rename foreign key columns in dependent tables
+  await db.schema.withSchema('pies').alterTable('on_hold_event').renameColumn('system_record_id', 'asset_id').execute();
+  await db.schema.withSchema('pies').alterTable('process_event').renameColumn('system_record_id', 'asset_id').execute();
+  await db.schema
+    .withSchema('pies')
+    .alterTable('record_linkage')
+    .renameColumn('system_record_id', 'asset_id')
+    .execute();
+  await db.schema
+    .withSchema('pies')
+    .alterTable('record_linkage')
+    .renameColumn('linked_system_record_id', 'linked_asset_id')
+    .execute();
+
+  // Recreate the unique undirected index with new column names
+  await sql`
+    CREATE UNIQUE INDEX record_linkage_undirected
+    ON pies.record_linkage (
+      LEAST(asset_id, linked_asset_id),
+      GREATEST(asset_id, linked_asset_id)
+    );
+  `.execute(db);
 }
 
 /**
  * @param db - Database
  */
 export async function down(db: Kysely<unknown>): Promise<void> {
-  // pies.asset -> pies.system_record
+  // Drop the new undirected index
+  await db.schema.withSchema('pies').dropIndex('record_linkage_undirected').ifExists().execute();
+
+  // Revert column renames in dependent tables
+  await db.schema
+    .withSchema('pies')
+    .alterTable('record_linkage')
+    .renameColumn('linked_asset_id', 'linked_system_record_id')
+    .execute();
+  await db.schema
+    .withSchema('pies')
+    .alterTable('record_linkage')
+    .renameColumn('asset_id', 'system_record_id')
+    .execute();
+
+  await db.schema.withSchema('pies').alterTable('process_event').renameColumn('asset_id', 'system_record_id').execute();
+  await db.schema.withSchema('pies').alterTable('on_hold_event').renameColumn('asset_id', 'system_record_id').execute();
+
+  // Recreate the old unique undirected index
+  await sql`
+    CREATE UNIQUE INDEX record_linkage_undirected
+    ON pies.record_linkage (
+      LEAST(system_record_id, linked_system_record_id),
+      GREATEST(system_record_id, linked_system_record_id)
+    );
+  `.execute(db);
+
+  // Drop asset triggers and indexes using the new names
   await dropAuditLogTrigger(db, 'pies', 'asset');
   await dropUpdatedAtTrigger(db, 'pies', 'asset');
   await dropIndex(db, 'pies', 'asset', ['system_id']);
   await dropIndex(db, 'pies', 'asset', ['record_id']);
 
-  // Rename unique constraint back
+  // Rename constraint and table back to system_record
   await db.schema
     .withSchema('pies')
     .alterTable('asset')
     .renameConstraint('asset_system_id_record_id_unique', 'system_record_system_id_record_id_unique')
     .execute();
-
-  // Rename table back
   await db.schema.withSchema('pies').alterTable('asset').renameTo('system_record').execute();
 
-  // Recreate triggers with old table name
+  // Recreate original triggers and indexes
   await createAuditLogTrigger(db, 'pies', 'system_record');
   await createUpdatedAtTrigger(db, 'pies', 'system_record');
-
-  // Recreate indexes with old table name
   await createIndex(db, 'pies', 'system_record', ['system_id']);
   await createIndex(db, 'pies', 'system_record', ['record_id']);
 }

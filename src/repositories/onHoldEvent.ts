@@ -11,11 +11,11 @@ export class OnHoldEventRepository extends BaseRepository<'pies.onHoldEvent'> {
   }
 
   /**
-   * Deletes all on hold event entities associated with a specific system record.
-   * @param systemRecordId - The ID of the system record whose on hold events should be deleted.
+   * Deletes all on hold event entities associated with a specific asset.
+   * @param assetId - The ID of the asset whose on hold events should be deleted.
    * @returns A query builder instance configured to delete the specified records.
    */
-  prune(systemRecordId: number): DeleteQueryBuilder<DB, 'pies.onHoldEvent', DeleteResult> {
-    return this.db.deleteFrom(this.tableName).where(sql.ref('system_record_id'), '=', systemRecordId);
+  prune(assetId: number): DeleteQueryBuilder<DB, 'pies.onHoldEvent', DeleteResult> {
+    return this.db.deleteFrom(this.tableName).where(sql.ref('asset_id'), '=', assetId);
   }
 }
