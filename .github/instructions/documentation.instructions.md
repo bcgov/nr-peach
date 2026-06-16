@@ -4,11 +4,17 @@ applyTo: '**/*.md'
 
 # Documentation Instructions
 
-- **Punctuation:** Use periods or commas to separate ideas. Do not use semicolons. Do not use em-dashes, en-dashes, or smart (curly) punctuation in any context. Strictly use hyphens (-), straight quotes ("), and plain apostrophes (').
-- **Sentence Style:** Prefer simple, clear sentences. Use commas or periods rather than semicolons to join clauses.
-- **Markdown Linting:** Follow `markdownlint` rules and repository markdown style. Run `npx markdownlint .` and address reported issues before committing.
-- **Formatting:** Run `npm run format` (or `npx prettier --check .`) to check and fix formatting. Ensure files are formatted before committing.
-- **Pre-Commit Checks:** Ensure `npm run format` and `npx markdownlint .` pass in local pre-commit and CI checks. Fix or autofix issues prior to pushing.
-- **Examples:** Replace typographic quotes and dashes with plain characters. For lists and inline punctuation, prefer simple hyphens and straight quotes.
+Write brief, direct documentation. Use tooling to enforce style rather than writing prose-heavy explanations.
 
-If any rule is ambiguous for a specific file, open a short issue to propose the exact phrasing or exception.
+## Typography Constraints
+
+- Strictly use standard hyphens (-), straight quotes ("), and plain apostrophes (').
+- Forbid em-dashes (—), en-dashes (–), and smart or curly punctuation in all contexts.
+- Separate ideas using periods or commas. Do not use semicolons (;).
+
+## Tooling & Validation
+
+- **Linting:** Run `npx markdownlint .` to catch structural issues before committing.
+- **Formatting:** Run `npm run format` to automatically apply standard formatting constraints.
+
+Fix all validation and formatting failures locally before pushing.

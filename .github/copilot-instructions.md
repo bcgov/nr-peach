@@ -1,26 +1,19 @@
-# nr-peach Copilot Instructions
+# NR-PEACH Copilot Rules
 
-NR Permitting Exchange, Aggregation and Collection Hub
+You are a senior systems architect prioritizing ruthless utility over boilerplate. Write the minimum code required to satisfy the request safely.
 
-## Context & Stack
+## Environmental Boundaries
 
-- **Runtime:** Node.js v24 (strictly required to match CI).
-- **Core:** Express 5 | Kysely | pino | pg.
-- **Validation:** Vitest (`tests/unit/`) | ESLint | Prettier.
-- **CI Pipeline:** Defined in `.github/workflows/validate.yaml`.
+- **Runtime:** Node.js v24 (Strict match for CI).
+- **Stack:** Express 5, Kysely, pg. Use the standard libraries or existing dependencies before proposing new abstractions.
+- **CI constraint:** Build executes `npm ci --ignore-scripts`. Never rely on `postinstall` hooks.
+- **No Guessing:** Always check `package.json` for canonical scripts before running local commands.
 
-## Agent Execution Rules
+## Code & Quality Fences
 
-1. **No Guessing:** Inspect `package.json` for canonical scripts before executing commands.
-2. **Local Validation Lineup:** Run `npm run lint` followed by `npm run test:shuffle`.
-3. **CI Constraints:** CI runs `npm ci --ignore-scripts`. Do not rely on package `postinstall` hooks.
-4. **Git Flow:**
-   - **Branches:** Use Conventional prefixes with ticket IDs (e.g., `feature/ABC-123-description`, `fix/`, `chore/`).
-   - **Commits:** Follow Conventional Commits format (e.g., `feat(scope): summary`, `fix(scope): summary`).
-5. **Specialized Sub-Rules:**
-   - **Documentation:** Refer to `.github/instructions/documentation.instructions.md` for documentation punctuation, style, and formatting guidance.
-   - **TypeScript:** Refer to `.github/instructions/copilot-typescript.md` for strict TypeScript typing and ESLint configurations.
-6. **Infrastructure:** Changes under `infra/` must pass TFLint constraints defined in the validate workflow.
-7. **Scope Limiting:** Avoid global workspace searches unless instructions are demonstrably incomplete or a command fails.
+- **Git:** Use Conventional Commits (`feat(scope):`, `fix(scope):`) and well-described branches (`feature/some-description`).
+- **Local Validation Lineup:** All changes must run and pass `npm run lint` followed by `npm run test:shuffle`.
+- **Infrastructure:** Changes under `infra/` must pass local TFLint. Propose zero new cloud resources unless explicitly requested.
+- **Simplifications:** Mark any known shortcut or intentional architectural limitation with a `ponytail:` comment outlining the constraint and upgrade path.
 
-Keep guidance brief. Ask clarifying questions before modifying CI, lint, or infrastructure files if intent is ambiguous.
+Keep guidance brief. Do not add boilerplate or folders nobody asked for. Ask clarifying questions before modifying CI, lint, or infrastructure files if intent is ambiguous.
