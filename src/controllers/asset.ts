@@ -3,7 +3,7 @@ import { deleteAssetService, findSingleAssetService } from '#src/services/index'
 import type { Request, Response } from 'express';
 import type { SystemRecordQuery } from '#types';
 
-export const deleteSystemRecordController = async (
+export const deleteAssetController = async (
   req: Request<never, never, never, Required<SystemRecordQuery>>,
   res: Response
 ): Promise<void> => {

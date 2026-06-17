@@ -1,7 +1,7 @@
 import express from 'express';
 import request from 'supertest';
 
-import { deleteSystemRecordController } from '#src/controllers/systemRecord';
+import { deleteAssetController } from '#src/controllers/asset';
 import * as services from '#src/services/index';
 
 import type { Selectable } from 'kysely';
@@ -18,7 +18,7 @@ describe('System Record Controllers', () => {
   beforeEach(() => {
     app = express();
     app.use(express.json());
-    app.delete('/system-records', deleteSystemRecordController);
+    app.delete('/system-records', deleteAssetController);
   });
 
   describe('DELETE /system-records', () => {

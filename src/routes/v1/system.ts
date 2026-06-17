@@ -1,6 +1,6 @@
 import { Router } from 'express';
 
-import { deleteSystemRecordController } from '#src/controllers/index';
+import { deleteAssetController } from '#src/controllers/index';
 import { authz } from '#src/middlewares/index';
 import { Problem } from '#src/utils/index';
 import {
@@ -24,6 +24,6 @@ router.get('/system-records', getSystemRecordsSchemaValidator, (req: Request, re
 });
 
 /** Delete Records */
-router.delete('/system-records', authz('query'), deleteSystemRecordsSchemaValidator, deleteSystemRecordController);
+router.delete('/system-records', authz('query'), deleteSystemRecordsSchemaValidator, deleteAssetController);
 
 export default router;
