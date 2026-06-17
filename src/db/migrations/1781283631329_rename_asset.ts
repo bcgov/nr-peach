@@ -60,12 +60,120 @@ export async function up(db: Kysely<unknown>): Promise<void> {
       GREATEST(asset_id, linked_asset_id)
     );
   `.execute(db);
+
+  // Update on_hold_event constraints from CASCADE to RESTRICT
+  await db.schema
+    .withSchema('pies')
+    .alterTable('on_hold_event')
+    .dropConstraint('on_hold_event_coding_id_fkey')
+    .execute();
+  await db.schema
+    .withSchema('pies')
+    .alterTable('on_hold_event')
+    .addForeignKeyConstraint('on_hold_event_coding_id_fkey', ['coding_id'], 'coding', ['id'], (cb) =>
+      cb.onUpdate('cascade').onDelete('restrict')
+    )
+    .execute();
+
+  await db.schema
+    .withSchema('pies')
+    .alterTable('on_hold_event')
+    .dropConstraint('on_hold_event_transaction_id_fkey')
+    .execute();
+  await db.schema
+    .withSchema('pies')
+    .alterTable('on_hold_event')
+    .addForeignKeyConstraint('on_hold_event_transaction_id_fkey', ['transaction_id'], 'transaction', ['id'], (cb) =>
+      cb.onUpdate('cascade').onDelete('restrict')
+    )
+    .execute();
+
+  // Update process_event constraints from CASCADE to RESTRICT
+  await db.schema
+    .withSchema('pies')
+    .alterTable('process_event')
+    .dropConstraint('process_event_coding_id_fkey')
+    .execute();
+  await db.schema
+    .withSchema('pies')
+    .alterTable('process_event')
+    .addForeignKeyConstraint('process_event_coding_id_fkey', ['coding_id'], 'coding', ['id'], (cb) =>
+      cb.onUpdate('cascade').onDelete('restrict')
+    )
+    .execute();
+
+  await db.schema
+    .withSchema('pies')
+    .alterTable('process_event')
+    .dropConstraint('process_event_transaction_id_fkey')
+    .execute();
+  await db.schema
+    .withSchema('pies')
+    .alterTable('process_event')
+    .addForeignKeyConstraint('process_event_transaction_id_fkey', ['transaction_id'], 'transaction', ['id'], (cb) =>
+      cb.onUpdate('cascade').onDelete('restrict')
+    )
+    .execute();
 }
 
 /**
  * @param db - Database
  */
 export async function down(db: Kysely<unknown>): Promise<void> {
+  // Restore process_event constraints to CASCADE on delete
+  await db.schema
+    .withSchema('pies')
+    .alterTable('process_event')
+    .dropConstraint('process_event_transaction_id_fkey')
+    .execute();
+  await db.schema
+    .withSchema('pies')
+    .alterTable('process_event')
+    .addForeignKeyConstraint('process_event_transaction_id_fkey', ['transaction_id'], 'transaction', ['id'], (cb) =>
+      cb.onUpdate('cascade').onDelete('cascade')
+    )
+    .execute();
+
+  await db.schema
+    .withSchema('pies')
+    .alterTable('process_event')
+    .dropConstraint('process_event_coding_id_fkey')
+    .execute();
+  await db.schema
+    .withSchema('pies')
+    .alterTable('process_event')
+    .addForeignKeyConstraint('process_event_coding_id_fkey', ['coding_id'], 'coding', ['id'], (cb) =>
+      cb.onUpdate('cascade').onDelete('cascade')
+    )
+    .execute();
+
+  // Restore on_hold_event constraints to CASCADE on delete
+  await db.schema
+    .withSchema('pies')
+    .alterTable('on_hold_event')
+    .dropConstraint('on_hold_event_transaction_id_fkey')
+    .execute();
+  await db.schema
+    .withSchema('pies')
+    .alterTable('on_hold_event')
+    .addForeignKeyConstraint('on_hold_event_transaction_id_fkey', ['transaction_id'], 'transaction', ['id'], (cb) =>
+      cb.onUpdate('cascade').onDelete('cascade')
+    )
+    .execute();
+
+  await db.schema
+    .withSchema('pies')
+    .alterTable('on_hold_event')
+    .dropConstraint('on_hold_event_coding_id_fkey')
+    .execute();
+  await db.schema
+    .withSchema('pies')
+    .alterTable('on_hold_event')
+    .addForeignKeyConstraint('on_hold_event_coding_id_fkey', ['coding_id'], 'coding', ['id'], (cb) =>
+      cb.onUpdate('cascade').onDelete('cascade')
+    )
+    .execute();
+
   // Drop the new undirected index
   await db.schema.withSchema('pies').dropIndex('record_linkage_undirected').ifExists().execute();
 
