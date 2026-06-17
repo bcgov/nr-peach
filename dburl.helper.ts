@@ -3,9 +3,16 @@
 import '#src/env';
 
 const { PGDATABASE, PGHOST, PGPASSWORD, PGPORT, PGUSER } = process.env;
+const missingVars = [
+  !PGDATABASE && 'PGDATABASE',
+  !PGHOST && 'PGHOST',
+  !PGPASSWORD && 'PGPASSWORD',
+  !PGPORT && 'PGPORT',
+  !PGUSER && 'PGUSER'
+].filter(Boolean);
 
-if (!PGDATABASE || !PGHOST || !PGPASSWORD || !PGPORT || !PGUSER) {
-  process.stdout.write('Missing required environment variables.');
+if (missingVars.length > 0) {
+  process.stdout.write(`Missing required environment variables: ${missingVars.join(', ')}\n`);
   process.exit(1);
 }
 

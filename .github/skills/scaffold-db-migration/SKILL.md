@@ -33,18 +33,6 @@ Execute these steps sequentially. Halt and report the error if any step fails:
 - No raw sql strings unless operations are explicitly unsupported by Kysely.
 - For raw sql strings, use Kysely's `sql` tagged template format.
 
-```typescript
-// Reference Structure for the LLM
-import { Kysely } from 'kysely'
-
-export async function up(db: Kysely<unknown>): Promise<void> {
-  // Execute schema changes here
-}
-
-export async function down(db: Kysely<unknown>): Promise<void> {
-  // Invert schema changes exactly here
-}
-
 ### Step 2: Reversibility & Type Verification
 
 Run local tooling to ensure schema integrity and catch downstream breaks:
@@ -68,5 +56,3 @@ Update the matching codebase layers based on the migration intent:
 
 - **Zero Type Drift:** Never fallback to `any` for repository signatures or schema mappings.
 - **Rollback Parity:** The `down` function must completely and cleanly invert the `up` function logic.
-
-```
