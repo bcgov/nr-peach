@@ -7,7 +7,7 @@ import * as services from '#src/services/index';
 import type { Selectable } from 'kysely';
 import type { PiesAsset } from '#types';
 
-describe('System Record Controllers', () => {
+describe('Asset Controllers', () => {
   const deleteAssetServiceSpy = vi.spyOn(services, 'deleteAssetService');
   const findSingleAssetServiceSpy = vi.spyOn(services, 'findSingleAssetService');
 

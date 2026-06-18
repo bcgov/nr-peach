@@ -9,7 +9,7 @@ Write brief, direct documentation. Use tooling to enforce style rather than writ
 ## Typography Constraints
 
 - Strictly use standard hyphens (-), straight quotes ("), and plain apostrophes (').
-- Forbid em-dashes (—), en-dashes (–), and smart or curly punctuation in all contexts.
+- Forbid em-dashes (U+2014), en-dashes (U+2013), and smart or curly punctuation in all contexts.
 - Separate ideas using periods or commas. Do not use semicolons (;).
 
 ## Tooling & Validation

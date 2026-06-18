@@ -2,22 +2,19 @@ import { transactionWrapper } from './helpers/index.ts';
 import { AssetRepository } from '#src/repositories/index';
 import { Problem } from '#src/utils/index';
 
-import type { Selectable, SimplifySingleResult } from 'kysely';
+import type { Selectable } from 'kysely';
 import type { PiesAsset } from '#types';
 
 /**
  * Deletes a single asset by its record ID and optionally by system ID.
- * @param recordId - The unique identifier of the record to find.
- * @param systemId - (Optional) The system ID to further filter the search.
- * @returns A promise that resolves if the asset is deleted.
- * @throws If no record is found (404) or if multiple records are found without a `systemId` (409).
+ * @param recordId - The unique identifier of the record to delete.
+ * @param systemId - (Optional) The system ID to further scope the deletion.
+ * @returns A promise that resolves when the delete query has executed.
+ * @remarks This function does not validate existence/uniqueness. It may delete 0+ rows if `systemId` is omitted.
  */
-export const deleteAssetService = async (
-  recordId: string,
-  systemId?: string
-): Promise<SimplifySingleResult<PiesAsset>> => {
+export const deleteAssetService = async (recordId: string, systemId?: string): Promise<void> => {
   return transactionWrapper(async (trx) => {
-    return await new AssetRepository(trx).deleteWhere({ recordId, systemId }).executeTakeFirst();
+    await new AssetRepository(trx).deleteWhere({ recordId, systemId }).execute();
   });
 };
 

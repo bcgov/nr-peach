@@ -9,7 +9,7 @@ describe('deleteAssetService', () => {
   const recordId = 'rec-123';
   const systemId = 'sys-456';
 
-  it('returns a single asset without systemId specified', async () => {
+  it('returns without systemId specified', async () => {
     const result = await deleteAssetService(recordId);
 
     expect(result).toBeUndefined();
@@ -17,10 +17,10 @@ describe('deleteAssetService', () => {
     expect(AssetRepository).toHaveBeenCalledTimes(1);
     expect(AssetRepository).toHaveBeenCalledWith(expect.anything());
     expect(baseRepositoryMock.deleteWhere).toHaveBeenCalledWith({ recordId });
-    expect(executeMock.executeTakeFirst).toHaveBeenCalledTimes(1);
+    expect(executeMock.execute).toHaveBeenCalledTimes(1);
   });
 
-  it('returns a single asset with systemId specified', async () => {
+  it('returns with systemId specified', async () => {
     const result = await deleteAssetService(recordId, systemId);
 
     expect(result).toBeUndefined();
@@ -28,7 +28,7 @@ describe('deleteAssetService', () => {
     expect(AssetRepository).toHaveBeenCalledTimes(1);
     expect(AssetRepository).toHaveBeenCalledWith(expect.anything());
     expect(baseRepositoryMock.deleteWhere).toHaveBeenCalledWith({ recordId, systemId });
-    expect(executeMock.executeTakeFirst).toHaveBeenCalledTimes(1);
+    expect(executeMock.execute).toHaveBeenCalledTimes(1);
   });
 });
 
@@ -84,7 +84,7 @@ describe('findSingleAssetService', () => {
     });
   });
 
-  it('throws conflict error if multiple records found without systemId specified', async () => {
+  it('throws conflict error if multiple assets found without systemId specified', async () => {
     executeMock.execute.mockResolvedValue([mockRecord, mockRecord]);
 
     await expect(findSingleAssetService(recordId)).rejects.toMatchObject({
