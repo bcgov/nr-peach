@@ -10,12 +10,12 @@ import {
 } from '#src/services/helpers/index';
 
 import {
+  AssetRepository,
   CodingRepository,
   OnHoldEventRepository,
   ProcessEventRepository,
   RecordKindRepository,
   SystemRepository,
-  SystemRecordRepository,
   TransactionRepository,
   VersionRepository
 } from '#src/repositories/index';
@@ -23,7 +23,7 @@ import { findRecordService, mergeRecordService, pruneRecordService, replaceRecor
 
 import type { Selectable } from 'kysely';
 import type { Mock } from 'vitest';
-import type { PiesSystemRecord, Record } from '#types';
+import type { PiesAsset, Record } from '#types';
 
 describe('recordService', () => {
   const systemRecord = {
@@ -31,7 +31,7 @@ describe('recordService', () => {
     recordKindId: 2,
     systemId: 'sys-1',
     recordId: 'rec-1'
-  } as Selectable<PiesSystemRecord>;
+  } as Selectable<PiesAsset>;
 
   describe('findRecordService', () => {
     const processEventsRaw = [
@@ -292,7 +292,7 @@ describe('recordService', () => {
       (RecordKindRepository as Mock).mockImplementation(function () {
         return { upsert: cacheableUpsert };
       });
-      (SystemRecordRepository as Mock).mockImplementation(function () {
+      (AssetRepository as Mock).mockImplementation(function () {
         return { upsert: cacheableUpsert };
       });
       (OnHoldEventRepository as Mock).mockImplementation(function () {
@@ -333,11 +333,11 @@ describe('recordService', () => {
 
       await replaceRecordService(recordData);
 
-      expect(findWhereMock).toHaveBeenCalledWith({ systemRecordId: 1 });
+      expect(findWhereMock).toHaveBeenCalledWith({ assetId: 1 });
       expect(createManyMock).toHaveBeenCalledWith([
         {
           codingId: 1,
-          systemRecordId: 1,
+          assetId: 1,
           transactionId: recordData.transaction_id,
           startDate: '2024-01-01',
           startTime: '00:00:00',
@@ -373,8 +373,8 @@ describe('recordService', () => {
 
       await replaceRecordService(recordData);
 
-      expect(findWhereMock).toHaveBeenCalledWith({ systemRecordId: 1 });
-      expect(deleteExceptMock).toHaveBeenCalledWith([], { systemRecordId: 1 });
+      expect(findWhereMock).toHaveBeenCalledWith({ assetId: 1 });
+      expect(deleteExceptMock).toHaveBeenCalledWith([], { assetId: 1 });
     });
 
     it('should preserve matched on hold events', async () => {
@@ -403,7 +403,7 @@ describe('recordService', () => {
 
       await replaceRecordService(recordData);
 
-      expect(findWhereMock).toHaveBeenCalledWith({ systemRecordId: 1 });
+      expect(findWhereMock).toHaveBeenCalledWith({ assetId: 1 });
       expect(deleteExceptMock).toHaveBeenCalledTimes(0);
     });
 
@@ -420,14 +420,14 @@ describe('recordService', () => {
 
       await replaceRecordService(recordData);
 
-      expect(findWhereMock).toHaveBeenCalledWith({ systemRecordId: 1 });
+      expect(findWhereMock).toHaveBeenCalledWith({ assetId: 1 });
       expect(createManyMock).toHaveBeenCalledWith([
         {
           codingId: 1,
           status: 'active',
           statusCode: 'A',
           statusDescription: 'Active',
-          systemRecordId: 1,
+          assetId: 1,
           transactionId: recordData.transaction_id,
           startDate: '2024-01-01',
           startTime: '00:00:00',
@@ -466,8 +466,8 @@ describe('recordService', () => {
 
       await replaceRecordService(recordData);
 
-      expect(findWhereMock).toHaveBeenCalledWith({ systemRecordId: 1 });
-      expect(deleteExceptMock).toHaveBeenCalledWith([], { systemRecordId: 1 });
+      expect(findWhereMock).toHaveBeenCalledWith({ assetId: 1 });
+      expect(deleteExceptMock).toHaveBeenCalledWith([], { assetId: 1 });
     });
 
     it('should preserve matched process events', async () => {
@@ -499,7 +499,7 @@ describe('recordService', () => {
 
       await replaceRecordService(recordData);
 
-      expect(findWhereMock).toHaveBeenCalledWith({ systemRecordId: 1 });
+      expect(findWhereMock).toHaveBeenCalledWith({ assetId: 1 });
       expect(deleteExceptMock).toHaveBeenCalledTimes(0);
     });
   });

@@ -33,14 +33,14 @@ describe('OnHoldEventRepository', () => {
   });
 
   describe('prune', () => {
-    it('should build a delete query for the given systemRecordId', () => {
-      const systemRecordId = 42;
-      const compiled = new OnHoldEventRepository(mockDb).prune(systemRecordId).compile();
+    it('should build a delete query for the given assetId', () => {
+      const assetId = 42;
+      const compiled = new OnHoldEventRepository(mockDb).prune(assetId).compile();
 
       expect(getDefinedOperations(compiled.query)).toEqual(['kind', 'from', 'where']);
       expect(compiled.query.kind).toBe('DeleteQueryNode');
-      expect(compiled.sql).toBe('delete from "pies"."on_hold_event" where "system_record_id" = $1');
-      expect(compiled.parameters).toEqual([systemRecordId]);
+      expect(compiled.sql).toBe('delete from "pies"."on_hold_event" where "asset_id" = $1');
+      expect(compiled.parameters).toEqual([assetId]);
     });
   });
 });

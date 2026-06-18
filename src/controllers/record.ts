@@ -1,7 +1,7 @@
 import {
   checkDuplicateTransactionHeaderService,
   findRecordService,
-  findSingleSystemRecordService,
+  findSingleAssetService,
   pruneRecordService,
   replaceRecordService
 } from '#src/services/index';
@@ -13,8 +13,8 @@ export const getRecordController = async (
   req: Request<never, never, never, SystemRecordQuery>,
   res: Response<Record>
 ): Promise<void> => {
-  const systemRecord = await findSingleSystemRecordService(req.query.record_id, req.query.system_id);
-  const result = await findRecordService(systemRecord);
+  const asset = await findSingleAssetService(req.query.record_id, req.query.system_id);
+  const result = await findRecordService(asset);
   res.status(200).json(result);
 };
 
@@ -31,8 +31,8 @@ export const pruneRecordController = async (
   req: Request<never, never, never, SystemRecordQuery>,
   res: Response
 ): Promise<void> => {
-  const systemRecord = await findSingleSystemRecordService(req.query.record_id, req.query.system_id);
-  await pruneRecordService(systemRecord);
+  const asset = await findSingleAssetService(req.query.record_id, req.query.system_id);
+  await pruneRecordService(asset);
   res.status(204).end();
 };
 

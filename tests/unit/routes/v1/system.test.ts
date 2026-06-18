@@ -1,7 +1,7 @@
 import express from 'express';
 import request from 'supertest';
 
-import { deleteSystemRecordController } from '#src/controllers/index';
+import { deleteAssetController } from '#src/controllers/index';
 import {
   deleteSystemRecordsSchemaValidator,
   getSystemRecordsSchemaValidator,
@@ -15,8 +15,8 @@ import type { RequestHandler } from 'express';
 const app = express();
 app.use(router);
 
-vi.mock('#src/controllers/record', () => ({
-  deleteSystemRecordController: vi.fn<RequestHandler>((_req, _res, next) => next())
+vi.mock('#src/controllers/asset', () => ({
+  deleteAssetController: vi.fn<RequestHandler>((_req, _res, next) => next())
 }));
 
 vi.mock('#src/middlewares/auth', () => ({
@@ -49,7 +49,7 @@ describe('System Routes', () => {
     it('should call the schema validator and controller', async () => {
       await request(app).delete('/system-records');
       expect(deleteSystemRecordsSchemaValidator).toHaveBeenCalled();
-      expect(deleteSystemRecordController).toHaveBeenCalled();
+      expect(deleteAssetController).toHaveBeenCalled();
     });
   });
 });
