@@ -8,7 +8,7 @@ import tseslint from 'typescript-eslint';
 
 export default defineConfig(
   {
-    ignores: ['coverage/**', 'infra/**', 'node_modules/**', 'terragrunt/**']
+    ignores: ['.github/**', 'coverage/**', 'infra/**', 'node_modules/**', 'terragrunt/**']
   },
   {
     files: ['**/*.{js,ts}'],
