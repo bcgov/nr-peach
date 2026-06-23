@@ -1,12 +1,12 @@
 ---
-name: scaffold-db-migration
+name: db-scaffold-migration
 description: Scaffolds Kysely database migrations, matching repository changes, and type definitions. Trigger on keywords migration, create table, modify table, alter column, drop table, database schema change.
 argument-hint: '<intent: create|modify|delete> <target_tables> <column_delta: name:type[:null|default|constraint]> [migration_suffix_snake_case]'
 metadata:
   internal: true
 ---
 
-# Kysely DB Migration Protocol
+# Database Kysely Migration
 
 ## 1. Parameter Collection
 
