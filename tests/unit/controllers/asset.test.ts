@@ -18,15 +18,15 @@ describe('Asset Controllers', () => {
   beforeEach(() => {
     app = express();
     app.use(express.json());
-    app.delete('/system-records', deleteAssetController);
+    app.delete('/assets', deleteAssetController);
   });
 
-  describe('DELETE /system-records', () => {
+  describe('DELETE /assets', () => {
     it('should call services and respond with 204', async () => {
       findSingleAssetServiceSpy.mockResolvedValue(fakeAsset);
       deleteAssetServiceSpy.mockResolvedValue(undefined);
 
-      await request(app).delete('/system-records').query({ record_id: 'rec1', system_id: 'sys1' }).expect(204);
+      await request(app).delete('/assets').query({ record_id: 'rec1', system_id: 'sys1' }).expect(204);
 
       expect(findSingleAssetServiceSpy).toHaveBeenCalledWith('rec1', 'sys1');
       expect(deleteAssetServiceSpy).toHaveBeenCalledWith('rec1', 'sys1');

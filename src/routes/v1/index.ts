@@ -1,5 +1,6 @@
 import { Router } from 'express';
 
+import assets from './asset.ts';
 import records from './record.ts';
 import recordLinkages from './recordLinkage.ts';
 import systems from './system.ts';
@@ -11,13 +12,14 @@ const router = Router();
 
 router.get('/', (_req: Request, res: Response): void => {
   res.status(200).json({
-    endpoints: ['/records', '/record-linkages', '/systems', '/system-records']
+    endpoints: ['/assets', '/records', '/record-linkages', '/systems']
   });
 });
 
 router.use(authm());
 router.use(authn());
 
+router.use(assets);
 router.use(records);
 router.use(recordLinkages);
 router.use(systems);

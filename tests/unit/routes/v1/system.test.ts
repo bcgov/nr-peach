@@ -1,12 +1,7 @@
 import express from 'express';
 import request from 'supertest';
 
-import { deleteAssetController } from '#src/controllers/index';
-import {
-  deleteSystemRecordsSchemaValidator,
-  getSystemRecordsSchemaValidator,
-  getSystemsSchemaValidator
-} from '#src/validators/index';
+import { getSystemsSchemaValidator } from '#src/validators/index';
 
 import router from '#src/routes/v1/system';
 
@@ -14,14 +9,6 @@ import type { RequestHandler } from 'express';
 
 const app = express();
 app.use(router);
-
-vi.mock('#src/controllers/asset', () => ({
-  deleteAssetController: vi.fn<RequestHandler>((_req, _res, next) => next())
-}));
-
-vi.mock('#src/middlewares/auth', () => ({
-  authz: () => vi.fn<RequestHandler>((_req, _res, next) => next())
-}));
 
 vi.mock('#src/middlewares/validator', () => ({
   validateRequestIntegrity: () => vi.fn<RequestHandler>((_req, _res, next) => next()),
@@ -34,22 +21,6 @@ describe('System Routes', () => {
       const response = await request(app).get('/systems');
       expect(getSystemsSchemaValidator).toHaveBeenCalled();
       expect(response.status).toBe(501);
-    });
-  });
-
-  describe('GET /system-records', () => {
-    it('should return 501', async () => {
-      const response = await request(app).get('/system-records');
-      expect(getSystemRecordsSchemaValidator).toHaveBeenCalled();
-      expect(response.status).toBe(501);
-    });
-  });
-
-  describe('DELETE /system-records', () => {
-    it('should call the schema validator and controller', async () => {
-      await request(app).delete('/system-records');
-      expect(deleteSystemRecordsSchemaValidator).toHaveBeenCalled();
-      expect(deleteAssetController).toHaveBeenCalled();
     });
   });
 });
