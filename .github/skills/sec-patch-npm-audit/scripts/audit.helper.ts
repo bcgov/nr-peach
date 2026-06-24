@@ -49,7 +49,8 @@ function abbreviateTitle(title: string | undefined, packageName: string): string
   if (!title) return null;
 
   // Remove "pkg-name: " prefix if present
-  let clean = title.replace(new RegExp(String.raw`^${packageName}:\s*`, 'i'), '').trim();
+  const escapedPackageName = packageName.replace(/[.*+?^${}()|[\]\\]/g, String.raw`\$&`);
+  let clean = title.replace(new RegExp(String.raw`^${escapedPackageName}:\s*`, 'i'), '').trim();
 
   // Truncate at common connectors to capture only the core issue phrase
   const splitMatch = clean.split(/\s+(via|in|through|allows|during|vulnerability)\s+/i);
@@ -72,7 +73,7 @@ function extractAdvisoryId(url: string | undefined): string | null {
 
 const cmd = 'npm audit fix --dry-run --json';
 
-exec(cmd, { maxBuffer: 10 * 1024 * 1024 }, (error: Error | null, stdout: string, stderr: string): void => {
+exec(cmd, { maxBuffer: 10 * 1024 * 1024 }, (error: Error | null, stdout: string, _stderr: string): void => {
   if (error && !stdout) {
     console.error('Execution failed:', error);
     process.exit(1);
@@ -94,7 +95,12 @@ exec(cmd, { maxBuffer: 10 * 1024 * 1024 }, (error: Error | null, stdout: string,
         to: c.to?.version
       })),
       advisories: Object.values(rawData.audit?.vulnerabilities || {})
-        .filter((v): v is Vulnerability => v.fixAvailable === true || v.fixAvailable !== false)
+        .filter((v): v is Vulnerability => {
+          if (v.fixAvailable === true) return true;
+          if (v.fixAvailable === false) return false;
+          if (typeof v.fixAvailable !== 'object' || v.fixAvailable === null) return false;
+          return (v.fixAvailable as { isSemVerMajor?: unknown }).isSemVerMajor === false;
+        })
         .map((v) => ({
           name: v.name,
           severity: v.severity,
