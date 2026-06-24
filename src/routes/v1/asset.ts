@@ -10,11 +10,11 @@ import type { Request, Response } from 'express';
 const router = Router();
 
 /** Get Assets */
-router.get('/assets', getAssetsSchemaValidator, (req: Request, res: Response): void => {
+router.get('/', getAssetsSchemaValidator, (req: Request, res: Response): void => {
   new Problem(501).send(req, res);
 });
 
 /** Delete Assets */
-router.delete('/assets', authz('query'), deleteAssetsSchemaValidator, deleteAssetController);
+router.delete('/', authz('query'), deleteAssetsSchemaValidator, deleteAssetController);
 
 export default router;

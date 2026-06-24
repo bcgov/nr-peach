@@ -17,28 +17,23 @@ const putMiddleware = [isJsonBody(), authz('body'), putRecordLinkagesSchemaValid
 // Validation-Only Endpoints
 
 /** Put Record Linkages Validation */
-router.put('/record-linkages/validate', ...putMiddleware, validationSuccessController);
+router.put('/validate', ...putMiddleware, validationSuccessController);
 
 // Standard Endpoints
 
 /** Get Record Linkages */
-router.get('/record-linkages', getRecordLinkagesSchemaValidator, (req: Request, res: Response): void => {
+router.get('/', getRecordLinkagesSchemaValidator, (req: Request, res: Response): void => {
   new Problem(501).send(req, res);
 });
 
 /** Put Record Linkages */
-router.put('/record-linkages', ...putMiddleware, (req: Request, res: Response): void => {
+router.put('/', ...putMiddleware, (req: Request, res: Response): void => {
   new Problem(501).send(req, res);
 });
 
 /** Delete Record Linkages */
-router.delete(
-  '/record-linkages',
-  deleteRecordLinkagesSchemaValidator,
-  authz('query'),
-  (req: Request, res: Response): void => {
-    new Problem(501).send(req, res);
-  }
-);
+router.delete('/', authz('query'), deleteRecordLinkagesSchemaValidator, (req: Request, res: Response): void => {
+  new Problem(501).send(req, res);
+});
 
 export default router;

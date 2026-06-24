@@ -22,7 +22,7 @@ import router from '#src/routes/v1/record';
 import type { RequestHandler } from 'express';
 
 const app = express();
-app.use(router);
+app.use('/records', router);
 
 vi.mock('#src/controllers/record', () => ({
   getRecordController: vi.fn<RequestHandler>((_req, _res, next) => next()),

@@ -9,7 +9,7 @@ import router from '#src/routes/v1/asset';
 import type { RequestHandler } from 'express';
 
 const app = express();
-app.use(router);
+app.use('/assets', router);
 
 vi.mock('#src/controllers/asset', () => ({
   deleteAssetController: vi.fn<RequestHandler>((_req, _res, next) => next())

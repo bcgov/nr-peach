@@ -8,7 +8,7 @@ import router from '#src/routes/v1/system';
 import type { RequestHandler } from 'express';
 
 const app = express();
-app.use(router);
+app.use('/systems', router);
 
 vi.mock('#src/middlewares/validator', () => ({
   validateRequestIntegrity: () => vi.fn<RequestHandler>((_req, _res, next) => next()),

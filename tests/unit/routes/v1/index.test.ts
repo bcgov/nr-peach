@@ -28,5 +28,6 @@ describe('GET /', () => {
     expect((response.body as { endpoints: string[] }).endpoints).toEqual(
       expect.arrayContaining(['/assets', '/records', '/record-linkages', '/systems'])
     );
+    expect((response.body as { endpoints: string[] }).endpoints).toHaveLength(4);
   });
 });

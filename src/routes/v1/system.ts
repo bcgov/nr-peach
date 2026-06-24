@@ -8,7 +8,7 @@ import type { Request, Response } from 'express';
 const router = Router();
 
 /** Get Systems */
-router.get('/systems', getSystemsSchemaValidator, (req: Request, res: Response): void => {
+router.get('/', getSystemsSchemaValidator, (req: Request, res: Response): void => {
   new Problem(501).send(req, res);
 });
 

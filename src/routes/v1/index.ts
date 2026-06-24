@@ -19,9 +19,9 @@ router.get('/', (_req: Request, res: Response): void => {
 router.use(authm());
 router.use(authn());
 
-router.use(assets);
-router.use(records);
-router.use(recordLinkages);
-router.use(systems);
+router.use('/assets', assets);
+router.use('/records', records);
+router.use('/record-linkages', recordLinkages);
+router.use('/systems', systems);
 
 export default router;
