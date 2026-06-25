@@ -135,7 +135,7 @@ export const pruneRecordService = async (asset: Selectable<PiesAsset>): Promise<
 };
 
 /**
- * Replaces the record for the given system record.
+ * Replaces the record for the given asset record.
  * @param data - The record to replace.
  * @param principal - The authenticated identity performing the operation.
  * @returns A promise that resolves when the operation is complete.

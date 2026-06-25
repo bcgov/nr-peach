@@ -16,6 +16,10 @@ security:
   - BearerAuth: []
     OpenID: []
 tags:
+  - name: Assets
+    description: Operations for managing Assets.
+    externalDocs:
+      url: https://github.com/bcgov/nr-peach/wiki/Endpoint-Notes#assets
   - name: Linkages
     description: Operations for managing Record Linkages.
     externalDocs:
@@ -29,9 +33,67 @@ tags:
     externalDocs:
       url: https://github.com/bcgov/nr-peach/wiki/Endpoint-Notes#systems
 paths:
+  /assets:
+    get:
+      summary: Get a specific asset header
+      description: Get a specific asset header
+      operationId: getAssets
+      tags:
+        - Assets
+      parameters:
+        - $ref: '#/components/parameters/Query-RecordId-Required'
+        - $ref: '#/components/parameters/Query-SystemId'
+      responses:
+        '200':
+          description: OK - An asset header
+          content:
+            application/json:
+              schema:
+                $ref: >-
+                  https://raw.githubusercontent.com/bcgov/nr-pies/refs/heads/main/docs/spec/element/data/header.schema.json
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        default:
+          $ref: '#/components/responses/Error'
+    delete:
+      summary: Deletes a specific asset
+      description: Deletes a specific asset and all associated data
+      operationId: deleteAssets
+      tags:
+        - Assets
+      parameters:
+        - $ref: '#/components/parameters/Query-RecordId-Required'
+        - $ref: '#/components/parameters/Query-SystemId'
+      responses:
+        '204':
+          description: No Content
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        default:
+          $ref: '#/components/responses/Error'
   /records:
     get:
-      summary: List Events for a specific system record
+      summary: List Events for a specific asset record
       description: Retrieves a set of all known Events associated with a record.
       operationId: getRecords
       tags:
@@ -62,7 +124,7 @@ paths:
         default:
           $ref: '#/components/responses/Error'
     post:
-      summary: Add and merge Events for a specific system record
+      summary: Add and merge Events for a specific asset record
       description: Adds and merges all known Events associated with a record.
       operationId: postRecords
       tags:
@@ -94,7 +156,7 @@ paths:
         default:
           $ref: '#/components/responses/Error'
     put:
-      summary: Assert Events for a specific system record
+      summary: Assert Events for a specific asset record
       description: Replaces all known Events associated with a record.
       operationId: putRecords
       tags:
@@ -124,7 +186,7 @@ paths:
         default:
           $ref: '#/components/responses/Error'
     delete:
-      summary: Prune all Events for a specific system record
+      summary: Prune all Events for a specific asset record
       description: Deletes all known Events associated with a record.
       operationId: pruneRecords
       tags:
@@ -151,8 +213,8 @@ paths:
           $ref: '#/components/responses/Error'
   /records/validate:
     post:
-      summary: Validates a specific system record addition
-      description: Validates a specific system record addition without making any changes.
+      summary: Validates a specific asset record addition
+      description: Validates a specific asset record addition without making any changes.
       operationId: postValidateRecords
       tags:
         - Records
@@ -177,8 +239,8 @@ paths:
         default:
           $ref: '#/components/responses/Error'
     put:
-      summary: Validates a specific system record assertion
-      description: Validates a specific system record assertion without making any changes.
+      summary: Validates a specific asset record assertion
+      description: Validates a specific asset record assertion without making any changes.
       operationId: putValidateRecords
       tags:
         - Records
@@ -204,7 +266,7 @@ paths:
           $ref: '#/components/responses/Error'
   /record-linkages:
     get:
-      summary: List RecordLinkages for a specific system record
+      summary: List RecordLinkages for a specific asset record
       description: >-
         Retrieves a flattened set of all known RecordLinkages associated with a
         record.
@@ -240,7 +302,7 @@ paths:
         default:
           $ref: '#/components/responses/Error'
     put:
-      summary: Adds RecordLinkages for a specific system record
+      summary: Adds RecordLinkages for a specific asset record
       description: Adds RecordLinkages associated with a record.
       operationId: putRecordLinkages
       tags:
@@ -270,7 +332,7 @@ paths:
         default:
           $ref: '#/components/responses/Error'
     delete:
-      summary: Deletes a specific RecordLinkage for a specific system record
+      summary: Deletes a specific RecordLinkage for a specific asset record
       description: Deletes a specific RecordLinkage associated with a record.
       operationId: deleteRecordLinkages
       tags:
@@ -351,64 +413,6 @@ paths:
           $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
-        '422':
-          $ref: '#/components/responses/UnprocessableEntity'
-        default:
-          $ref: '#/components/responses/Error'
-  /system-records:
-    get:
-      summary: Get a specific system record header
-      description: Get a specific system record header
-      operationId: getSystemRecords
-      tags:
-        - Systems
-      parameters:
-        - $ref: '#/components/parameters/Query-RecordId-Required'
-        - $ref: '#/components/parameters/Query-SystemId'
-      responses:
-        '200':
-          description: OK - A record header
-          content:
-            application/json:
-              schema:
-                $ref: >-
-                  https://raw.githubusercontent.com/bcgov/nr-pies/refs/heads/main/docs/spec/element/data/header.schema.json
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '409':
-          $ref: '#/components/responses/Conflict'
-        '422':
-          $ref: '#/components/responses/UnprocessableEntity'
-        default:
-          $ref: '#/components/responses/Error'
-    delete:
-      summary: Deletes a specific system record
-      description: Deletes a specific system record and all associated data
-      operationId: deleteSystemRecords
-      tags:
-        - Systems
-      parameters:
-        - $ref: '#/components/parameters/Query-RecordId-Required'
-        - $ref: '#/components/parameters/Query-SystemId'
-      responses:
-        '204':
-          description: No Content
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '409':
-          $ref: '#/components/responses/Conflict'
         '422':
           $ref: '#/components/responses/UnprocessableEntity'
         default:

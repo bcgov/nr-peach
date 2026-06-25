@@ -12,8 +12,8 @@ const env = parseEnv();
 /**
  * 1. Initialization
  */
+const API_ASSET = '/api/v1/assets';
 const API_RECORD = '/api/v1/records';
-const API_SYSTEM_RECORD = '/api/v1/system-records';
 const BASE_URL = __ENV.BASE_URL ?? env.BASE_URL ?? 'http://localhost:3000';
 const CLIENT_ID = __ENV.CLIENT_ID ?? env.CLIENT_ID;
 const CLIENT_SECRET = __ENV.CLIENT_SECRET ?? env.CLIENT_SECRET;
@@ -90,7 +90,7 @@ export default function main({ token }: { token: string }) {
 export function teardown({ token }: { token: string }) {
   if (!DATA_FILE_PATH) {
     for (let count = 1; count <= MAX_RECORD_ID; count++) {
-      http.del(`${BASE_URL}${API_SYSTEM_RECORD}?record_id=${RECORD_PREFIX}${count}&system_id=${SYSTEM_ID}`, null, {
+      http.del(`${BASE_URL}${API_ASSET}?record_id=${RECORD_PREFIX}${count}&system_id=${SYSTEM_ID}`, null, {
         headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json'

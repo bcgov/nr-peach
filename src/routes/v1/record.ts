@@ -24,23 +24,23 @@ const putMiddleware = [isJsonBody(), authz('body'), putRecordSchemaValidator, pu
 // Validation-Only Endpoints
 
 /** Post Records Validation */
-router.post('/records/validate', ...postMiddleware, validationSuccessController);
+router.post('/validate', ...postMiddleware, validationSuccessController);
 
 /** Put Records Validation */
-router.put('/records/validate', ...putMiddleware, validationSuccessController);
+router.put('/validate', ...putMiddleware, validationSuccessController);
 
 // Standard Endpoints
 
 /** Get Records */
-router.get('/records', getRecordSchemaValidator, getRecordController);
+router.get('/', getRecordSchemaValidator, getRecordController);
 
 /** Post Records */
-router.post('/records', ...postMiddleware, postRecordController);
+router.post('/', ...postMiddleware, postRecordController);
 
 /** Prune Records */
-router.delete('/records', authz('query'), pruneRecordSchemaValidator, pruneRecordController);
+router.delete('/', authz('query'), pruneRecordSchemaValidator, pruneRecordController);
 
 /** Put Records */
-router.put('/records', ...putMiddleware, putRecordController);
+router.put('/', ...putMiddleware, putRecordController);
 
 export default router;

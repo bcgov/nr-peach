@@ -24,8 +24,10 @@ describe('GET /', () => {
   it('should return a 200 status and a list of endpoints', async () => {
     const response = await request(app).get('/');
     expect(response.status).toBe(200);
-    expect(response.body).toEqual({
-      endpoints: ['/records', '/record-linkages', '/systems', '/system-records']
-    });
+    expect(response.body).toHaveProperty('endpoints');
+    expect((response.body as { endpoints: string[] }).endpoints).toEqual(
+      expect.arrayContaining(['/assets', '/records', '/record-linkages', '/systems'])
+    );
+    expect((response.body as { endpoints: string[] }).endpoints).toHaveLength(4);
   });
 });

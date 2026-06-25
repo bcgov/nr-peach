@@ -7,10 +7,10 @@ import {
 } from '#src/services/index';
 
 import type { Request, Response } from 'express';
-import type { LocalContext, Record, SystemRecordQuery } from '#types';
+import type { LocalContext, Record, AssetQuery } from '#types';
 
 export const getRecordController = async (
-  req: Request<never, never, never, SystemRecordQuery>,
+  req: Request<never, never, never, AssetQuery>,
   res: Response<Record>
 ): Promise<void> => {
   const asset = await findSingleAssetService(req.query.record_id, req.query.system_id);
@@ -28,7 +28,7 @@ export const postRecordController = async (
 };
 
 export const pruneRecordController = async (
-  req: Request<never, never, never, SystemRecordQuery>,
+  req: Request<never, never, never, AssetQuery>,
   res: Response
 ): Promise<void> => {
   const asset = await findSingleAssetService(req.query.record_id, req.query.system_id);
