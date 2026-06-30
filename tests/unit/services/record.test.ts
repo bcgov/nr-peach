@@ -25,6 +25,8 @@ import type { Selectable } from 'kysely';
 import type { Mock } from 'vitest';
 import type { PiesAsset, Record } from '#types';
 
+type CodeSetTuple = [string] | [string, string] | [string, string, string];
+
 describe('recordService', () => {
   const systemRecord = {
     id: 1,
@@ -90,10 +92,7 @@ describe('recordService', () => {
             coding: {
               code: expect.any(String) as string,
               code_display: expect.any(String) as string,
-              code_set: expect.arrayContaining([expect.any(String) as string]) as
-                | [string]
-                | [string, string]
-                | [string, string, string],
+              code_set: expect.arrayContaining([expect.any(String) as string]) as CodeSetTuple,
               code_system: expect.any(String) as string
             },
             event: {
@@ -111,10 +110,7 @@ describe('recordService', () => {
             process: {
               code: expect.any(String) as string,
               code_display: expect.any(String) as string,
-              code_set: expect.arrayContaining(['APPLICATION']) as
-                | [string]
-                | [string, string]
-                | [string, string, string],
+              code_set: expect.arrayContaining(['APPLICATION']) as CodeSetTuple,
               code_system: expect.any(String) as string,
               status: expect.any(String) as string,
               status_code: expect.any(String) as string,
