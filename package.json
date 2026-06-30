@@ -98,5 +98,20 @@
   "allowScripts": {
     "fsevents@2.3.3": true,
     "lefthook@2.1.9": true
+  },
+  "devEngines": {
+    "runtime": {
+      "name": "node",
+      "version": ">=24.15.0",
+      "onFail": "error"
+    },
+    "packageManager": {
+      "name": "npm",
+      "version": ">=11.16.0",
+      "onFail": "warn"
+    }
+  },
+  "engines": {
+    "node": ">=24.15.0"
   }
 }
