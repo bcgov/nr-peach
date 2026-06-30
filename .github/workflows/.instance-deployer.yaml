@@ -121,7 +121,7 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e # v4.0.1
       - name: Cache Terraform instance
-        uses: actions/cache@v5.0.5
+        uses: actions/cache@v5.1.0
         id: cache-terraform-instance
         env:
           cache-name: cache-terraform-instance
