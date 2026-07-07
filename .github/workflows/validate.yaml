@@ -57,7 +57,7 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v7.0.0
       - name: Setup TFLint
-        uses: terraform-linters/setup-tflint@v6.2.2
+        uses: terraform-linters/setup-tflint@v6.3.0
       - name: Cache TFLint plugins
         uses: actions/cache@v6.1.0
         id: cache-tflint
