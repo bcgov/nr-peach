@@ -1,7 +1,6 @@
 import Problem from '#src/utils/problem';
 
 import type { Request, Response } from 'express';
-import type { Mock } from 'vitest';
 
 describe('Problem', () => {
   it('should create a Problem instance with valid inputs', () => {
@@ -82,20 +81,22 @@ describe('Problem', () => {
   describe('send', () => {
     it('should send a JSON response with the problem details', () => {
       const req = { originalUrl: '/test' } as Request;
+      const mockEnd = vi.fn();
+      const mockWriteHead = vi.fn();
       const res = {
-        end: vi.fn(),
-        writeHead: vi.fn()
-      } as Response & { end: Mock; writeHead: Mock };
+        end: mockEnd,
+        writeHead: mockWriteHead
+      } as unknown as Response;
 
       const problem = new Problem(401, { title: 'Unauthorized' });
       problem.send(req, res);
 
-      expect(res.writeHead).toHaveBeenCalledTimes(1);
-      expect(res.writeHead).toHaveBeenCalledWith(401, {
+      expect(mockWriteHead).toHaveBeenCalledTimes(1);
+      expect(mockWriteHead).toHaveBeenCalledWith(401, {
         'Content-Type': 'application/problem+json'
       });
-      expect(res.end).toHaveBeenCalledTimes(1);
-      expect(res.end).toHaveBeenCalledWith(
+      expect(mockEnd).toHaveBeenCalledTimes(1);
+      expect(mockEnd).toHaveBeenCalledWith(
         JSON.stringify({
           type: 'https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/401',
           title: 'Unauthorized',

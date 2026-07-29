@@ -2,44 +2,21 @@ import { getBearerToken, normalizeScopes, setAuthHeader } from '#src/middlewares
 
 import type { Request, Response } from 'express';
 import type { JwksClient } from 'jwks-rsa';
-import type { Mock } from 'vitest';
 import type { AuthErrorAttributes } from '#types';
 
 describe('getBearerToken', () => {
-  it('extracts the Bearer token from the Authorization header', () => {
+  it.each([
+    ['Bearer exampletokenvalue', 'exampletokenvalue'],
+    ['Bearer  exampletokenvalue ', 'exampletokenvalue'],
+    ['bearer exampletokenvalue', 'exampletokenvalue']
+  ])('extracts the Bearer token from the Authorization header: %s', (authorization, expected) => {
     const req = {
-      headers: {
-        authorization: 'Bearer exampletokenvalue'
-      }
+      headers: { authorization }
     } as Request;
 
     const result = getBearerToken(req);
 
-    expect(result).toBe('exampletokenvalue');
-  });
-
-  it('extracts the Bearer token from the Authorization header with multiple spaces', () => {
-    const req = {
-      headers: {
-        authorization: 'Bearer  exampletokenvalue '
-      }
-    } as Request;
-
-    const result = getBearerToken(req);
-
-    expect(result).toBe('exampletokenvalue');
-  });
-
-  it('accepts lowercase "bearer" in the Authorization header', () => {
-    const req = {
-      headers: {
-        authorization: 'bearer exampletokenvalue'
-      }
-    } as Request;
-
-    const result = getBearerToken(req);
-
-    expect(result).toBe('exampletokenvalue');
+    expect(result).toBe(expected);
   });
 
   it('returns null if the Authorization header is not present', () => {
@@ -65,7 +42,7 @@ describe('getBearerToken', () => {
     expect(result).toBeNull();
   });
 
-  it('returns null if the Authorization header does not start with "Bearer"', () => {
+  it('returns null if the Authorization header does not have a valid token value', () => {
     const req = {
       headers: {
         authorization: 'Bearer invalidtokenvalue!'
@@ -251,9 +228,8 @@ describe('normalizeScopes', () => {
 
 describe('setAuthHeader', () => {
   it('sets the WWW-Authenticate header with the provided attributes', () => {
-    const res = {
-      set: vi.fn()
-    } as Response & { set: Mock };
+    const mockSet = vi.fn();
+    const res = { set: mockSet } as unknown as Response;
 
     const attributes: AuthErrorAttributes = {
       realm: 'nr-peach',
@@ -263,16 +239,15 @@ describe('setAuthHeader', () => {
 
     setAuthHeader(res, attributes);
 
-    expect(res.set).toHaveBeenCalledWith(
+    expect(mockSet).toHaveBeenCalledWith(
       'WWW-Authenticate',
       'Bearer realm="nr-peach", error="invalid_token", error_description="The access token is invalid"'
     );
   });
 
   it('sets the WWW-Authenticate header without empty attributes', () => {
-    const res = {
-      set: vi.fn()
-    } as Response & { set: Mock };
+    const mockSet = vi.fn();
+    const res = { set: mockSet } as unknown as Response;
 
     const attributes: AuthErrorAttributes = {
       realm: 'nr-peach',
@@ -283,16 +258,15 @@ describe('setAuthHeader', () => {
 
     setAuthHeader(res, attributes);
 
-    expect(res.set).toHaveBeenCalledWith(
+    expect(mockSet).toHaveBeenCalledWith(
       'WWW-Authenticate',
       'Bearer realm="nr-peach", error="invalid_token", error_description="The access token is invalid"'
     );
   });
 
   it('sets the WWW-Authenticate header with only US-ASCII encoded string values', () => {
-    const res = {
-      set: vi.fn()
-    } as Response & { set: Mock };
+    const mockSet = vi.fn();
+    const res = { set: mockSet } as unknown as Response;
 
     const attributes: AuthErrorAttributes = {
       realm: 'nr-peach',
@@ -302,13 +276,12 @@ describe('setAuthHeader', () => {
 
     setAuthHeader(res, attributes);
 
-    expect(res.set).toHaveBeenCalledWith('WWW-Authenticate', 'Bearer realm="nr-peach", error="invalid_token"');
+    expect(mockSet).toHaveBeenCalledWith('WWW-Authenticate', 'Bearer realm="nr-peach", error="invalid_token"');
   });
 
   it('sets the WWW-Authenticate header with proper string escaping', () => {
-    const res = {
-      set: vi.fn()
-    } as Response & { set: Mock };
+    const mockSet = vi.fn();
+    const res = { set: mockSet } as unknown as Response;
 
     const attributes: AuthErrorAttributes = {
       realm: 'nr-peach',
@@ -318,7 +291,7 @@ describe('setAuthHeader', () => {
 
     setAuthHeader(res, attributes);
 
-    expect(res.set).toHaveBeenCalledWith(
+    expect(mockSet).toHaveBeenCalledWith(
       'WWW-Authenticate',
       String.raw`Bearer realm="nr-peach", error="invalid_token", error_description="Quote \" and backslash \\ are escaped"` // eslint-disable-line max-len
     );
