@@ -1,4 +1,4 @@
-import { v7 as uuidv7 } from 'uuid';
+import { randomUUIDv7 } from 'node:crypto';
 
 import {
   cacheableRead,
@@ -101,7 +101,7 @@ export const findRecordService = (asset: Selectable<PiesAsset>): Promise<PiesRec
       }
 
       return {
-        transaction_id: uuidv7(),
+        transaction_id: randomUUIDv7(),
         version: recordKind.versionId,
         kind: 'Record',
         system_id: asset.systemId,
