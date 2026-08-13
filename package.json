@@ -63,8 +63,7 @@
     "pg": "8.23.0",
     "pino": "10.3.1",
     "pino-http": "11.0.0",
-    "serve-favicon": "2.5.1",
-    "uuid": "14.0.1"
+    "serve-favicon": "2.5.1"
   },
   "devDependencies": {
     "@commitlint/cli": "21.2.1",
@@ -75,7 +74,7 @@
     "@types/express": "5.0.6",
     "@types/js-yaml": "4.0.9",
     "@types/k6": "2.0.1",
-    "@types/node": "24.13.3",
+    "@types/node": "26.2.0",
     "@types/pg": "8.21.0",
     "@types/qs": "6.15.1",
     "@types/serve-favicon": "2.5.7",

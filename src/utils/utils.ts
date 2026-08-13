@@ -1,11 +1,12 @@
 import { existsSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { cwd } from 'node:process';
-import { validate, version } from 'uuid';
 
 import { getLogger } from './log.ts';
 
 const log = getLogger(import.meta.filename);
+
+const UUIDV7_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 /**
  * Performs a deep recursive check to determine if the `rhs` object is a subset of the `lhs` object.
@@ -116,9 +117,9 @@ export function getGitRevision(): string | undefined {
  * @returns Timestamp as a number, or undefined if the UUID is invalid or not version 7.
  */
 export function getUUIDv7Timestamp(uuid: string): number | undefined {
-  if (!validate(uuid) || version(uuid) !== 7) return undefined;
+  if (!UUIDV7_REGEX.test(uuid)) return undefined;
 
-  const hexTimestamp = uuid.replaceAll('-', '').slice(0, 12);
+  const hexTimestamp = uuid.slice(0, 8) + uuid.slice(9, 13);
   return Number.parseInt(hexTimestamp, 16);
 }
 
