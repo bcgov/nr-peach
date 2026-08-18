@@ -7,11 +7,11 @@ terraform {
     }
     azapi = {
       source  = "Azure/azapi"
-      version = "2.11.0"
+      version = "2.12.0"
     }
     null = {
       source  = "hashicorp/null"
-      version = "3.3.0"
+      version = "3.3.1"
     }
     random = {
       source  = "hashicorp/random"
@@ -19,7 +19,7 @@ terraform {
     }
     time = {
       source  = "hashicorp/time"
-      version = "0.14.0"
+      version = "0.14.1"
     }
   }
 }
