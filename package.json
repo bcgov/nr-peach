@@ -53,10 +53,10 @@
     "express-rate-limit": "8.6.2",
     "fast-json-stable-stringify": "2.1.0",
     "helmet": "8.3.0",
-    "js-yaml": "5.2.3",
+    "js-yaml": "5.3.0",
     "jsonwebtoken": "9.0.3",
     "jwks-rsa": "4.1.0",
-    "kysely": "0.29.4",
+    "kysely": "0.29.5",
     "kysely-codegen": "0.20.0",
     "kysely-ctl": "0.21.0",
     "lru-cache": "11.5.2",
@@ -66,8 +66,8 @@
     "serve-favicon": "2.5.1"
   },
   "devDependencies": {
-    "@commitlint/cli": "21.2.1",
-    "@commitlint/config-conventional": "21.2.0",
+    "@commitlint/cli": "21.2.2",
+    "@commitlint/config-conventional": "21.2.2",
     "@eslint/js": "10.0.1",
     "@types/compression": "1.8.1",
     "@types/cors": "2.8.19",
