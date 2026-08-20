@@ -8,8 +8,27 @@ import {
   createUpdatedAtTrigger,
   dropAuditLogTrigger,
   dropIndex,
-  dropUpdatedAtTrigger
+  dropUpdatedAtTrigger,
+  renameConstraints
 } from '#src/db/index';
+
+const ASSET_CONSTRAINTS = [
+  ['system_record_created_at_not_null', 'asset_created_at_not_null'],
+  ['system_record_created_by_not_null', 'asset_created_by_not_null'],
+  ['system_record_id_not_null', 'asset_id_not_null'],
+  ['system_record_record_id_not_null', 'asset_asset_id_not_null'],
+  ['system_record_record_kind_id_not_null', 'asset_asset_kind_id_not_null'],
+  ['system_record_system_id_not_null', 'asset_system_id_not_null']
+] as const;
+const ASSET_KIND_CONSTRAINTS = [
+  ['record_kind_version_id_kind_unique', 'asset_kind_version_id_kind_unique'],
+  ['record_kind_created_at_not_null', 'asset_kind_created_at_not_null'],
+  ['record_kind_created_by_not_null', 'asset_kind_created_by_not_null'],
+  ['record_kind_id_not_null', 'asset_kind_id_not_null'],
+  ['record_kind_kind_not_null', 'asset_kind_kind_not_null'],
+  ['record_kind_pkey', 'asset_kind_pkey'],
+  ['record_kind_version_id_not_null', 'asset_kind_version_id_not_null']
+] as const;
 
 /**
  * @param db - Database
@@ -41,75 +60,9 @@ export async function up(db: Kysely<unknown>): Promise<void> {
   await db.schema.withSchema('pies').alterTable('record_kind').renameTo('asset_kind').execute();
   await sql`ALTER SEQUENCE pies.record_kind_id_seq RENAME TO asset_kind_id_seq;`.execute(db);
 
-  // Rename unique constraint
-  await db.schema
-    .withSchema('pies')
-    .alterTable('asset_kind')
-    .renameConstraint('record_kind_version_id_kind_unique', 'asset_kind_version_id_kind_unique')
-    .execute();
-
-  // Constraint rename housekeeping
-  await db.schema
-    .withSchema('pies')
-    .alterTable('asset_kind')
-    .renameConstraint('record_kind_created_at_not_null', 'asset_kind_created_at_not_null')
-    .execute();
-  await db.schema
-    .withSchema('pies')
-    .alterTable('asset_kind')
-    .renameConstraint('record_kind_created_by_not_null', 'asset_kind_created_by_not_null')
-    .execute();
-  await db.schema
-    .withSchema('pies')
-    .alterTable('asset_kind')
-    .renameConstraint('record_kind_id_not_null', 'asset_kind_id_not_null')
-    .execute();
-  await db.schema
-    .withSchema('pies')
-    .alterTable('asset_kind')
-    .renameConstraint('record_kind_kind_not_null', 'asset_kind_kind_not_null')
-    .execute();
-  await db.schema
-    .withSchema('pies')
-    .alterTable('asset_kind')
-    .renameConstraint('record_kind_pkey', 'asset_kind_pkey')
-    .execute();
-  await db.schema
-    .withSchema('pies')
-    .alterTable('asset_kind')
-    .renameConstraint('record_kind_version_id_not_null', 'asset_kind_version_id_not_null')
-    .execute();
-
-  await db.schema
-    .withSchema('pies')
-    .alterTable('asset')
-    .renameConstraint('system_record_created_at_not_null', 'asset_created_at_not_null')
-    .execute();
-  await db.schema
-    .withSchema('pies')
-    .alterTable('asset')
-    .renameConstraint('system_record_created_by_not_null', 'asset_created_by_not_null')
-    .execute();
-  await db.schema
-    .withSchema('pies')
-    .alterTable('asset')
-    .renameConstraint('system_record_id_not_null', 'asset_id_not_null')
-    .execute();
-  await db.schema
-    .withSchema('pies')
-    .alterTable('asset')
-    .renameConstraint('system_record_record_id_not_null', 'asset_asset_id_not_null')
-    .execute();
-  await db.schema
-    .withSchema('pies')
-    .alterTable('asset')
-    .renameConstraint('system_record_record_kind_id_not_null', 'asset_asset_kind_id_not_null')
-    .execute();
-  await db.schema
-    .withSchema('pies')
-    .alterTable('asset')
-    .renameConstraint('system_record_system_id_not_null', 'asset_system_id_not_null')
-    .execute();
+  // Rename constraints
+  await renameConstraints(db, 'pies', 'asset_kind', ASSET_KIND_CONSTRAINTS);
+  await renameConstraints(db, 'pies', 'asset', ASSET_CONSTRAINTS);
 
   //
   // Rename asset.record_kind_id and asset.record_id columns
@@ -191,14 +144,7 @@ export async function down(db: Kysely<unknown>): Promise<void> {
   // Downcase all kind values back to camel case
   //
 
-  await sql`
-    UPDATE pies.asset_kind SET kind =
-      CASE kind
-        WHEN 'ANCHOR' THEN 'Anchor'
-        WHEN 'PERMIT' THEN 'Permit'
-        ELSE kind
-      END;
-  `.execute(db);
+  await sql`UPDATE pies.asset_kind SET kind = INITCAP(kind);`.execute(db);
 
   //
   // Rename asset_kind back to record_kind and update columns in asset
@@ -208,75 +154,12 @@ export async function down(db: Kysely<unknown>): Promise<void> {
   await db.schema.withSchema('pies').alterTable('asset_kind').renameTo('record_kind').execute();
   await sql`ALTER SEQUENCE pies.asset_kind_id_seq RENAME TO record_kind_id_seq;`.execute(db);
 
-  // Rename unique constraint
-  await db.schema
-    .withSchema('pies')
-    .alterTable('record_kind')
-    .renameConstraint('asset_kind_version_id_kind_unique', 'record_kind_version_id_kind_unique')
-    .execute();
+  // Rename constraints
+  const invert = (pairs: readonly (readonly [string, string])[]): readonly (readonly [string, string])[] =>
+    pairs.map(([from, to]) => [to, from]);
 
-  // Constraint rename housekeeping
-  await db.schema
-    .withSchema('pies')
-    .alterTable('record_kind')
-    .renameConstraint('asset_kind_created_at_not_null', 'record_kind_created_at_not_null')
-    .execute();
-  await db.schema
-    .withSchema('pies')
-    .alterTable('record_kind')
-    .renameConstraint('asset_kind_created_by_not_null', 'record_kind_created_by_not_null')
-    .execute();
-  await db.schema
-    .withSchema('pies')
-    .alterTable('record_kind')
-    .renameConstraint('asset_kind_id_not_null', 'record_kind_id_not_null')
-    .execute();
-  await db.schema
-    .withSchema('pies')
-    .alterTable('record_kind')
-    .renameConstraint('asset_kind_kind_not_null', 'record_kind_kind_not_null')
-    .execute();
-  await db.schema
-    .withSchema('pies')
-    .alterTable('record_kind')
-    .renameConstraint('asset_kind_pkey', 'record_kind_pkey')
-    .execute();
-  await db.schema
-    .withSchema('pies')
-    .alterTable('record_kind')
-    .renameConstraint('asset_kind_version_id_not_null', 'record_kind_version_id_not_null')
-    .execute();
-
-  await db.schema
-    .withSchema('pies')
-    .alterTable('asset')
-    .renameConstraint('asset_created_at_not_null', 'system_record_created_at_not_null')
-    .execute();
-  await db.schema
-    .withSchema('pies')
-    .alterTable('asset')
-    .renameConstraint('asset_created_by_not_null', 'system_record_created_by_not_null')
-    .execute();
-  await db.schema
-    .withSchema('pies')
-    .alterTable('asset')
-    .renameConstraint('asset_id_not_null', 'system_record_id_not_null')
-    .execute();
-  await db.schema
-    .withSchema('pies')
-    .alterTable('asset')
-    .renameConstraint('asset_asset_id_not_null', 'system_record_record_id_not_null')
-    .execute();
-  await db.schema
-    .withSchema('pies')
-    .alterTable('asset')
-    .renameConstraint('asset_asset_kind_id_not_null', 'system_record_record_kind_id_not_null')
-    .execute();
-  await db.schema
-    .withSchema('pies')
-    .alterTable('asset')
-    .renameConstraint('asset_system_id_not_null', 'system_record_system_id_not_null')
-    .execute();
+  await renameConstraints(db, 'pies', 'record_kind', invert(ASSET_KIND_CONSTRAINTS));
+  await renameConstraints(db, 'pies', 'asset', invert(ASSET_CONSTRAINTS));
 
   //
   // Rename asset.asset_kind_id and asset.asset_id columns

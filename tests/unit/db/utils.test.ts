@@ -10,6 +10,7 @@ import {
   dropAuditLogTrigger,
   dropIndex,
   dropUpdatedAtTrigger,
+  renameConstraints,
   withTimestamps
 } from '#src/db/utils';
 
@@ -18,10 +19,12 @@ import type { Mock } from 'vitest';
 
 interface ExtendedKysely extends Kysely<unknown> {
   schema: SchemaModule & {
+    alterTable: () => unknown;
     columns: () => unknown;
     execute: () => unknown;
     ifExists: () => unknown;
     on: () => unknown;
+    renameConstraint: () => unknown;
   };
 }
 
@@ -118,6 +121,62 @@ describe('DB Utils', () => {
     // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(sql.id).toHaveBeenCalledWith('public', 'test_table');
     expect(execute).toEqual(qb);
+  });
+
+  it('should rename a single constraint', async () => {
+    await renameConstraints(qb, 'public', 'test_table', [['old_constraint', 'new_constraint']]);
+
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    expect(qb.schema.withSchema).toHaveBeenCalledWith('public');
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    expect(qb.schema.alterTable).toHaveBeenCalledWith('test_table');
+
+    expect(qb.schema.renameConstraint).toHaveBeenCalledWith('old_constraint', 'new_constraint');
+    expect(qb.schema.execute).toHaveBeenCalled();
+  });
+
+  it('should rename multiple constraints', async () => {
+    await renameConstraints(qb, 'public', 'test_table', [
+      ['constraint_1_old', 'constraint_1_new'],
+      ['constraint_2_old', 'constraint_2_new'],
+      ['constraint_3_old', 'constraint_3_new']
+    ]);
+
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    expect(qb.schema.withSchema).toHaveBeenCalledTimes(3);
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    expect(qb.schema.withSchema).toHaveBeenNthCalledWith(1, 'public');
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    expect(qb.schema.withSchema).toHaveBeenNthCalledWith(2, 'public');
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    expect(qb.schema.withSchema).toHaveBeenNthCalledWith(3, 'public');
+
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    expect(qb.schema.alterTable).toHaveBeenCalledTimes(3);
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    expect(qb.schema.alterTable).toHaveBeenNthCalledWith(1, 'test_table');
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    expect(qb.schema.alterTable).toHaveBeenNthCalledWith(2, 'test_table');
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    expect(qb.schema.alterTable).toHaveBeenNthCalledWith(3, 'test_table');
+
+    expect(qb.schema.renameConstraint).toHaveBeenCalledTimes(3);
+    expect(qb.schema.renameConstraint).toHaveBeenNthCalledWith(1, 'constraint_1_old', 'constraint_1_new');
+    expect(qb.schema.renameConstraint).toHaveBeenNthCalledWith(2, 'constraint_2_old', 'constraint_2_new');
+    expect(qb.schema.renameConstraint).toHaveBeenNthCalledWith(3, 'constraint_3_old', 'constraint_3_new');
+
+    expect(qb.schema.execute).toHaveBeenCalledTimes(3);
+  });
+
+  it('should handle empty renames array', async () => {
+    await renameConstraints(qb, 'public', 'test_table', []);
+
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    expect(qb.schema.withSchema).not.toHaveBeenCalled();
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    expect(qb.schema.alterTable).not.toHaveBeenCalled();
+    expect(qb.schema.renameConstraint).not.toHaveBeenCalled();
+    expect(qb.schema.execute).not.toHaveBeenCalled();
   });
 
   it('should add timestamps to a table builder', () => {
