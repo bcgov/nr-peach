@@ -98,6 +98,24 @@ export function dropUpdatedAtTrigger(
 }
 
 /**
+ * Rename a set of constraints for a given table.
+ * @param qb - Query Builder
+ * @param schema - Schema
+ * @param table - Table
+ * @param renames - Tuple list of [from, to] constraint names
+ */
+export async function renameConstraints(
+  qb: Kysely<unknown>,
+  schema: string,
+  table: string,
+  renames: readonly (readonly [string, string])[]
+): Promise<void> {
+  for (const [from, to] of renames) {
+    await qb.schema.withSchema(schema).alterTable(table).renameConstraint(from, to).execute();
+  }
+}
+
+/**
  * Adds timestamps to a table builder.
  * @param qb - The table builder to add timestamps to.
  * @returns The table builder with timestamps added. Should be invoked within a $call.
