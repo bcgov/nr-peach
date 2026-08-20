@@ -21,6 +21,16 @@ export interface PiesAsset {
   updatedBy: string | null;
 }
 
+export interface PiesAssetKind {
+  createdAt: Generated<Timestamp>;
+  createdBy: Generated<string>;
+  id: Generated<number>;
+  kind: string;
+  updatedAt: Timestamp | null;
+  updatedBy: string | null;
+  versionId: string;
+}
+
 export interface PiesCoding {
   code: string;
   codeSystem: string;
@@ -65,16 +75,6 @@ export interface PiesProcessEvent {
   updatedBy: string | null;
 }
 
-export interface PiesRecordKind {
-  createdAt: Generated<Timestamp>;
-  createdBy: Generated<string>;
-  id: Generated<number>;
-  kind: string;
-  updatedAt: Timestamp | null;
-  updatedBy: string | null;
-  versionId: string;
-}
-
 export interface PiesRecordLinkage {
   assetId: number;
   createdAt: Generated<Timestamp>;
@@ -112,10 +112,10 @@ export interface PiesVersion {
 
 export interface DB {
   'pies.asset': PiesAsset;
+  'pies.assetKind': PiesAssetKind;
   'pies.coding': PiesCoding;
   'pies.onHoldEvent': PiesOnHoldEvent;
   'pies.processEvent': PiesProcessEvent;
-  'pies.recordKind': PiesRecordKind;
   'pies.recordLinkage': PiesRecordLinkage;
   'pies.system': PiesSystem;
   'pies.transaction': PiesTransaction;

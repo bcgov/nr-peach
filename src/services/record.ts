@@ -10,10 +10,10 @@ import {
 } from './helpers/index.ts';
 import {
   AssetRepository,
+  AssetKindRepository,
   CodingRepository,
   OnHoldEventRepository,
   ProcessEventRepository,
-  RecordKindRepository,
   SystemRepository,
   TransactionRepository,
   VersionRepository
@@ -34,7 +34,7 @@ const log = getLogger(import.meta.filename);
 export const findRecordService = (asset: Selectable<PiesAsset>): Promise<PiesRecord> => {
   return transactionWrapper(
     async (trx) => {
-      const recordKind = await cacheableRead(new RecordKindRepository(trx), asset.recordKindId).catch((error) => {
+      const recordKind = await cacheableRead(new AssetKindRepository(trx), asset.recordKindId).catch((error) => {
         log.warn(`No record kind found, ${error}`);
         throw new Problem(404, { detail: 'No record kind found.' });
       });
@@ -149,7 +149,7 @@ export const replaceRecordService = (data: PiesRecord, principal?: string): Prom
       cacheableUpsert(new VersionRepository(trx), { id: data.version })
     ]);
 
-    const recordKind = await cacheableUpsert(new RecordKindRepository(trx), {
+    const recordKind = await cacheableUpsert(new AssetKindRepository(trx), {
       kind: data.record_kind,
       versionId: data.version
     });

@@ -11,10 +11,10 @@ import {
 
 import {
   AssetRepository,
+  AssetKindRepository,
   CodingRepository,
   OnHoldEventRepository,
   ProcessEventRepository,
-  RecordKindRepository,
   SystemRepository,
   TransactionRepository,
   VersionRepository
@@ -77,7 +77,7 @@ describe('recordService', () => {
       const result = await findRecordService(systemRecord);
 
       expect(transactionWrapper).toHaveBeenCalledTimes(1);
-      expect(cacheableRead).toHaveBeenNthCalledWith(1, new RecordKindRepository(), systemRecord.recordKindId);
+      expect(cacheableRead).toHaveBeenNthCalledWith(1, new AssetKindRepository(), systemRecord.recordKindId);
       expect(cacheableRead).toHaveBeenNthCalledWith(2, new CodingRepository(), processEventsRaw[0]?.codingId);
       expect(ProcessEventRepository).toHaveBeenCalledTimes(1);
       expect(ProcessEventRepository).toHaveBeenCalledWith(expect.anything());
@@ -285,7 +285,7 @@ describe('recordService', () => {
       (VersionRepository as Mock).mockImplementation(function () {
         return { upsert: cacheableUpsert };
       });
-      (RecordKindRepository as Mock).mockImplementation(function () {
+      (AssetKindRepository as Mock).mockImplementation(function () {
         return { upsert: cacheableUpsert };
       });
       (AssetRepository as Mock).mockImplementation(function () {
