@@ -11,11 +11,11 @@ export type Generated<T> =
 export type Timestamp = ColumnType<Date, Date | string, Date | string>;
 
 export interface PiesAsset {
+  assetId: string;
+  assetKindId: number;
   createdAt: Generated<Timestamp>;
   createdBy: Generated<string>;
   id: Generated<number>;
-  recordId: string;
-  recordKindId: number;
   systemId: string;
   updatedAt: Timestamp | null;
   updatedBy: string | null;

@@ -30,9 +30,9 @@ type CodeSetTuple = [string] | [string, string] | [string, string, string];
 describe('recordService', () => {
   const systemRecord = {
     id: 1,
-    recordKindId: 2,
+    assetKindId: 2,
     systemId: 'sys-1',
-    recordId: 'rec-1'
+    assetId: 'rec-1'
   } as Selectable<PiesAsset>;
 
   describe('findRecordService', () => {
@@ -77,14 +77,14 @@ describe('recordService', () => {
       const result = await findRecordService(systemRecord);
 
       expect(transactionWrapper).toHaveBeenCalledTimes(1);
-      expect(cacheableRead).toHaveBeenNthCalledWith(1, new AssetKindRepository(), systemRecord.recordKindId);
+      expect(cacheableRead).toHaveBeenNthCalledWith(1, new AssetKindRepository(), systemRecord.assetKindId);
       expect(cacheableRead).toHaveBeenNthCalledWith(2, new CodingRepository(), processEventsRaw[0]?.codingId);
       expect(ProcessEventRepository).toHaveBeenCalledTimes(1);
       expect(ProcessEventRepository).toHaveBeenCalledWith(expect.anything());
       expect(result).toMatchObject({
         kind: 'Record',
         system_id: systemRecord.systemId,
-        record_id: systemRecord.recordId,
+        record_id: systemRecord.assetId,
         record_kind: 'Permit',
         version: 'v1',
         on_hold_event_set: [
