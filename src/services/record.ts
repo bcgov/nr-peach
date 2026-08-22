@@ -34,7 +34,7 @@ const log = getLogger(import.meta.filename);
 export const findRecordService = (asset: Selectable<PiesAsset>): Promise<PiesRecord> => {
   return transactionWrapper(
     async (trx) => {
-      const recordKind = await cacheableRead(new AssetKindRepository(trx), asset.recordKindId).catch((error) => {
+      const assetKind = await cacheableRead(new AssetKindRepository(trx), asset.assetKindId).catch((error) => {
         log.warn(`No record kind found, ${error}`);
         throw new Problem(404, { detail: 'No record kind found.' });
       });
@@ -102,11 +102,11 @@ export const findRecordService = (asset: Selectable<PiesAsset>): Promise<PiesRec
 
       return {
         transaction_id: randomUUIDv7(),
-        version: recordKind.versionId,
+        version: assetKind.versionId,
         kind: 'Record',
         system_id: asset.systemId,
-        record_id: asset.recordId,
-        record_kind: recordKind.kind as Header['record_kind'],
+        record_id: asset.assetId,
+        record_kind: assetKind.kind as Header['record_kind'],
         on_hold_event_set: onHoldEvents,
         process_event_set: processEvents
       } satisfies PiesRecord;
@@ -149,13 +149,13 @@ export const replaceRecordService = (data: PiesRecord, principal?: string): Prom
       cacheableUpsert(new VersionRepository(trx), { id: data.version })
     ]);
 
-    const recordKind = await cacheableUpsert(new AssetKindRepository(trx), {
+    const assetKind = await cacheableUpsert(new AssetKindRepository(trx), {
       kind: data.record_kind,
       versionId: data.version
     });
     const asset = await findWhereOrUpsert(new AssetRepository(trx), {
-      recordId: data.record_id,
-      recordKindId: recordKind.id,
+      assetId: data.record_id,
+      assetKindId: assetKind.id,
       systemId: data.system_id
     });
 
