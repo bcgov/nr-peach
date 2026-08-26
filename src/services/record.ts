@@ -43,7 +43,7 @@ export const findRecordService = (asset: Selectable<PiesAsset>): Promise<PiesRec
 
       const onHoldEventsRaw = await new OnHoldEventRepository(trx).findWhere({ assetId: asset.id }).execute();
 
-      let onHoldEvents: CodingEvent[] | undefined;
+      let onHoldEvents: CodingEvent[] = [];
       if (onHoldEventsRaw.length) {
         onHoldEvents = await Promise.all(
           onHoldEventsRaw.map(async (pe) => {
@@ -70,7 +70,7 @@ export const findRecordService = (asset: Selectable<PiesAsset>): Promise<PiesRec
         );
       }
 
-      let processEvents: ProcessEvent[] | undefined;
+      let processEvents: ProcessEvent[] = [];
       if (processEventsRaw.length) {
         processEvents = await Promise.all(
           processEventsRaw.map(async (pe) => {
@@ -105,7 +105,9 @@ export const findRecordService = (asset: Selectable<PiesAsset>): Promise<PiesRec
         version: assetKind.versionId,
         kind: 'Record',
         system_id: asset.systemId,
+        asset_id: asset.assetId,
         record_id: asset.assetId,
+        asset_kind: assetKind.kind as Header['asset_kind'],
         record_kind: assetKind.kind as Header['record_kind'],
         on_hold_event_set: onHoldEvents,
         process_event_set: processEvents
@@ -150,11 +152,11 @@ export const replaceRecordService = (data: PiesRecord, principal?: string): Prom
     ]);
 
     const assetKind = await cacheableUpsert(new AssetKindRepository(trx), {
-      kind: data.record_kind,
+      kind: data.asset_kind ?? data.record_kind,
       versionId: data.version
     });
     const asset = await findWhereOrUpsert(new AssetRepository(trx), {
-      assetId: data.record_id,
+      assetId: data.asset_id ?? data.record_id!,
       assetKindId: assetKind.id,
       systemId: data.system_id
     });

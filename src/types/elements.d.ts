@@ -13,10 +13,9 @@
  */
 
 /**
- * Represents a specific record.
+ * Represents a message envelope for transmitting asset records.
  */
-export type Record = Record1 & Record2;
-export type Record1 = Header;
+export type Record = Header & Permit;
 /**
  * Represents the standard message tracking envelope, incorporating specific asset attributes for system and record
  * identification.
@@ -43,14 +42,22 @@ export type Process1 = Coding;
  */
 export interface Asset {
   /**
-   * A valid CSNR IT Service Management code which identifies the source system, service or asset that the data
-   * originates from.
+   * The asset or primary key representing what the data this message is directly associated to.
+   */
+  asset_id?: string;
+  /**
+   * A valid Asset Kind code that specifies the precise type of asset contained in this message.
+   */
+  asset_kind: 'ANCHOR' | 'PERMIT' | 'PROJECT';
+  /**
+   * A valid CSNR IT Service Management code which identifies the source system or service that the data originates
+   * from.
    */
   system_id: string;
   /**
    * The record or primary key representing what the data this message is directly associated to.
    */
-  record_id: string;
+  record_id?: string;
   /**
    * The kind of record the source system stores this record as (for example, Anchor or Permit).
    */
@@ -68,11 +75,14 @@ export interface Header2 {
   /**
    * The specific kind of PIES message data type this message represents.
    */
-  kind: 'Record' | 'RecordLinkage';
+  kind: 'GROUP' | 'LINKAGE' | 'RECORD' | 'Record' | 'RecordLinkage';
 }
-export interface Record2 {
-  on_hold_event_set?: CodingEvent[];
-  process_event_set?: ProcessEvent[];
+/**
+ * Represents a permit.
+ */
+export interface Permit {
+  on_hold_event_set: CodingEvent[];
+  process_event_set: ProcessEvent[];
 }
 /**
  * Represents a coding concept at a specific event in time.
@@ -157,6 +167,19 @@ export interface Process2 {
    */
   status_description?: string;
 }
+/**
+ * Represents an anchor.
+ */
+export type Anchor = Record<string, unknown>;
+/**
+ * Represents a collection.
+ */
+export type Collection = Record<string, unknown>;
+/**
+ * Represents a project.
+ */
+// eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
+export type Project = Collection & Record<string, unknown>;
 
 /**
  * Represents an assertion for a specific record to be related or linked together.

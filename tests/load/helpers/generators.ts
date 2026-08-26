@@ -105,6 +105,7 @@ export function generateRecord(systemId?: number, recordId?: string): Record {
     kind: 'Record',
     system_id: `ITSM-${systemId ? systemId.toString() : randomIntBetween(1000, 99999).toString()}`,
     record_id: recordId ?? `${RECORD_PREFIX}${randomIntBetween(1, MAX_RECORD_ID)}`,
+    asset_kind: 'PERMIT',
     record_kind: 'Permit',
     on_hold_event_set: uniqByKeepFirst(onHoldEvents, (item) => item.coding.code),
     process_event_set: uniqByKeepFirst(processEvents, (item) => item.process.code)

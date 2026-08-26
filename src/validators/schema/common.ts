@@ -1,5 +1,7 @@
 import type { SchemaObject } from 'ajv';
 
+export const asset_id: SchemaObject = { type: 'string' };
+
 export const record_id: SchemaObject = { type: 'string' };
 
 export const system_id: SchemaObject = {

@@ -3,10 +3,13 @@ import type { ParsedQs } from 'qs';
 
 /** An object that represents a typical query for an asset. */
 export interface AssetQuery extends ParsedQs {
-  /** The ID of the record to be queried. */
-  record_id: string;
+  /** The ID of the asset to be queried. */
+  asset_id: string;
 
-  /** The ID of the system to which the record belongs. */
+  /** The ID of the record to be queried. */
+  record_id: string; // To be removed in a later update
+
+  /** The ID of the system to which the asset belongs. */
   system_id?: string;
 }
 

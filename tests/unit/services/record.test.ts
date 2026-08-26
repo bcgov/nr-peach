@@ -222,6 +222,7 @@ describe('recordService', () => {
       kind: 'Record',
       system_id: 'sys-1',
       record_id: 'rec-1',
+      asset_kind: 'PERMIT',
       record_kind: 'Permit',
       on_hold_event_set: [
         {
