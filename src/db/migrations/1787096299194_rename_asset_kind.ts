@@ -13,6 +13,7 @@ import {
 } from '#src/db/index';
 
 const ASSET_CONSTRAINTS = [
+  ['asset_system_id_record_id_unique', 'asset_system_id_asset_id_unique'],
   ['system_record_created_at_not_null', 'asset_created_at_not_null'],
   ['system_record_created_by_not_null', 'asset_created_by_not_null'],
   ['system_record_id_not_null', 'asset_id_not_null'],
@@ -45,7 +46,6 @@ export async function up(db: Kysely<unknown>): Promise<void> {
   await dropIndex(db, 'pies', 'asset', ['system_id']);
   await db.schema.withSchema('pies').alterTable('asset').dropConstraint('asset_record_kind_id_fkey').execute();
   await db.schema.withSchema('pies').alterTable('asset').dropConstraint('asset_system_id_fkey').execute();
-  await db.schema.withSchema('pies').alterTable('asset').dropConstraint('asset_system_id_record_id_unique').execute();
 
   // record_kind
   await dropAuditLogTrigger(db, 'pies', 'record_kind');
@@ -89,11 +89,6 @@ export async function up(db: Kysely<unknown>): Promise<void> {
   await db.schema
     .withSchema('pies')
     .alterTable('asset')
-    .addUniqueConstraint('asset_system_id_asset_id_unique', ['system_id', 'asset_id'])
-    .execute();
-  await db.schema
-    .withSchema('pies')
-    .alterTable('asset')
     .addForeignKeyConstraint('asset_asset_kind_id_fkey', ['asset_kind_id'], 'asset_kind', ['id'], (cb) =>
       cb.onUpdate('cascade').onDelete('cascade')
     )
@@ -133,7 +128,6 @@ export async function down(db: Kysely<unknown>): Promise<void> {
   await dropIndex(db, 'pies', 'asset', ['system_id']);
   await db.schema.withSchema('pies').alterTable('asset').dropConstraint('asset_asset_kind_id_fkey').execute();
   await db.schema.withSchema('pies').alterTable('asset').dropConstraint('asset_system_id_fkey').execute();
-  await db.schema.withSchema('pies').alterTable('asset').dropConstraint('asset_system_id_asset_id_unique').execute();
 
   // asset_kind
   await dropAuditLogTrigger(db, 'pies', 'asset_kind');
@@ -177,11 +171,6 @@ export async function down(db: Kysely<unknown>): Promise<void> {
   await createAuditLogTrigger(db, 'pies', 'asset');
   await createIndex(db, 'pies', 'asset', ['record_id']);
   await createIndex(db, 'pies', 'asset', ['system_id']);
-  await db.schema
-    .withSchema('pies')
-    .alterTable('asset')
-    .addUniqueConstraint('asset_system_id_record_id_unique', ['system_id', 'record_id'])
-    .execute();
   await db.schema
     .withSchema('pies')
     .alterTable('asset')
