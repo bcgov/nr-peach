@@ -1,5 +1,5 @@
 ---
-openapi: 3.0.2
+openapi: 3.2.0
 info:
   version: 0.1.0
   title: NR Peach API
