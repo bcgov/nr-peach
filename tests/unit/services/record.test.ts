@@ -82,7 +82,7 @@ describe('recordService', () => {
       expect(ProcessEventRepository).toHaveBeenCalledTimes(1);
       expect(ProcessEventRepository).toHaveBeenCalledWith(expect.anything());
       expect(result).toMatchObject({
-        kind: 'Record',
+        kind: 'RECORD',
         system_id: systemRecord.systemId,
         record_id: systemRecord.assetId,
         record_kind: 'Permit',
@@ -125,7 +125,7 @@ describe('recordService', () => {
       (cacheableRead as Mock).mockRejectedValueOnce(new Error('not found'));
       await expect(findRecordService(systemRecord)).rejects.toMatchObject({
         status: 404,
-        detail: 'No record kind found.'
+        detail: 'No asset kind found.'
       });
     });
 
@@ -219,7 +219,7 @@ describe('recordService', () => {
     const recordData: Record = {
       transaction_id: 'txn-1',
       version: 'v1',
-      kind: 'Record',
+      kind: 'RECORD',
       system_id: 'sys-1',
       record_id: 'rec-1',
       asset_kind: 'PERMIT',

@@ -35,7 +35,7 @@ describe('deleteAssetService', () => {
 describe('findSingleAssetService', () => {
   const assetId = 'rec-123';
   const systemId = 'sys-456';
-  const mockRecord = { recordId: assetId, systemId, foo: 'bar' };
+  const mockRecord = { assetId, systemId, foo: 'bar' };
 
   it('returns a single asset without systemId specified', async () => {
     executeMock.execute.mockResolvedValue([mockRecord]);
@@ -69,7 +69,7 @@ describe('findSingleAssetService', () => {
     await expect(findSingleAssetService(assetId)).rejects.toMatchObject({
       status: 404,
       detail: 'Asset not found',
-      record_id: assetId
+      asset_id: assetId
     });
   });
 
@@ -79,7 +79,7 @@ describe('findSingleAssetService', () => {
     await expect(findSingleAssetService(assetId, systemId)).rejects.toMatchObject({
       status: 404,
       detail: 'Asset not found',
-      record_id: assetId,
+      asset_id: assetId,
       system_id: systemId
     });
   });
@@ -90,7 +90,7 @@ describe('findSingleAssetService', () => {
     await expect(findSingleAssetService(assetId)).rejects.toMatchObject({
       status: 409,
       detail: 'Cannot disambiguate intended asset without `system_id`',
-      record_id: assetId
+      asset_id: assetId
     });
   });
 });

@@ -13,7 +13,8 @@ export const getRecordController = async (
   req: Request<never, never, never, AssetQuery>,
   res: Response<Record>
 ): Promise<void> => {
-  const asset = await findSingleAssetService(req.query.asset_id ?? req.query.record_id, req.query.system_id);
+  // TODO: Asset Transition - remove shim for record_id
+  const asset = await findSingleAssetService(req.query.asset_id ?? req.query.record_id!, req.query.system_id);
   const result = await findRecordService(asset);
   res.status(200).json(result);
 };
@@ -31,7 +32,8 @@ export const pruneRecordController = async (
   req: Request<never, never, never, AssetQuery>,
   res: Response
 ): Promise<void> => {
-  const asset = await findSingleAssetService(req.query.asset_id ?? req.query.record_id, req.query.system_id);
+  // TODO: Asset Transition - remove shim for record_id
+  const asset = await findSingleAssetService(req.query.asset_id ?? req.query.record_id!, req.query.system_id);
   await pruneRecordService(asset);
   res.status(204).end();
 };

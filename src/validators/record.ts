@@ -7,8 +7,8 @@ import type { RequestHandler } from 'express';
 export const getRecordSchemaValidator: RequestHandler = validateRequestSchema({
   query: {
     type: 'object',
-    properties: { asset_id, record_id, system_id }
-    // required: ['record_id'] // Temporarily disabled for change management. To restore in the future.
+    properties: { asset_id, record_id, system_id } // TODO: Asset Transition - drop record_id
+    // required: ['asset_id'] // TODO: Asset Transition - uncomment
   }
 });
 
@@ -23,8 +23,8 @@ export const postRecordSchemaValidator: RequestHandler = validateRequestSchema({
 export const pruneRecordSchemaValidator: RequestHandler = validateRequestSchema({
   query: {
     type: 'object',
-    properties: { asset_id, record_id, system_id }
-    // required: ['record_id'] // Temporarily disabled for change management. To restore in the future.
+    properties: { asset_id, record_id, system_id } // TODO: Asset Transition - drop record_id
+    // required: ['asset_id'] // TODO: Asset Transition - uncomment
   }
 });
 
