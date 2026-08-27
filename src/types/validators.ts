@@ -1,7 +1,7 @@
 import type { SchemaObject } from 'ajv';
 import type { IncomingHttpHeaders } from 'node:http';
 
-import type { Record as PiesRecord, RecordLinkage } from './elements.js';
+import type { PiesRecord, RecordLinkage } from './elements.js';
 
 /** Type for validating the integrity of an object's properties. */
 export type IntegrityValidator<T> = {

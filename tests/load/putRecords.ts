@@ -5,7 +5,7 @@ import http from 'k6/http';
 
 import { fetchBearerToken, generateRecord, parseEnv } from './helpers/index.ts';
 
-import type { Record } from '#types';
+import type { PiesRecord } from '#types';
 
 const env = parseEnv();
 
@@ -23,13 +23,13 @@ const RECORD_PREFIX = 'k6-test-';
 const SYSTEM_ID = 'ITSM-5917';
 const TOKEN_ENDPOINT = __ENV.TOKEN_ENDPOINT ?? env.TOKEN_ENDPOINT;
 
-const dataFile: readonly Record[] = (() => {
+const dataFile: readonly PiesRecord[] = (() => {
   if (DATA_FILE_PATH) {
-    return new SharedArray<Record>('data', () =>
+    return new SharedArray<PiesRecord>('data', () =>
       open(DATA_FILE_PATH)
         .split('\n')
         .filter((line) => line.trim() !== '')
-        .map((line) => JSON.parse(line) as Record)
+        .map((line) => JSON.parse(line) as PiesRecord)
     );
   }
   return [];
@@ -58,7 +58,7 @@ export function setup() {
  * - token - Bearer token for authorization
  */
 export default function main({ token }: { token: string }) {
-  let body: Record;
+  let body: PiesRecord;
   if (dataFile.length) {
     if (scenario.iterationInTest >= dataFile.length) {
       // eslint-disable-next-line no-console

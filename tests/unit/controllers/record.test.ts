@@ -11,7 +11,7 @@ import * as services from '#src/services/index';
 import { Problem } from '#src/utils/index';
 
 import type { Selectable } from 'kysely';
-import type { PiesAsset, Record } from '#types';
+import type { PiesAsset, PiesRecord } from '#types';
 
 describe('Record Controllers', () => {
   const checkDuplicateTransactionHeaderServiceSpy = vi.spyOn(services, 'checkDuplicateTransactionHeaderService');
@@ -21,7 +21,7 @@ describe('Record Controllers', () => {
   const replaceRecordServiceSpy = vi.spyOn(services, 'replaceRecordService');
 
   const fakeAsset = { id: 1 } as Selectable<PiesAsset>;
-  const fakeResult = {} as Record;
+  const fakeResult = {} as PiesRecord;
 
   let app: express.Application;
 

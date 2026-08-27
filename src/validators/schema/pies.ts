@@ -10,19 +10,23 @@ export const pies = Object.freeze({
       asset: 'data/asset',
       code: 'data/code',
       coding: 'data/coding',
+      collection: 'data/collection',
       event: 'data/event',
       header: 'data/header',
       parcelIdentifier: 'data/parcel_id',
       process: 'data/process'
-      // projectBundle: 'data/project_bundle'
+      // projectBundle: 'data/project_bundle' // Deprecated by resource.project
     },
     resource: {
+      anchor: 'resource/anchor',
       codingEvent: 'resource/coding_event',
-      processEvent: 'resource/process_event'
+      permit: 'resource/permit',
+      processEvent: 'resource/process_event',
+      project: 'resource/project'
     },
     message: {
       record: 'message/record',
-      recordLinkage: 'message/record_linkage'
+      recordLinkage: 'message/record_linkage' // Deprecated by record.linkage
     }
   },
   version: {

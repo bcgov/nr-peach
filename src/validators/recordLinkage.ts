@@ -1,4 +1,4 @@
-import { getPiesSchemaUri, pies, record_id, system_id } from './schema/index.ts';
+import { getPiesSchemaUri, pies, asset_id, system_id } from './schema/index.ts';
 import { validateRequestSchema } from '#src/middlewares/index';
 
 import type { RequestHandler } from 'express';
@@ -7,12 +7,12 @@ export const deleteRecordLinkagesSchemaValidator: RequestHandler = validateReque
   query: {
     type: 'object',
     properties: {
-      record_id,
+      asset_id,
       system_id,
-      linked_record_id: record_id,
+      linked_asset_id: asset_id,
       linked_system_id: system_id
     },
-    required: ['record_id', 'linked_record_id']
+    required: ['asset_id', 'linked_asset_id']
   }
 });
 
@@ -20,14 +20,14 @@ export const getRecordLinkagesSchemaValidator: RequestHandler = validateRequestS
   query: {
     type: 'object',
     properties: {
-      record_id,
+      asset_id,
       system_id,
       depth: {
         type: 'integer',
         minimum: -1
       }
     },
-    required: ['record_id']
+    required: ['asset_id']
   }
 });
 

@@ -1,7 +1,7 @@
 import * as auditors from '#src/validators/integrity/auditor';
 import { integrityValidators, IntegrityDefinitions } from '#src/validators/integrity/integrity';
 
-import type { IntegrityError, Record, RecordLinkage } from '#types';
+import type { IntegrityError, PiesRecord, RecordLinkage } from '#types';
 
 describe('IntegrityDefinitions', () => {
   it('should be immutable and map keys correctly', () => {
@@ -16,11 +16,12 @@ describe('integrityValidators', () => {
   const auditProcessEventSpy = vi.spyOn(auditors, 'auditProcessEvent');
 
   describe('record', () => {
-    const mockData: Record = {
+    const mockData: PiesRecord = {
       version: '1',
       kind: 'Record',
       system_id: 'sys',
       record_id: 'rec-2',
+      asset_kind: 'PERMIT',
       record_kind: 'Permit',
       transaction_id: '2',
       on_hold_event_set: [],
@@ -61,6 +62,7 @@ describe('integrityValidators', () => {
       kind: 'RecordLinkage',
       system_id: 'sys',
       record_id: 'rec-2',
+      asset_kind: 'PERMIT',
       record_kind: 'Permit',
       transaction_id: '2',
       linked_record_id: '2024-01-02T00:00:00Z',

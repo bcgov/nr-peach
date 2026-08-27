@@ -1,12 +1,6 @@
 import { auditHeader, auditOnHoldEvent, auditProcessEvent } from './auditor.ts';
 
-import type {
-  IntegrityDictionary,
-  IntegrityError,
-  IntegrityValidator,
-  Record as PiesRecord,
-  RecordLinkage
-} from '#types';
+import type { IntegrityDictionary, IntegrityError, IntegrityValidator, PiesRecord, RecordLinkage } from '#types';
 
 /** Defines immutable, idempotent integrity definitions mapping keys to values in `IntegrityDictionary`. */
 export const IntegrityDefinitions: Record<keyof IntegrityDictionary, keyof IntegrityDictionary> = Object.freeze({

@@ -23,12 +23,12 @@ describe('AssetRepository', () => {
     it('should call super with correct arguments', () => {
       new AssetRepository();
       expect(BaseRepositoryMock).toHaveBeenCalledTimes(1);
-      expect(BaseRepositoryMock).toHaveBeenCalledWith('pies.asset', undefined, ['asset_system_id_record_id_unique']);
+      expect(BaseRepositoryMock).toHaveBeenCalledWith('pies.asset', undefined, ['asset_system_id_asset_id_unique']);
     });
 
     it('should call super with db argument if provided', () => {
       new AssetRepository(mockDb);
-      expect(BaseRepositoryMock).toHaveBeenCalledWith('pies.asset', mockDb, ['asset_system_id_record_id_unique']);
+      expect(BaseRepositoryMock).toHaveBeenCalledWith('pies.asset', mockDb, ['asset_system_id_asset_id_unique']);
     });
   });
 });

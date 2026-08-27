@@ -1,5 +1,5 @@
 import { IntegrityDefinitions } from './integrity/index.ts';
-import { getPiesSchemaUri, pies, record_id, system_id } from './schema/index.ts';
+import { asset_id, getPiesSchemaUri, pies, record_id, system_id } from './schema/index.ts';
 import { validateRequestIntegrity, validateRequestSchema } from '#src/middlewares/index';
 
 import type { RequestHandler } from 'express';
@@ -7,8 +7,8 @@ import type { RequestHandler } from 'express';
 export const getRecordSchemaValidator: RequestHandler = validateRequestSchema({
   query: {
     type: 'object',
-    properties: { record_id, system_id },
-    required: ['record_id']
+    properties: { asset_id, record_id, system_id } // TODO: Asset Transition - drop record_id
+    // required: ['asset_id'] // TODO: Asset Transition - uncomment
   }
 });
 
@@ -23,8 +23,8 @@ export const postRecordSchemaValidator: RequestHandler = validateRequestSchema({
 export const pruneRecordSchemaValidator: RequestHandler = validateRequestSchema({
   query: {
     type: 'object',
-    properties: { record_id, system_id },
-    required: ['record_id']
+    properties: { asset_id, record_id, system_id } // TODO: Asset Transition - drop record_id
+    // required: ['asset_id'] // TODO: Asset Transition - uncomment
   }
 });
 

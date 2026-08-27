@@ -10,10 +10,10 @@ import {
 } from './helpers/index.ts';
 import {
   AssetRepository,
+  AssetKindRepository,
   CodingRepository,
   OnHoldEventRepository,
   ProcessEventRepository,
-  RecordKindRepository,
   SystemRepository,
   TransactionRepository,
   VersionRepository
@@ -21,7 +21,7 @@ import {
 import { CodingDictionary, getLogger, Problem, shallowEqual } from '#src/utils/index';
 
 import type { DeleteResult, Selectable } from 'kysely';
-import type { Coding, CodingEvent, Header, PiesAsset, Process, ProcessEvent, Record as PiesRecord } from '#types';
+import type { Coding, CodingEvent, Header, PiesAsset, Process, ProcessEvent, PiesRecord } from '#types';
 
 const log = getLogger(import.meta.filename);
 
@@ -34,16 +34,16 @@ const log = getLogger(import.meta.filename);
 export const findRecordService = (asset: Selectable<PiesAsset>): Promise<PiesRecord> => {
   return transactionWrapper(
     async (trx) => {
-      const recordKind = await cacheableRead(new RecordKindRepository(trx), asset.recordKindId).catch((error) => {
-        log.warn(`No record kind found, ${error}`);
-        throw new Problem(404, { detail: 'No record kind found.' });
+      const assetKind = await cacheableRead(new AssetKindRepository(trx), asset.assetKindId).catch((error) => {
+        log.warn(`No asset kind found, ${error}`);
+        throw new Problem(404, { detail: 'No asset kind found.' });
       });
 
       const processEventsRaw = await new ProcessEventRepository(trx).findWhere({ assetId: asset.id }).execute();
 
       const onHoldEventsRaw = await new OnHoldEventRepository(trx).findWhere({ assetId: asset.id }).execute();
 
-      let onHoldEvents: CodingEvent[] | undefined;
+      let onHoldEvents: CodingEvent[] = []; // TODO: Asset Transition - remove forced empty array assignment
       if (onHoldEventsRaw.length) {
         onHoldEvents = await Promise.all(
           onHoldEventsRaw.map(async (pe) => {
@@ -70,7 +70,7 @@ export const findRecordService = (asset: Selectable<PiesAsset>): Promise<PiesRec
         );
       }
 
-      let processEvents: ProcessEvent[] | undefined;
+      let processEvents: ProcessEvent[] = []; // TODO: Asset Transition - remove forced empty array assignment
       if (processEventsRaw.length) {
         processEvents = await Promise.all(
           processEventsRaw.map(async (pe) => {
@@ -102,11 +102,14 @@ export const findRecordService = (asset: Selectable<PiesAsset>): Promise<PiesRec
 
       return {
         transaction_id: randomUUIDv7(),
-        version: recordKind.versionId,
-        kind: 'Record',
+        version: assetKind.versionId,
+        kind: 'RECORD',
         system_id: asset.systemId,
-        record_id: asset.recordId,
-        record_kind: recordKind.kind as Header['record_kind'],
+        asset_id: asset.assetId,
+        record_id: asset.assetId, // TODO: Asset Transition - to remove
+        asset_kind: assetKind.kind as Header['asset_kind'],
+        record_kind: (assetKind.kind[0]!.toUpperCase() +
+          assetKind.kind.slice(1).toLowerCase()) as Header['record_kind'], // TODO: Asset Transition - to remove
         on_hold_event_set: onHoldEvents,
         process_event_set: processEvents
       } satisfies PiesRecord;
@@ -149,13 +152,13 @@ export const replaceRecordService = (data: PiesRecord, principal?: string): Prom
       cacheableUpsert(new VersionRepository(trx), { id: data.version })
     ]);
 
-    const recordKind = await cacheableUpsert(new RecordKindRepository(trx), {
-      kind: data.record_kind,
+    const assetKind = await cacheableUpsert(new AssetKindRepository(trx), {
+      kind: data.asset_kind ?? data.record_kind.toUpperCase(), // TODO: Asset Transition - remove shim
       versionId: data.version
     });
     const asset = await findWhereOrUpsert(new AssetRepository(trx), {
-      recordId: data.record_id,
-      recordKindId: recordKind.id,
+      assetId: data.asset_id ?? data.record_id!, // TODO: Asset Transition - remove shim
+      assetKindId: assetKind.id,
       systemId: data.system_id
     });
 

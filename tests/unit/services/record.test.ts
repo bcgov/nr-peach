@@ -11,10 +11,10 @@ import {
 
 import {
   AssetRepository,
+  AssetKindRepository,
   CodingRepository,
   OnHoldEventRepository,
   ProcessEventRepository,
-  RecordKindRepository,
   SystemRepository,
   TransactionRepository,
   VersionRepository
@@ -23,16 +23,16 @@ import { findRecordService, mergeRecordService, pruneRecordService, replaceRecor
 
 import type { Selectable } from 'kysely';
 import type { Mock } from 'vitest';
-import type { PiesAsset, Record } from '#types';
+import type { PiesAsset, PiesRecord } from '#types';
 
 type CodeSetTuple = [string] | [string, string] | [string, string, string];
 
 describe('recordService', () => {
   const systemRecord = {
     id: 1,
-    recordKindId: 2,
+    assetKindId: 2,
     systemId: 'sys-1',
-    recordId: 'rec-1'
+    assetId: 'rec-1'
   } as Selectable<PiesAsset>;
 
   describe('findRecordService', () => {
@@ -77,14 +77,14 @@ describe('recordService', () => {
       const result = await findRecordService(systemRecord);
 
       expect(transactionWrapper).toHaveBeenCalledTimes(1);
-      expect(cacheableRead).toHaveBeenNthCalledWith(1, new RecordKindRepository(), systemRecord.recordKindId);
+      expect(cacheableRead).toHaveBeenNthCalledWith(1, new AssetKindRepository(), systemRecord.assetKindId);
       expect(cacheableRead).toHaveBeenNthCalledWith(2, new CodingRepository(), processEventsRaw[0]?.codingId);
       expect(ProcessEventRepository).toHaveBeenCalledTimes(1);
       expect(ProcessEventRepository).toHaveBeenCalledWith(expect.anything());
       expect(result).toMatchObject({
-        kind: 'Record',
+        kind: 'RECORD',
         system_id: systemRecord.systemId,
-        record_id: systemRecord.recordId,
+        record_id: systemRecord.assetId,
         record_kind: 'Permit',
         version: 'v1',
         on_hold_event_set: [
@@ -125,7 +125,7 @@ describe('recordService', () => {
       (cacheableRead as Mock).mockRejectedValueOnce(new Error('not found'));
       await expect(findRecordService(systemRecord)).rejects.toMatchObject({
         status: 404,
-        detail: 'No record kind found.'
+        detail: 'No asset kind found.'
       });
     });
 
@@ -187,7 +187,7 @@ describe('recordService', () => {
 
   describe('mergeRecordService', () => {
     it('should throw a not implemented error', () => {
-      expect(() => mergeRecordService({} as Record)).toThrow('mergeRecordService not implemented');
+      expect(() => mergeRecordService({} as PiesRecord)).toThrow('mergeRecordService not implemented');
     });
   });
 
@@ -216,12 +216,13 @@ describe('recordService', () => {
   });
 
   describe('replaceRecordService', () => {
-    const recordData: Record = {
+    const recordData: PiesRecord = {
       transaction_id: 'txn-1',
       version: 'v1',
-      kind: 'Record',
+      kind: 'RECORD',
       system_id: 'sys-1',
       record_id: 'rec-1',
+      asset_kind: 'PERMIT',
       record_kind: 'Permit',
       on_hold_event_set: [
         {
@@ -285,7 +286,7 @@ describe('recordService', () => {
       (VersionRepository as Mock).mockImplementation(function () {
         return { upsert: cacheableUpsert };
       });
-      (RecordKindRepository as Mock).mockImplementation(function () {
+      (AssetKindRepository as Mock).mockImplementation(function () {
         return { upsert: cacheableUpsert };
       });
       (AssetRepository as Mock).mockImplementation(function () {
