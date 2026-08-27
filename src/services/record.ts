@@ -21,7 +21,7 @@ import {
 import { CodingDictionary, getLogger, Problem, shallowEqual } from '#src/utils/index';
 
 import type { DeleteResult, Selectable } from 'kysely';
-import type { Coding, CodingEvent, Header, PiesAsset, Process, ProcessEvent, Record as PiesRecord } from '#types';
+import type { Coding, CodingEvent, Header, PiesAsset, Process, ProcessEvent, PiesRecord } from '#types';
 
 const log = getLogger(import.meta.filename);
 

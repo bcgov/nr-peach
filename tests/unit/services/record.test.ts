@@ -23,7 +23,7 @@ import { findRecordService, mergeRecordService, pruneRecordService, replaceRecor
 
 import type { Selectable } from 'kysely';
 import type { Mock } from 'vitest';
-import type { PiesAsset, Record } from '#types';
+import type { PiesAsset, PiesRecord } from '#types';
 
 type CodeSetTuple = [string] | [string, string] | [string, string, string];
 
@@ -187,7 +187,7 @@ describe('recordService', () => {
 
   describe('mergeRecordService', () => {
     it('should throw a not implemented error', () => {
-      expect(() => mergeRecordService({} as Record)).toThrow('mergeRecordService not implemented');
+      expect(() => mergeRecordService({} as PiesRecord)).toThrow('mergeRecordService not implemented');
     });
   });
 
@@ -216,7 +216,7 @@ describe('recordService', () => {
   });
 
   describe('replaceRecordService', () => {
-    const recordData: Record = {
+    const recordData: PiesRecord = {
       transaction_id: 'txn-1',
       version: 'v1',
       kind: 'RECORD',

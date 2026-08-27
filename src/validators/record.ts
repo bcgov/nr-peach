@@ -1,5 +1,5 @@
 import { IntegrityDefinitions } from './integrity/index.ts';
-import { getPiesSchemaUri, pies, asset_id, record_id, system_id } from './schema/index.ts';
+import { asset_id, getPiesSchemaUri, pies, record_id, system_id } from './schema/index.ts';
 import { validateRequestIntegrity, validateRequestSchema } from '#src/middlewares/index';
 
 import type { RequestHandler } from 'express';

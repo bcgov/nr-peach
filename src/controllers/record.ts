@@ -7,11 +7,11 @@ import {
 } from '#src/services/index';
 
 import type { Request, Response } from 'express';
-import type { LocalContext, Record, AssetQuery } from '#types';
+import type { LocalContext, PiesRecord, AssetQuery } from '#types';
 
 export const getRecordController = async (
   req: Request<never, never, never, AssetQuery>,
-  res: Response<Record>
+  res: Response<PiesRecord>
 ): Promise<void> => {
   // TODO: Asset Transition - remove shim for record_id
   const asset = await findSingleAssetService(req.query.asset_id ?? req.query.record_id!, req.query.system_id);
@@ -20,7 +20,7 @@ export const getRecordController = async (
 };
 
 export const postRecordController = async (
-  req: Request<never, never, Record>,
+  req: Request<never, never, PiesRecord>,
   res: Response<never, LocalContext>
 ): Promise<void> => {
   await checkDuplicateTransactionHeaderService(req.body.transaction_id);
@@ -39,7 +39,7 @@ export const pruneRecordController = async (
 };
 
 export const putRecordController = async (
-  req: Request<never, never, Record>,
+  req: Request<never, never, PiesRecord>,
   res: Response<never, LocalContext>
 ): Promise<void> => {
   await checkDuplicateTransactionHeaderService(req.body.transaction_id);

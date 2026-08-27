@@ -15,7 +15,7 @@
 /**
  * Represents a message envelope for transmitting asset records.
  */
-export type Record = Header & Permit;
+export type PiesRecord = Header & Permit;
 /**
  * Represents the standard message tracking envelope, incorporating specific asset attributes for system and record
  * identification.
@@ -178,7 +178,7 @@ export type Collection = Record<string, unknown>;
 /**
  * Represents a project.
  */
-// eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
+
 export type Project = Collection & Record<string, unknown>;
 
 /**

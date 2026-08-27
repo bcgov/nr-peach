@@ -1,7 +1,7 @@
 import { parseEnv, randomIntBetween, randomItem, uniqByKeepFirst, uuidv7 } from './utils.ts';
 import { CodingDictionary } from '../../../src/utils/coding.ts';
 
-import type { Coding, CodingEvent, Event, Process, ProcessEvent, Record } from '#types';
+import type { Coding, CodingEvent, Event, Process, ProcessEvent, PiesRecord } from '#types';
 
 const env = parseEnv();
 
@@ -89,7 +89,7 @@ export function generateProcessEvent(): ProcessEvent {
  * @param recordId - The record identifier to associate with the record.
  * @returns A populated `Record` containing example record for testing or development purposes.
  */
-export function generateRecord(systemId?: number, recordId?: string): Record {
+export function generateRecord(systemId?: number, recordId?: string): PiesRecord {
   const onHoldEvents: CodingEvent[] = [];
   for (let count = 0; count < randomIntBetween(1, 3); count++) {
     onHoldEvents.push(generateOnHoldEvent());
