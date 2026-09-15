@@ -7,7 +7,7 @@
   "draftPR": false,
   "minimumReleaseAge": "3 days",
   "mode": "full",
-  "prConcurrentLimit": 3,
+  "prConcurrentLimit": 5,
   "pruneStaleBranches": true,
   "rangeStrategy": "pin",
   "schedule": ["* * * * 2"],
