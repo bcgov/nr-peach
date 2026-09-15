@@ -286,7 +286,7 @@ paths:
                 type: array
                 items:
                   $ref: >-
-                    https://raw.githubusercontent.com/bcgov/nr-pies/refs/heads/main/docs/spec/element/message/record_linkage.schema.json
+                    https://raw.githubusercontent.com/bcgov/nr-pies/refs/heads/main/docs/spec/element/message/linkage.schema.json
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -313,7 +313,7 @@ paths:
           application/json:
             schema:
               $ref: >-
-                https://raw.githubusercontent.com/bcgov/nr-pies/refs/heads/main/docs/spec/element/message/record_linkage.schema.json
+                https://raw.githubusercontent.com/bcgov/nr-pies/refs/heads/main/docs/spec/element/message/linkage.schema.json
       responses:
         '201':
           description: Created - Added a new Record with the associated RecordLinkage
@@ -372,7 +372,7 @@ paths:
           application/json:
             schema:
               $ref: >-
-                https://raw.githubusercontent.com/bcgov/nr-pies/refs/heads/main/docs/spec/element/message/record_linkage.schema.json
+                https://raw.githubusercontent.com/bcgov/nr-pies/refs/heads/main/docs/spec/element/message/linkage.schema.json
       responses:
         '200':
           description: OK - Validated the RecordLinkage without making any changes

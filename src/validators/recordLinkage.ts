@@ -32,5 +32,5 @@ export const getRecordLinkagesSchemaValidator: RequestHandler = validateRequestS
 });
 
 export const putRecordLinkagesSchemaValidator: RequestHandler = validateRequestSchema({
-  body: getPiesSchemaUri(pies.spec.message.recordLinkage)
+  body: getPiesSchemaUri(pies.spec.message.linkage)
 });

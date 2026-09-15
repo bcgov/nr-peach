@@ -26,7 +26,7 @@ export const pies = Object.freeze({
     },
     message: {
       record: 'message/record',
-      recordLinkage: 'message/record_linkage' // Deprecated by record.linkage
+      linkage: 'message/linkage' // Deprecated by record.linkage
     }
   },
   version: {
