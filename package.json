@@ -96,7 +96,7 @@
   },
   "allowScripts": {
     "fsevents@2.3.3": true,
-    "lefthook@2.1.12": true
+    "lefthook@2.1.14": true
   },
   "devEngines": {
     "runtime": {

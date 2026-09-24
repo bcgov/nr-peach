@@ -11,7 +11,6 @@
         "eamodio.gitlens",
         "editorconfig.editorconfig",
         "esbenp.prettier-vscode",
-        "gruntfuggly.todo-tree",
         "hashicorp.hcl",
         "hashicorp.terraform",
         "ms-azuretools.vscode-containers",
