@@ -432,7 +432,7 @@ components:
       in: query
       name: asset_id
       description: Asset Identifier
-      # required: true # To uncomment after change management is complete
+      required: true
       schema:
         $ref: '#/components/schemas/Attribute-AssetId'
     Query-Depth:
