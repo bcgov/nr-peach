@@ -44,7 +44,7 @@ export interface Asset {
   /**
    * The asset or primary key representing what the data this message is directly associated to.
    */
-  asset_id?: string;
+  asset_id: string;
   /**
    * A valid Asset Kind code that specifies the precise type of asset contained in this message.
    */
@@ -54,14 +54,6 @@ export interface Asset {
    * from.
    */
   system_id: string;
-  /**
-   * The record or primary key representing what the data this message is directly associated to.
-   */
-  record_id?: string;
-  /**
-   * The kind of record the source system stores this record as (for example, Anchor or Permit).
-   */
-  record_kind: 'Anchor' | 'Permit';
 }
 export interface Header2 {
   /**
@@ -75,7 +67,7 @@ export interface Header2 {
   /**
    * The specific kind of PIES message data type this message represents.
    */
-  kind: 'GROUP' | 'LINKAGE' | 'RECORD' | 'Record' | 'RecordLinkage';
+  kind: 'GROUP' | 'LINKAGE' | 'RECORD';
 }
 /**
  * Represents a permit.
@@ -200,5 +192,5 @@ export interface RecordLinkage2 {
   /**
    * The kind of record the source system stores this linked record as (for example, Anchor or Permit).
    */
-  linked_record_kind: 'Anchor' | 'Permit';
+  linked_record_kind: 'ANCHOR' | 'PERMIT' | 'PROJECT';
 }

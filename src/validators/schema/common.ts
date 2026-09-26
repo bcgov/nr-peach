@@ -2,8 +2,6 @@ import type { SchemaObject } from 'ajv';
 
 export const asset_id: SchemaObject = { type: 'string' };
 
-export const record_id: SchemaObject = { type: 'string' }; // TODO: Asset Transition - to remove
-
 export const system_id: SchemaObject = {
   type: 'string',
   pattern: String.raw`^ITSM-\d{4,5}$`

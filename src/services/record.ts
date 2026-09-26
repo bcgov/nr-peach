@@ -43,7 +43,7 @@ export const findRecordService = (asset: Selectable<PiesAsset>): Promise<PiesRec
 
       const onHoldEventsRaw = await new OnHoldEventRepository(trx).findWhere({ assetId: asset.id }).execute();
 
-      let onHoldEvents: CodingEvent[] = []; // TODO: Asset Transition - remove forced empty array assignment
+      let onHoldEvents: CodingEvent[] = [];
       if (onHoldEventsRaw.length) {
         onHoldEvents = await Promise.all(
           onHoldEventsRaw.map(async (pe) => {
@@ -70,7 +70,7 @@ export const findRecordService = (asset: Selectable<PiesAsset>): Promise<PiesRec
         );
       }
 
-      let processEvents: ProcessEvent[] = []; // TODO: Asset Transition - remove forced empty array assignment
+      let processEvents: ProcessEvent[] = [];
       if (processEventsRaw.length) {
         processEvents = await Promise.all(
           processEventsRaw.map(async (pe) => {
@@ -106,10 +106,7 @@ export const findRecordService = (asset: Selectable<PiesAsset>): Promise<PiesRec
         kind: 'RECORD',
         system_id: asset.systemId,
         asset_id: asset.assetId,
-        record_id: asset.assetId, // TODO: Asset Transition - to remove
         asset_kind: assetKind.kind as Header['asset_kind'],
-        record_kind: (assetKind.kind[0]!.toUpperCase() +
-          assetKind.kind.slice(1).toLowerCase()) as Header['record_kind'], // TODO: Asset Transition - to remove
         on_hold_event_set: onHoldEvents,
         process_event_set: processEvents
       } satisfies PiesRecord;
@@ -153,11 +150,11 @@ export const replaceRecordService = (data: PiesRecord, principal?: string): Prom
     ]);
 
     const assetKind = await cacheableUpsert(new AssetKindRepository(trx), {
-      kind: data.asset_kind ?? data.record_kind.toUpperCase(), // TODO: Asset Transition - remove shim
+      kind: data.asset_kind,
       versionId: data.version
     });
     const asset = await findWhereOrUpsert(new AssetRepository(trx), {
-      assetId: data.asset_id ?? data.record_id!, // TODO: Asset Transition - remove shim
+      assetId: data.asset_id,
       assetKindId: assetKind.id,
       systemId: data.system_id
     });

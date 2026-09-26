@@ -21,7 +21,7 @@ tags:
     externalDocs:
       url: https://github.com/bcgov/nr-peach/wiki/Endpoint-Notes#assets
   - name: Linkages
-    description: Operations for managing Record Linkages.
+    description: Operations for managing Linkages.
     externalDocs:
       url: https://github.com/bcgov/nr-peach/wiki/Endpoint-Notes#linkages
   - name: Records
@@ -41,7 +41,7 @@ paths:
       tags:
         - Assets
       parameters:
-        - $ref: '#/components/parameters/Query-RecordId-Required'
+        - $ref: '#/components/parameters/Query-AssetId-Required'
         - $ref: '#/components/parameters/Query-SystemId'
       responses:
         '200':
@@ -72,7 +72,7 @@ paths:
       tags:
         - Assets
       parameters:
-        - $ref: '#/components/parameters/Query-RecordId-Required'
+        - $ref: '#/components/parameters/Query-AssetId-Required'
         - $ref: '#/components/parameters/Query-SystemId'
       responses:
         '204':
@@ -99,7 +99,7 @@ paths:
       tags:
         - Records
       parameters:
-        - $ref: '#/components/parameters/Query-RecordId-Required'
+        - $ref: '#/components/parameters/Query-AssetId-Required'
         - $ref: '#/components/parameters/Query-SystemId'
       responses:
         '200':
@@ -192,7 +192,7 @@ paths:
       tags:
         - Records
       parameters:
-        - $ref: '#/components/parameters/Query-RecordId-Required'
+        - $ref: '#/components/parameters/Query-AssetId-Required'
         - $ref: '#/components/parameters/Query-SystemId'
       responses:
         '204':
@@ -274,7 +274,7 @@ paths:
       tags:
         - Linkages
       parameters:
-        - $ref: '#/components/parameters/Query-RecordId-Required'
+        - $ref: '#/components/parameters/Query-AssetId-Required'
         - $ref: '#/components/parameters/Query-SystemId'
         - $ref: '#/components/parameters/Query-Depth'
       responses:
@@ -338,9 +338,9 @@ paths:
       tags:
         - Linkages
       parameters:
-        - $ref: '#/components/parameters/Query-RecordId-Required'
+        - $ref: '#/components/parameters/Query-AssetId-Required'
         - $ref: '#/components/parameters/Query-SystemId'
-        - $ref: '#/components/parameters/Query-Linked-RecordId-Required'
+        - $ref: '#/components/parameters/Query-Linked-AssetId-Required'
         - $ref: '#/components/parameters/Query-Linked-SystemId'
       responses:
         '204':
@@ -428,6 +428,13 @@ components:
         type: string
         format: uuid
         example: da5c5031-0e84-4234-7766-1ba846997482
+    Query-AssetId-Required:
+      in: query
+      name: asset_id
+      description: Asset Identifier
+      required: true
+      schema:
+        $ref: '#/components/schemas/Attribute-AssetId'
     Query-Depth:
       in: query
       name: depth
@@ -439,26 +446,19 @@ components:
         minimum: -1
         default: 1
         example: 1
-    Query-Linked-RecordId-Required:
+    Query-Linked-AssetId-Required:
       in: query
-      name: linked_record_id
-      description: Record Identifier
+      name: linked_asset_id
+      description: Asset Identifier
       required: true
       schema:
-        $ref: '#/components/schemas/Attribute-RecordId'
+        $ref: '#/components/schemas/Attribute-AssetId'
     Query-Linked-SystemId:
       in: query
       name: linked_system_id
       description: System Identifier
       schema:
         $ref: '#/components/schemas/Attribute-SystemId'
-    Query-RecordId-Required:
-      in: query
-      name: record_id
-      description: Record Identifier
-      required: true
-      schema:
-        $ref: '#/components/schemas/Attribute-RecordId'
     Query-SystemId:
       in: query
       name: system_id
@@ -473,11 +473,11 @@ components:
       schema:
         $ref: '#/components/schemas/Attribute-SystemId'
   schemas:
-    Attribute-RecordId:
+    Attribute-AssetId:
       type: string
       description: >-
-        The record or primary key representing what the data this message is
-        directly associated to.
+        The primary key representing what the data this asset is directly
+        associated to.
       example: 06bc53dc-3e4f-420b-801c-bd9cc0ea01b2
     Attribute-SystemId:
       type: string
