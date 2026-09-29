@@ -10,10 +10,10 @@ const env = parseEnv();
  */
 const API_ASSET = '/api/v1/assets';
 const API_RECORD = '/api/v1/records';
+const ASSET_ID = 'k6-test-1';
 const BASE_URL = __ENV.BASE_URL ?? env.BASE_URL ?? 'http://localhost:3000';
 const CLIENT_ID = __ENV.CLIENT_ID ?? env.CLIENT_ID;
 const CLIENT_SECRET = __ENV.CLIENT_SECRET ?? env.CLIENT_SECRET;
-const RECORD_ID = 'k6-test-1';
 const SYSTEM_ID = 'ITSM-5917';
 const TOKEN_ENDPOINT = __ENV.TOKEN_ENDPOINT ?? env.TOKEN_ENDPOINT;
 
@@ -29,7 +29,7 @@ export function setup() {
   }
 
   const token = fetchBearerToken(CLIENT_ID, CLIENT_SECRET, TOKEN_ENDPOINT);
-  const res = http.get(`${BASE_URL}${API_RECORD}?record_id=${RECORD_ID}&system_id=${SYSTEM_ID}`, {
+  const res = http.get(`${BASE_URL}${API_RECORD}?asset_id=${ASSET_ID}&system_id=${SYSTEM_ID}`, {
     headers: {
       Authorization: `Bearer ${token}`,
       'Content-Type': 'application/json'
@@ -38,7 +38,7 @@ export function setup() {
   });
   if (res.status === 404) {
     /** @see https://raw.githubusercontent.com/bcgov/nr-pies/refs/heads/main/docs/spec/element/message/record.example.json */
-    const testRecord = generateRecord(5917, RECORD_ID);
+    const testRecord = generateRecord(5917, ASSET_ID);
     http.put(`${BASE_URL}${API_RECORD}`, JSON.stringify(testRecord), {
       headers: {
         Authorization: `Bearer ${token}`,
@@ -57,7 +57,7 @@ export function setup() {
  * - token - Bearer token for authorization
  */
 export default function main({ token }: { token: string }) {
-  const res = http.get(`${BASE_URL}${API_RECORD}?record_id=${RECORD_ID}&system_id=${SYSTEM_ID}`, {
+  const res = http.get(`${BASE_URL}${API_RECORD}?asset_id=${ASSET_ID}&system_id=${SYSTEM_ID}`, {
     headers: {
       Authorization: `Bearer ${token}`,
       'Content-Type': 'application/json'
@@ -74,7 +74,7 @@ export default function main({ token }: { token: string }) {
  * - token - Bearer token for authorization
  */
 export function teardown({ token }: { token: string }) {
-  http.del(`${BASE_URL}${API_ASSET}?record_id=${RECORD_ID}&system_id=${SYSTEM_ID}`, null, {
+  http.del(`${BASE_URL}${API_ASSET}?asset_id=${ASSET_ID}&system_id=${SYSTEM_ID}`, null, {
     headers: {
       Authorization: `Bearer ${token}`,
       'Content-Type': 'application/json'

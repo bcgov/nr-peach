@@ -26,7 +26,7 @@ describe('Asset Controllers', () => {
       findSingleAssetServiceSpy.mockResolvedValue(fakeAsset);
       deleteAssetServiceSpy.mockResolvedValue(undefined);
 
-      await request(app).delete('/assets').query({ record_id: 'rec1', system_id: 'sys1' }).expect(204);
+      await request(app).delete('/assets').query({ asset_id: 'rec1', system_id: 'sys1' }).expect(204);
 
       expect(findSingleAssetServiceSpy).toHaveBeenCalledWith('rec1', 'sys1');
       expect(deleteAssetServiceSpy).toHaveBeenCalledWith('rec1', 'sys1');

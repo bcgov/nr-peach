@@ -18,11 +18,10 @@ describe('integrityValidators', () => {
   describe('record', () => {
     const mockData: PiesRecord = {
       version: '1',
-      kind: 'Record',
+      kind: 'RECORD',
       system_id: 'sys',
-      record_id: 'rec-2',
+      asset_id: 'rec-2',
       asset_kind: 'PERMIT',
-      record_kind: 'Permit',
       transaction_id: '2',
       on_hold_event_set: [],
       process_event_set: [
@@ -59,15 +58,14 @@ describe('integrityValidators', () => {
   describe('recordLinkage', () => {
     const mockData: RecordLinkage = {
       version: '1',
-      kind: 'RecordLinkage',
+      kind: 'LINKAGE',
       system_id: 'sys',
-      record_id: 'rec-2',
+      asset_id: 'rec-2',
       asset_kind: 'PERMIT',
-      record_kind: 'Permit',
       transaction_id: '2',
       linked_record_id: '2024-01-02T00:00:00Z',
       linked_system_id: 'linked-sys',
-      linked_record_kind: 'Permit'
+      linked_record_kind: 'PERMIT'
     };
 
     it('returns valid: true and no errors if no errors from auditHeader', () => {

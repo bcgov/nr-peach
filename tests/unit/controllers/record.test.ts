@@ -39,7 +39,7 @@ describe('Record Controllers', () => {
       findSingleAssetServiceSpy.mockResolvedValue(fakeAsset);
       pruneRecordServiceSpy.mockResolvedValue([]);
 
-      await request(app).delete('/records').query({ record_id: 'rec1', system_id: 'sys1' }).expect(204);
+      await request(app).delete('/records').query({ asset_id: 'rec1', system_id: 'sys1' }).expect(204);
 
       expect(findSingleAssetServiceSpy).toHaveBeenCalledWith('rec1', 'sys1');
       expect(pruneRecordServiceSpy).toHaveBeenCalledWith(fakeAsset);
@@ -51,7 +51,7 @@ describe('Record Controllers', () => {
       findSingleAssetServiceSpy.mockResolvedValue(fakeAsset);
       findRecordServiceSpy.mockResolvedValue(fakeResult);
 
-      const res = await request(app).get('/records').query({ record_id: 'rec2', system_id: 'sys2' }).expect(200);
+      const res = await request(app).get('/records').query({ asset_id: 'rec2', system_id: 'sys2' }).expect(200);
 
       expect(findSingleAssetServiceSpy).toHaveBeenCalledWith('rec2', 'sys2');
       expect(findRecordServiceSpy).toHaveBeenCalledWith(fakeAsset);

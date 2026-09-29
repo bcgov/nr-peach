@@ -58,7 +58,7 @@ describe('recordService', () => {
           id: readCallCount,
           code: 'APPLICATION',
           codeSystem: 'https://bcgov.github.io/nr-pies/docs/spec/code_system/application_process',
-          kind: 'Permit',
+          kind: 'PERMIT',
           versionId: 'v1'
         });
       });
@@ -84,8 +84,8 @@ describe('recordService', () => {
       expect(result).toMatchObject({
         kind: 'RECORD',
         system_id: systemRecord.systemId,
-        record_id: systemRecord.assetId,
-        record_kind: 'Permit',
+        asset_id: systemRecord.assetId,
+        asset_kind: 'PERMIT',
         version: 'v1',
         on_hold_event_set: [
           {
@@ -170,7 +170,7 @@ describe('recordService', () => {
             id: 2,
             code: 'MISSING_INFORMATION',
             codeSystem: 'https://bcgov.github.io/nr-pies/docs/spec/code_system/on_hold_process',
-            kind: 'Permit',
+            kind: 'PERMIT',
             versionId: 'v1'
           });
         })
@@ -221,9 +221,8 @@ describe('recordService', () => {
       version: 'v1',
       kind: 'RECORD',
       system_id: 'sys-1',
-      record_id: 'rec-1',
+      asset_id: 'rec-1',
       asset_kind: 'PERMIT',
-      record_kind: 'Permit',
       on_hold_event_set: [
         {
           coding: {
