@@ -154,8 +154,13 @@ jobs:
             -backend-config="use_oidc=true"
           terraform validate
 
-          echo "database_host=$(terraform output -raw database_host)" >> $GITHUB_OUTPUT
-          echo "database_password=$(terraform output -raw database_master_password)" >> $GITHUB_OUTPUT
+          DB_HOST=$(terraform output -raw database_host)
+          echo "::add-mask::$DB_HOST"
+          echo "database_host=$DB_HOST" >> $GITHUB_OUTPUT
+
+          DB_PASS=$(terraform output -raw database_master_password)
+          echo "::add-mask::$DB_PASS"
+          echo "database_password=$DB_PASS" >> $GITHUB_OUTPUT
       - name: Terraform init
         working-directory: infra/instance
         env:
