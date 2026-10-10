@@ -1,3 +1,5 @@
+import { Temporal } from '@js-temporal/polyfill'; // TODO: Remove when Node 26 LTS is out
+
 import { integrityValidators } from './integrity/index.ts';
 import { createAjvInstance, ensureSchemaId, getPiesSchemaUri, loadSchema, pies } from './schema/index.ts';
 import { getLogger } from '#src/utils/index';
@@ -20,14 +22,14 @@ if (process.env.NODE_ENV === 'production') await preCachePiesSchema();
 export async function preCachePiesSchema(): Promise<{ valid: boolean; errors?: ErrorObject[] }[]> {
   log.debug('Pre-caching PIES JSON schemas');
 
-  const start = Date.now();
+  const start = Temporal.Now.instant();
   return await Promise.all(
     Object.values(pies.spec.message)
       .map((kind) => getPiesSchemaUri(kind)) // Pre-cache all PIES message schemas and dependencies
       .map((uri) => validateSchema(uri, null)) // Ignore the result, just pre-cache schemas
   ).finally(() => {
-    const end = Date.now();
-    log.info({ duration: end - start }, 'PIES JSON schemas are pre-cached');
+    const durationMs = Temporal.Now.instant().since(start).total({ unit: 'milliseconds' });
+    log.info({ duration: durationMs }, 'PIES JSON schemas are pre-cached');
   });
 }
 

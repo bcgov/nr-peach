@@ -1,3 +1,5 @@
+import { Temporal } from '@js-temporal/polyfill'; // TODO: Remove when Node 26 LTS is out
+
 import * as utils from '#src/utils/index';
 import {
   auditEvent,
@@ -56,7 +58,7 @@ describe('auditHeader', () => {
   const getUUIDv7TimestampSpy = vi.spyOn(utils, 'getUUIDv7Timestamp');
 
   it('returns no errors for valid transaction_id timestamp', () => {
-    getUUIDv7TimestampSpy.mockReturnValue(Date.now() - 1000);
+    getUUIDv7TimestampSpy.mockReturnValue(Temporal.Now.instant().subtract({ seconds: 1 }).epochMilliseconds);
     const header = { transaction_id: 'uuid' } as Header;
     expect(auditHeader(header)).toEqual([]);
   });
@@ -75,7 +77,7 @@ describe('auditHeader', () => {
   });
 
   it('returns error if timestamp is in the future', () => {
-    getUUIDv7TimestampSpy.mockReturnValue(Date.now() + 100000);
+    getUUIDv7TimestampSpy.mockReturnValue(Temporal.Now.instant().add({ milliseconds: 100000 }).epochMilliseconds);
     const header = { transaction_id: 'future-uuid' } as Header;
     expect(auditHeader(header)).toEqual([
       {

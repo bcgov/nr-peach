@@ -1,3 +1,4 @@
+import { Temporal } from '@js-temporal/polyfill'; // TODO: Remove when Node 26 LTS is out
 import { CamelCasePlugin, Kysely, PostgresDialect, sql } from 'kysely';
 import { Migrator } from 'kysely/migration';
 import { Seeder } from 'kysely-ctl';
@@ -64,15 +65,15 @@ export const seeder = new Seeder({ db: db, provider: { getSeeds } });
 /**
  * Checks the health status of the database by executing a simple query.
  * This function caches the result for 1 second to avoid excessive health checks.
- * @param now - The current timestamp in milliseconds. Defaults to `Date.now()`.
+ * @param now - The current timestamp in milliseconds. Defaults to `Temporal.Now.instant().epochMilliseconds`.
  * @returns A promise that resolves to `true` if the database is healthy, or `false` if unhealthy.
  */
 export async function checkDatabaseHealth(now?: number): Promise<boolean> {
   const cacheDuration = 1000; // Cache duration in milliseconds (1 second)
-  now ??= Date.now();
+  const currentTime = now ?? Temporal.Now.instant().epochMilliseconds;
 
   // Use cached health check result if it exists and is still valid (within cacheDuration).
-  if (lastHealthCheckResult !== null && now - lastHealthCheckTime < cacheDuration) {
+  if (lastHealthCheckResult !== null && currentTime - lastHealthCheckTime < cacheDuration) {
     log.debug(`Database is ${lastHealthCheckResult ? 'healthy' : 'unhealthy'} (cached)`);
     return lastHealthCheckResult;
   }
@@ -83,12 +84,12 @@ export async function checkDatabaseHealth(now?: number): Promise<boolean> {
     try {
       const result = await sql<{ result: number }>`SELECT 1 AS result`.execute(db);
       const healthy = result.rows?.[0]?.result === 1;
-      lastHealthCheckTime = now;
+      lastHealthCheckTime = currentTime;
       lastHealthCheckResult = healthy;
       log.debug(`Database is ${lastHealthCheckResult ? 'healthy' : 'unhealthy'}`);
       return lastHealthCheckResult;
     } catch (error) {
-      lastHealthCheckTime = now;
+      lastHealthCheckTime = currentTime;
       lastHealthCheckResult = false;
       log.error(
         {
