@@ -1,3 +1,4 @@
+import { Temporal } from '@js-temporal/polyfill'; // TODO: Remove when Node 26 LTS is out
 import jwt from 'jsonwebtoken';
 import { LRUCache } from 'lru-cache';
 
@@ -103,8 +104,12 @@ export function authn(): AuthRequestHandler {
         res.locals.access_claims = frozenClaims;
 
         if (claims.exp) {
-          const remainingMs = (claims.exp - Math.floor(Date.now() / 1000)) * 1000 - 5000;
-          if (remainingMs > 0) jwtCache.set(token, frozenClaims, { ttl: remainingMs });
+          const nowSeconds = Math.floor(Temporal.Now.instant().epochMilliseconds / 1000);
+          const remainingMs = (claims.exp - nowSeconds) * 1000 - 5000;
+
+          if (remainingMs > 0) {
+            jwtCache.set(token, frozenClaims, { ttl: remainingMs });
+          }
         }
       }
 

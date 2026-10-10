@@ -1,3 +1,5 @@
+import { Temporal } from '@js-temporal/polyfill'; // TODO: Remove when Node 26 LTS is out
+
 import { CodingDictionary, getUUIDv7Timestamp } from '#src/utils/index';
 
 import type { CodingEvent, Event, Header, IntegrityError, Process, ProcessEvent } from '#types';
@@ -42,8 +44,10 @@ export function auditEvent(data: Event, index: number, parentPath: string): Inte
 export function auditHeader(data: Header): IntegrityError[] {
   const parentPath = 'transaction_id';
   const errors: IntegrityError[] = [];
+  const nowMs = Temporal.Now.instant().epochMilliseconds;
   const trxTimestamp = getUUIDv7Timestamp(data.transaction_id);
-  if (trxTimestamp === undefined || trxTimestamp > Date.now()) {
+
+  if (trxTimestamp === undefined || trxTimestamp > nowMs) {
     errors.push({
       instancePath: `/${parentPath}`,
       message: 'Invalid Header element',
