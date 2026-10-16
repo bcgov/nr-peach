@@ -1,3 +1,5 @@
+import { Temporal } from '@js-temporal/polyfill'; // TODO: Remove when Node 26 LTS is out
+
 import type { Event } from '#types';
 
 /**
@@ -28,8 +30,8 @@ export function dateTimePartsToEvent(parts: {
     };
   } else {
     return {
-      start_date: startDate.toISOString().split('T')[0]!,
-      end_date: endDate ? endDate.toISOString().split('T')[0] : undefined
+      start_date: toPlainDate(startDate).toString(),
+      end_date: endDate ? toPlainDate(endDate).toString() : undefined
     };
   }
 }
@@ -65,10 +67,6 @@ export function eventToDateTimeParts(event: Event): {
  * @throws If the time string is not in a valid format.
  */
 export function mergeDateAndTimeToISOString(date: Date, time: string): string {
-  const year = date.getUTCFullYear();
-  const month = date.getUTCMonth();
-  const day = date.getUTCDate();
-
   // Strip anything after the time (Z, +00:00, etc.) and split
   const cleanTime = time.split(/[Z+-]/)[0] ?? '';
   const timeParts = cleanTime.split(':');
@@ -85,5 +83,18 @@ export function mergeDateAndTimeToISOString(date: Date, time: string): string {
     throw new Error(`Invalid numeric values in time: ${time}`);
   }
 
-  return new Date(Date.UTC(year, month, day, hour, minute, second, ms)).toISOString();
+  return toPlainDate(date)
+    .toPlainDateTime(Temporal.PlainTime.from({ hour, minute, second, millisecond: ms }, { overflow: 'reject' }))
+    .toZonedDateTime('UTC')
+    .toInstant()
+    .toString({ fractionalSecondDigits: 3 });
+}
+
+/**
+ * Converts a Date to its UTC calendar date.
+ * @param date - The Date to convert.
+ * @returns The UTC calendar date as a Temporal.PlainDate.
+ */
+export function toPlainDate(date: Date): Temporal.PlainDate {
+  return Temporal.Instant.fromEpochMilliseconds(date.getTime()).toZonedDateTimeISO('UTC').toPlainDate();
 }
