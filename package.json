@@ -44,6 +44,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@js-temporal/polyfill": "0.5.1",
     "ajv": "8.20.0",
     "ajv-formats": "3.0.1",
     "compression": "1.8.2",
@@ -96,7 +97,7 @@
   },
   "allowScripts": {
     "fsevents@2.3.3": true,
-    "lefthook@2.1.14": true
+    "lefthook@2.1.16": true
   },
   "devEngines": {
     "runtime": {
