@@ -1,3 +1,5 @@
+import { Temporal } from '@js-temporal/polyfill'; // TODO: Remove when Node 26 LTS is out
+
 import type { Event } from '#types';
 
 /**
@@ -28,8 +30,8 @@ export function dateTimePartsToEvent(parts: {
     };
   } else {
     return {
-      start_date: startDate.toISOString().split('T')[0]!,
-      end_date: endDate ? endDate.toISOString().split('T')[0] : undefined
+      start_date: toPlainDate(startDate).toString(),
+      end_date: endDate ? toPlainDate(endDate).toString() : undefined
     };
   }
 }
@@ -58,32 +60,25 @@ export function eventToDateTimeParts(event: Event): {
 }
 
 /**
- * Merges a given date and a time string into a single RFC 3339 formatted string (UTC).
+ * Merges a given date and a time string into a single RFC 3339 formatted string (UTC) with millisecond precision.
  * @param date - The date object representing the date part.
  * @param time - The time string (such as "14:30:00.001" or "14:30:00+02:00"). Any timezone offsets will be removed.
  * @returns The combined date and time as an RFC 3339 string in UTC (such as "2023-06-01T14:30:00.000Z").
  * @throws If the time string is not in a valid format.
  */
 export function mergeDateAndTimeToISOString(date: Date, time: string): string {
-  const year = date.getUTCFullYear();
-  const month = date.getUTCMonth();
-  const day = date.getUTCDate();
+  return toPlainDate(date)
+    .toPlainDateTime(Temporal.PlainTime.from(time))
+    .toZonedDateTime('UTC')
+    .toInstant()
+    .toString({ fractionalSecondDigits: 3 });
+}
 
-  // Strip anything after the time (Z, +00:00, etc.) and split
-  const cleanTime = time.split(/[Z+-]/)[0] ?? '';
-  const timeParts = cleanTime.split(':');
-  if (timeParts.length < 2) throw new Error(`Invalid time format: ${time}`);
-
-  const hour = Number.parseInt(timeParts[0] ?? '', 10);
-  const minute = Number.parseInt(timeParts[1] ?? '', 10);
-
-  // Handle optional seconds and milliseconds
-  const secondsPart = timeParts[2]?.split('.') ?? ['0', '0'];
-  const second = Number.parseInt(secondsPart[0] ?? '', 10);
-  const ms = Number.parseInt(secondsPart[1] ?? '0', 10);
-  if ([hour, minute, second].some((num) => Number.isNaN(num))) {
-    throw new Error(`Invalid numeric values in time: ${time}`);
-  }
-
-  return new Date(Date.UTC(year, month, day, hour, minute, second, ms)).toISOString();
+/**
+ * Converts a Date to its UTC calendar date.
+ * @param date - The Date to convert.
+ * @returns The UTC calendar date as a Temporal.PlainDate.
+ */
+export function toPlainDate(date: Date): Temporal.PlainDate {
+  return Temporal.Instant.fromEpochMilliseconds(date.getTime()).toZonedDateTimeISO('UTC').toPlainDate();
 }

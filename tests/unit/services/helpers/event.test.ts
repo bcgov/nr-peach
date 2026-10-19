@@ -1,4 +1,9 @@
-import { dateTimePartsToEvent, eventToDateTimeParts, mergeDateAndTimeToISOString } from '#src/services/helpers/event';
+import {
+  dateTimePartsToEvent,
+  eventToDateTimeParts,
+  mergeDateAndTimeToISOString,
+  toPlainDate
+} from '#src/services/helpers/event';
 
 import type { Event } from '#types';
 
@@ -112,32 +117,16 @@ describe('eventToDateTimeParts', () => {
 });
 
 describe('mergeDateAndTimeToISOString', () => {
-  it('merges date and time (HH:mm) to ISO string in UTC', () => {
-    const date = new Date(Date.UTC(2023, 5, 1)); // 2023-06-01T00:00:00.000Z
-    const time = '14:30';
-    const result = mergeDateAndTimeToISOString(date, time);
-    expect(result).toBe('2023-06-01T14:30:00.000Z');
-  });
-
-  it('merges date and time (HH:mm:ss) to ISO string in UTC', () => {
+  it.each([
+    ['HH:mm', '14:30', '2023-06-01T14:30:00.000Z'],
+    ['HH:mm:ss', '14:30:15', '2023-06-01T14:30:15.000Z'],
+    ['HH:mm:ss.sss', '14:30:15.123', '2023-06-01T14:30:15.123Z'],
+    ['time with timezone offset', '14:30:15.123+02:00', '2023-06-01T14:30:15.123Z'],
+    ['microsecond-precision timetz', '14:30:15.456789+00', '2023-06-01T14:30:15.456Z'],
+    ['microsecond-precision day boundary', '23:59:59.999999+00', '2023-06-01T23:59:59.999Z']
+  ])('merges date and time (%s) to ISO string in UTC', (_format, time, expected) => {
     const date = new Date(Date.UTC(2023, 5, 1));
-    const time = '14:30:15';
-    const result = mergeDateAndTimeToISOString(date, time);
-    expect(result).toBe('2023-06-01T14:30:15.000Z');
-  });
-
-  it('merges date and time (HH:mm:ss.sss) to ISO string in UTC', () => {
-    const date = new Date(Date.UTC(2023, 5, 1));
-    const time = '14:30:15.123';
-    const result = mergeDateAndTimeToISOString(date, time);
-    expect(result).toBe('2023-06-01T14:30:15.123Z');
-  });
-
-  it('ignores timezone offset in time string', () => {
-    const date = new Date(Date.UTC(2023, 5, 1));
-    const time = '14:30:15.123+02:00';
-    const result = mergeDateAndTimeToISOString(date, time);
-    expect(result).toBe('2023-06-01T14:30:15.123Z');
+    expect(mergeDateAndTimeToISOString(date, time)).toBe(expected);
   });
 
   it('throws error for invalid time format', () => {
@@ -145,18 +134,39 @@ describe('mergeDateAndTimeToISOString', () => {
     expect(() => mergeDateAndTimeToISOString(date, 'badtime')).toThrow();
   });
 
-  it('throws error for non-numeric hour', () => {
+  it.each([
+    ['hour', 'xx:30'],
+    ['minute', '14:xx'],
+    ['second', '14:30:xx']
+  ])('throws error for non-numeric %s', (_component, time) => {
     const date = new Date(Date.UTC(2023, 5, 1));
-    expect(() => mergeDateAndTimeToISOString(date, 'xx:30')).toThrow('Invalid numeric values in time: xx:30');
+    expect(() => mergeDateAndTimeToISOString(date, time)).toThrow(`invalid RFC 9557 string: ${time}`);
+  });
+});
+
+describe('toPlainDate', () => {
+  it('returns the UTC calendar date at midnight', () => {
+    expect(toPlainDate(new Date(Date.UTC(2023, 5, 1))).toString()).toBe('2023-06-01');
   });
 
-  it('throws error for non-numeric minute', () => {
-    const date = new Date(Date.UTC(2023, 5, 1));
-    expect(() => mergeDateAndTimeToISOString(date, '14:xx')).toThrow('Invalid numeric values in time: 14:xx');
+  it('ignores the time of day', () => {
+    expect(toPlainDate(new Date('2023-06-01T23:59:59.999Z')).toString()).toBe('2023-06-01');
   });
 
-  it('throws error for non-numeric second', () => {
-    const date = new Date(Date.UTC(2023, 5, 1));
-    expect(() => mergeDateAndTimeToISOString(date, '14:30:xx')).toThrow('Invalid numeric values in time: 14:30:xx');
+  it('uses UTC rather than local time near day boundaries', () => {
+    expect(toPlainDate(new Date('2023-06-01T00:00:00.000+05:00')).toString()).toBe('2023-05-31');
+  });
+
+  it('handles leap days and year boundaries', () => {
+    expect(toPlainDate(new Date('2024-02-29T12:00:00Z')).toString()).toBe('2024-02-29');
+    expect(toPlainDate(new Date('2023-12-31T23:59:59Z')).toString()).toBe('2023-12-31');
+  });
+
+  it('handles dates before the epoch', () => {
+    expect(toPlainDate(new Date('1969-12-31T23:59:59Z')).toString()).toBe('1969-12-31');
+  });
+
+  it('throws for an invalid Date', () => {
+    expect(() => toPlainDate(new Date('invalid'))).toThrow();
   });
 });

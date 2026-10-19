@@ -1,3 +1,4 @@
+import { Temporal } from '@js-temporal/polyfill'; // TODO: Remove when Node 26 LTS is out
 import express from 'express';
 import jwt from 'jsonwebtoken';
 import request from 'supertest';
@@ -214,7 +215,7 @@ describe('authn', () => {
 
   it('should store claims in cache after successful verification', async () => {
     const token = 'new-token';
-    const futureExp = Math.floor(Date.now() / 1000) + 3600; // 1 hour in future
+    const futureExp = Math.floor(Temporal.Now.instant().add({ hours: 1 }).epochMilliseconds / 1000); // 1 hour in future
     const freshClaims = { sub: 'user-456', exp: futureExp };
 
     const getSigningKeySpy = vi.fn().mockResolvedValue({
@@ -239,7 +240,10 @@ describe('authn', () => {
 
   it('should not cache claims if exp is missing or in the past', async () => {
     const token = 'no-cache-token';
-    const expiredClaims = { sub: 'user-789', exp: Math.floor(Date.now() / 1000) - 100 };
+    const expiredClaims = {
+      sub: 'user-789',
+      exp: Math.floor(Temporal.Now.instant().subtract({ seconds: 100 }).epochMilliseconds / 1000) // 100 seconds ago
+    };
 
     const getSigningKeySpy = vi.fn().mockResolvedValue({
       getPublicKey: vi.fn().mockReturnValue('public-key')
