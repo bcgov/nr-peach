@@ -121,7 +121,9 @@ describe('mergeDateAndTimeToISOString', () => {
     ['HH:mm', '14:30', '2023-06-01T14:30:00.000Z'],
     ['HH:mm:ss', '14:30:15', '2023-06-01T14:30:15.000Z'],
     ['HH:mm:ss.sss', '14:30:15.123', '2023-06-01T14:30:15.123Z'],
-    ['time with timezone offset', '14:30:15.123+02:00', '2023-06-01T14:30:15.123Z']
+    ['time with timezone offset', '14:30:15.123+02:00', '2023-06-01T14:30:15.123Z'],
+    ['microsecond-precision timetz', '14:30:15.456789+00', '2023-06-01T14:30:15.456Z'],
+    ['microsecond-precision day boundary', '23:59:59.999999+00', '2023-06-01T23:59:59.999Z']
   ])('merges date and time (%s) to ISO string in UTC', (_format, time, expected) => {
     const date = new Date(Date.UTC(2023, 5, 1));
     expect(mergeDateAndTimeToISOString(date, time)).toBe(expected);
@@ -132,19 +134,13 @@ describe('mergeDateAndTimeToISOString', () => {
     expect(() => mergeDateAndTimeToISOString(date, 'badtime')).toThrow();
   });
 
-  it('throws error for non-numeric hour', () => {
+  it.each([
+    ['hour', 'xx:30'],
+    ['minute', '14:xx'],
+    ['second', '14:30:xx']
+  ])('throws error for non-numeric %s', (_component, time) => {
     const date = new Date(Date.UTC(2023, 5, 1));
-    expect(() => mergeDateAndTimeToISOString(date, 'xx:30')).toThrow('Invalid numeric values in time: xx:30');
-  });
-
-  it('throws error for non-numeric minute', () => {
-    const date = new Date(Date.UTC(2023, 5, 1));
-    expect(() => mergeDateAndTimeToISOString(date, '14:xx')).toThrow('Invalid numeric values in time: 14:xx');
-  });
-
-  it('throws error for non-numeric second', () => {
-    const date = new Date(Date.UTC(2023, 5, 1));
-    expect(() => mergeDateAndTimeToISOString(date, '14:30:xx')).toThrow('Invalid numeric values in time: 14:30:xx');
+    expect(() => mergeDateAndTimeToISOString(date, time)).toThrow(`invalid RFC 9557 string: ${time}`);
   });
 });
 

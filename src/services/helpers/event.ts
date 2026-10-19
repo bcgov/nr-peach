@@ -60,31 +60,15 @@ export function eventToDateTimeParts(event: Event): {
 }
 
 /**
- * Merges a given date and a time string into a single RFC 3339 formatted string (UTC).
+ * Merges a given date and a time string into a single RFC 3339 formatted string (UTC) with millisecond precision.
  * @param date - The date object representing the date part.
  * @param time - The time string (such as "14:30:00.001" or "14:30:00+02:00"). Any timezone offsets will be removed.
  * @returns The combined date and time as an RFC 3339 string in UTC (such as "2023-06-01T14:30:00.000Z").
  * @throws If the time string is not in a valid format.
  */
 export function mergeDateAndTimeToISOString(date: Date, time: string): string {
-  // Strip anything after the time (Z, +00:00, etc.) and split
-  const cleanTime = time.split(/[Z+-]/)[0] ?? '';
-  const timeParts = cleanTime.split(':');
-  if (timeParts.length < 2) throw new Error(`Invalid time format: ${time}`);
-
-  const hour = Number.parseInt(timeParts[0] ?? '', 10);
-  const minute = Number.parseInt(timeParts[1] ?? '', 10);
-
-  // Handle optional seconds and milliseconds
-  const secondsPart = timeParts[2]?.split('.') ?? ['0', '0'];
-  const second = Number.parseInt(secondsPart[0] ?? '', 10);
-  const ms = Number.parseInt(secondsPart[1] ?? '0', 10);
-  if ([hour, minute, second].some((num) => Number.isNaN(num))) {
-    throw new Error(`Invalid numeric values in time: ${time}`);
-  }
-
   return toPlainDate(date)
-    .toPlainDateTime(Temporal.PlainTime.from({ hour, minute, second, millisecond: ms }, { overflow: 'reject' }))
+    .toPlainDateTime(Temporal.PlainTime.from(time))
     .toZonedDateTime('UTC')
     .toInstant()
     .toString({ fractionalSecondDigits: 3 });
