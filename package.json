@@ -59,7 +59,7 @@
     "jwks-rsa": "4.1.0",
     "kysely": "0.29.7",
     "kysely-codegen": "0.20.0",
-    "kysely-ctl": "0.21.0",
+    "kysely-ctl": "0.22.0",
     "lru-cache": "11.5.3",
     "pg": "8.23.1",
     "pino": "10.4.0",
@@ -67,8 +67,8 @@
     "serve-favicon": "2.5.1"
   },
   "devDependencies": {
-    "@commitlint/cli": "21.2.3",
-    "@commitlint/config-conventional": "21.2.3",
+    "@commitlint/cli": "21.2.4",
+    "@commitlint/config-conventional": "21.2.4",
     "@eslint/js": "10.0.1",
     "@types/compression": "1.8.1",
     "@types/cors": "2.8.19",
