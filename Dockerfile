@@ -39,6 +39,7 @@ COPY --from=build /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 
 # Copy required Alpine musl shared libraries and Node.js binary
 COPY --from=build /lib/ld-musl-*.so.1 /lib/
+COPY --from=build /usr/lib/libatomic.so.* /usr/lib/
 COPY --from=build /usr/lib/libgcc_s.so.* /usr/lib/
 COPY --from=build /usr/lib/libstdc++.so.* /usr/lib/
 COPY --from=build /usr/local/bin/node /usr/local/bin/node
