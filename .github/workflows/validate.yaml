@@ -88,7 +88,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v7.1.0
         with:
-          node-version: 24
+          node-version: 26
       - name: Cache Node modules
         uses: actions/cache@v6.1.0
         id: cache-app
@@ -124,7 +124,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v7.1.0
         with:
-          node-version: 24
+          node-version: 26
       - name: Cache Node modules
         uses: actions/cache@v6.1.0
         id: cache-app
