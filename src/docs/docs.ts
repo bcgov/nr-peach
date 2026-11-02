@@ -38,7 +38,7 @@ export function getDocHTML(version = 'v1'): string {
     </head>
     <body>
       <redoc spec-url='/docs/openapi.yaml' />
-      <script src="https://cdn.redoc.ly/redoc/latest/bundles/redoc.standalone.js"></script>
+      <script type="module" src="https://cdn.redoc.ly/redoc/latest/bundles/redoc.standalone.js"></script>
     </body>
   </html>`;
 }
