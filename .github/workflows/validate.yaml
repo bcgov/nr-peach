@@ -151,7 +151,7 @@ jobs:
           retention-days: 1
       - name: Monitor Coverage
         if: github.event_name == 'pull_request' && ! github.event.pull_request.head.repo.fork
-        uses: slavcodev/coverage-monitor-action@a7fb808726aa317c2df392b585bb7b7700587df5 # 1.11.0
+        uses: slavcodev/coverage-monitor-action@ffb1989101671dc92a9710a26809510da9042f0e # 1.12.0
         with:
           comment_mode: update
           comment_footer: false
@@ -192,6 +192,6 @@ jobs:
           name: coverage-app
           path: ${{ github.workspace }}/coverage
       - name: SonarCloud Scan
-        uses: SonarSource/sonarqube-scan-action@d209202bc7d53ff1cc128f7f907dac145c9d6ae9 # v8
+        uses: SonarSource/sonarqube-scan-action@4d1dc0c91ee400dcf8a6dddf2f705ac36542e304 # v8
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
