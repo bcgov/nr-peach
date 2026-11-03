@@ -1,34 +1,34 @@
 import { mockDb } from './repository.helper.ts';
 import { BaseRepository } from '#src/repositories/base';
-import { RecordLinkageRepository } from '#src/repositories/recordLinkage';
+import { LinkageRepository } from '#src/repositories/linkage';
 
-describe('RecordLinkageRepository', () => {
+describe('LinkageRepository', () => {
   describe('constructor', () => {
-    const OriginalRepository = Object.getPrototypeOf(RecordLinkageRepository) as typeof BaseRepository;
+    const OriginalRepository = Object.getPrototypeOf(LinkageRepository) as typeof BaseRepository;
     const BaseRepositoryMock = vi.fn();
 
     beforeAll(() => {
-      Object.setPrototypeOf(RecordLinkageRepository, BaseRepositoryMock);
+      Object.setPrototypeOf(LinkageRepository, BaseRepositoryMock);
     });
 
     afterAll(() => {
-      Object.setPrototypeOf(RecordLinkageRepository, OriginalRepository);
+      Object.setPrototypeOf(LinkageRepository, OriginalRepository);
     });
 
     it('should extend BaseRepository', () => {
-      const repo = new RecordLinkageRepository();
+      const repo = new LinkageRepository();
       expect(repo).toBeInstanceOf(BaseRepository);
     });
 
     it('should call super with correct arguments', () => {
-      new RecordLinkageRepository();
+      new LinkageRepository();
       expect(BaseRepositoryMock).toHaveBeenCalledTimes(1);
-      expect(BaseRepositoryMock).toHaveBeenCalledWith('pies.recordLinkage', undefined);
+      expect(BaseRepositoryMock).toHaveBeenCalledWith('pies.linkage', undefined);
     });
 
     it('should call super with db argument if provided', () => {
-      new RecordLinkageRepository(mockDb);
-      expect(BaseRepositoryMock).toHaveBeenCalledWith('pies.recordLinkage', mockDb);
+      new LinkageRepository(mockDb);
+      expect(BaseRepositoryMock).toHaveBeenCalledWith('pies.linkage', mockDb);
     });
   });
 });
