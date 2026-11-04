@@ -1,4 +1,3 @@
-import { Temporal } from '@js-temporal/polyfill'; // TODO: Remove when Node 26 LTS is out
 import { CamelCasePlugin, Kysely, PostgresDialect, sql } from 'kysely';
 import { Migrator } from 'kysely/migration';
 import { Seeder } from 'kysely-ctl';

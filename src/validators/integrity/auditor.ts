@@ -1,5 +1,3 @@
-import { Temporal } from '@js-temporal/polyfill'; // TODO: Remove when Node 26 LTS is out
-
 import { CodingDictionary, getUUIDv7Timestamp } from '#src/utils/index';
 
 import type { CodingEvent, Event, Header, IntegrityError, Process, ProcessEvent } from '#types';

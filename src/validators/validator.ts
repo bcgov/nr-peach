@@ -1,5 +1,3 @@
-import { Temporal } from '@js-temporal/polyfill'; // TODO: Remove when Node 26 LTS is out
-
 import { integrityValidators } from './integrity/index.ts';
 import { createAjvInstance, ensureSchemaId, getPiesSchemaUri, loadSchema, pies } from './schema/index.ts';
 import { getLogger } from '#src/utils/index';

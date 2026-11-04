@@ -1,4 +1,3 @@
-import { Temporal } from '@js-temporal/polyfill'; // TODO: Remove when Node 26 LTS is out
 import jwt from 'jsonwebtoken';
 import { LRUCache } from 'lru-cache';
 
