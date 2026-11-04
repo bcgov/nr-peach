@@ -130,12 +130,14 @@ export async function checkDatabaseMigrations(): Promise<boolean> {
 export async function getMigrations(): Promise<Record<string, Migration>> {
   const migrations: Record<string, Migration> = {};
   const files = readdirSync('src/db/migrations');
-  for (const fileName of files) {
-    if (fileName.endsWith('.ts') && !fileName.endsWith('.d.ts')) {
-      const migrationKey = fileName.substring(0, fileName.lastIndexOf('.'));
-      migrations[migrationKey] = (await import(`./migrations/${migrationKey}.ts`)) as Migration;
-    }
-  }
+  await Promise.all(
+    files
+      .filter((fileName) => fileName.endsWith('.ts') && !fileName.endsWith('.d.ts'))
+      .map(async (fileName) => {
+        const migrationKey = fileName.substring(0, fileName.lastIndexOf('.'));
+        migrations[migrationKey] = (await import(`./migrations/${migrationKey}.ts`)) as Migration;
+      })
+  );
   return migrations;
 }
 
@@ -148,12 +150,14 @@ export async function getMigrations(): Promise<Record<string, Migration>> {
 export async function getSeeds(): Promise<Record<string, Seed>> {
   const seeds: Record<string, Seed> = {};
   const files = readdirSync('src/db/seeds');
-  for (const fileName of files) {
-    if (fileName.endsWith('.ts') && !fileName.endsWith('.d.ts')) {
-      const seedKey = fileName.substring(0, fileName.lastIndexOf('.'));
-      seeds[seedKey] = (await import(`./seeds/${seedKey}.ts`)) as Seed;
-    }
-  }
+  await Promise.all(
+    files
+      .filter((fileName) => fileName.endsWith('.ts') && !fileName.endsWith('.d.ts'))
+      .map(async (fileName) => {
+        const seedKey = fileName.substring(0, fileName.lastIndexOf('.'));
+        seeds[seedKey] = (await import(`./seeds/${seedKey}.ts`)) as Seed;
+      })
+  );
   return seeds;
 }
 

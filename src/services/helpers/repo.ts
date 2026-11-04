@@ -48,12 +48,17 @@ export async function transactionWrapper<T>(
 ): Promise<T> {
   const { accessMode = 'read write', initialDelay = 100, isolationLevel = 'read committed', maxRetries = 3 } = opts;
 
-  for (let attempt = 0; attempt < maxRetries - 1; attempt++) {
+  const execute = async (attempt: number): Promise<T> => {
     try {
-      return db.transaction().setAccessMode(accessMode).setIsolationLevel(isolationLevel).execute(operation);
+      return await db.transaction().setAccessMode(accessMode).setIsolationLevel(isolationLevel).execute(operation);
     } catch (err) {
       // Rethrow immediately if error is not a serialization_failure (40001) or deadlock_detected (40P01)
-      if (!(err instanceof DatabaseError && (err.code === '40001' || err.code === '40P01'))) throw err;
+      if (
+        !(err instanceof DatabaseError && (err.code === '40001' || err.code === '40P01')) ||
+        attempt >= maxRetries - 1
+      ) {
+        throw err;
+      }
 
       const delay = initialDelay * 2 ** attempt;
       log.warn(
@@ -65,8 +70,9 @@ export async function transactionWrapper<T>(
         `Transaction failed, retrying in ${delay}ms...`
       );
       await new Promise((res) => setTimeout(res, delay));
+      return execute(attempt + 1);
     }
-  }
+  };
 
-  return db.transaction().setAccessMode(accessMode).setIsolationLevel(isolationLevel).execute(operation);
+  return execute(0);
 }
