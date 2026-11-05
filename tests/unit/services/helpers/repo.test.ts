@@ -156,7 +156,7 @@ describe('transactionWrapper', () => {
     mockExecute.mockImplementation(op);
 
     await expect(transactionWrapper(op, { initialDelay: 1, maxRetries: 2 })).rejects.toThrow('serialization');
-    expect(mockExecute).toHaveBeenCalledTimes(2);
+    expect(mockExecute).toHaveBeenCalledTimes(3); // initial attempt + 2 retries
   });
 
   it('throws immediately for non-retryable errors', async () => {

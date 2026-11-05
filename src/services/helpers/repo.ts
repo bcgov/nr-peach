@@ -52,11 +52,8 @@ export async function transactionWrapper<T>(
     try {
       return await db.transaction().setAccessMode(accessMode).setIsolationLevel(isolationLevel).execute(operation);
     } catch (err) {
-      // Rethrow immediately if error is not a serialization_failure (40001) or deadlock_detected (40P01)
-      if (
-        !(err instanceof DatabaseError && (err.code === '40001' || err.code === '40P01')) ||
-        attempt >= maxRetries - 1
-      ) {
+      // Rethrow if error is not a serialization_failure (40001) or deadlock_detected (40P01) or if max retries reached
+      if (!(err instanceof DatabaseError && (err.code === '40001' || err.code === '40P01')) || attempt >= maxRetries) {
         throw err;
       }
 
