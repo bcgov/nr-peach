@@ -1,0 +1,47 @@
+---
+data_management_roles:
+  data_custodian: Andrew Schwenker
+  data_steward: Jeff Card
+  product_owner: Andrew Schwenker
+product_external_dependencies:
+  identity_authorization:
+    - Custom-Keycloak
+  notification_standard: []
+product_information:
+  api_specifications:
+    - https://nr-peach-prod-main-api-fd-b0ewgsechyd0e2eh.a02.azurefd.net/docs
+  business_capabilities_custom: Data Discovery, Documentation, Standards, Validation
+  business_capabilities_standard:
+    - Communications
+    - Resource Management
+    - Other
+  ministry:
+    - Citizens' Services
+  product_acronym: PEACH
+  product_description: >-
+    A microservice focused on permitting exchange, aggregation and collection
+    using PIES.
+  product_name: Permitting Exchange, Aggregation and Collection Hub
+  product_status: maturing
+  product_urls:
+    - https://github.com/bcgov/nr-peach
+  program_area: Data Management & Interoperability
+product_technology_information:
+  backend_frameworks:
+    - name: Express
+      version: 5.3.0
+    - name: Node.js
+      version: 26.13.0
+    - name: Other
+      version: Kysely 0.29.7
+  backend_languages_version:
+    - name: TypeScript
+      version: 6.0.3
+  ci_cd_tools:
+    - GitHub-Actions
+  frontend_languages: []
+  hosting_platforms:
+    - Microsoft-Azure
+  hosting_platforms_custom: GitHub Pages
+  other_tools: Terraform
+version: 1

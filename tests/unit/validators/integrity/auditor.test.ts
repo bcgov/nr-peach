@@ -1,5 +1,3 @@
-import { Temporal } from '@js-temporal/polyfill'; // TODO: Remove when Node 26 LTS is out
-
 import * as utils from '#src/utils/index';
 import {
   auditEvent,

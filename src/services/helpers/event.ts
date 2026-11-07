@@ -1,5 +1,3 @@
-import { Temporal } from '@js-temporal/polyfill'; // TODO: Remove when Node 26 LTS is out
-
 import type { Event } from '#types';
 
 /**

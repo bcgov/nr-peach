@@ -110,9 +110,9 @@ export async function renameConstraints(
   table: string,
   renames: readonly (readonly [string, string])[]
 ): Promise<void> {
-  for (const [from, to] of renames) {
-    await qb.schema.withSchema(schema).alterTable(table).renameConstraint(from, to).execute();
-  }
+  await Promise.all(
+    renames.map(([from, to]) => qb.schema.withSchema(schema).alterTable(table).renameConstraint(from, to).execute())
+  );
 }
 
 /**

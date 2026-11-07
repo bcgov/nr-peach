@@ -52,11 +52,17 @@ export function validateRequestSchema(opts: RequestSchemaOptions = {}): RequestH
   return async function (req, res, next): Promise<void> {
     const reqErrors: Partial<Record<keyof RequestSchemaOptions, ErrorObject[]>> = {};
 
-    for (const [key, value] of Object.entries(opts) as [keyof RequestSchemaOptions, SchemaObject][]) {
-      if (value) {
+    const validations = (Object.entries(opts) as [keyof RequestSchemaOptions, SchemaObject][]).map(
+      async ([key, value]) => {
+        if (!value) return;
+
         const { valid, errors } = await validateSchema(value, req[key]);
-        if (!valid && errors) reqErrors[key] = errors;
+        return !valid && errors ? { key, errors } : undefined;
       }
+    );
+
+    for (const result of await Promise.all(validations)) {
+      if (result) reqErrors[result.key] = result.errors;
     }
 
     if (Object.keys(reqErrors).length) {
