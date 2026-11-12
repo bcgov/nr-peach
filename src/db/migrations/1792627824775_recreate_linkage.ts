@@ -68,18 +68,25 @@ export async function up(db: Kysely<unknown>): Promise<void> {
     .addColumn('relation_kind_id', 'integer', (col) =>
       col.notNull().references('relation_kind.id').onUpdate('cascade').onDelete('cascade')
     )
+    .addCheckConstraint('linkage_distinct_assets_check', sql<string>`asset_id <> linked_asset_id`)
+    .addCheckConstraint(
+      'linkage_distinct_group_from_assets_check',
+      sql<string>`asset_group_id <> asset_id AND asset_group_id <> linked_asset_id`
+    )
     .$call(withTimestamps)
     .execute();
   await createIndex(db, 'pies', 'linkage', ['asset_id']);
   await createIndex(db, 'pies', 'linkage', ['linked_asset_id']);
-  // Ensures bidirectional links - should behave as an undirected graph
+  await createIndex(db, 'pies', 'linkage', ['asset_group_id']);
+  // Ensures bidirectional uniqueness scoped per asset group
   await sql`
-      CREATE UNIQUE INDEX linkage_undirected
-      ON pies.linkage (
-        LEAST(asset_id, linked_asset_id),
-        GREATEST(asset_id, linked_asset_id)
-      );
-    `.execute(db);
+    CREATE UNIQUE INDEX linkage_undirected_group
+    ON pies.linkage (
+      asset_group_id,
+      LEAST(asset_id, linked_asset_id),
+      GREATEST(asset_id, linked_asset_id)
+    );
+  `.execute(db);
   await createUpdatedAtTrigger(db, 'pies', 'linkage');
   await createAuditLogTrigger(db, 'pies', 'linkage');
 }
@@ -96,7 +103,8 @@ export async function down(db: Kysely<unknown>): Promise<void> {
   await dropUpdatedAtTrigger(db, 'pies', 'linkage');
   await dropIndex(db, 'pies', 'linkage', ['asset_id']);
   await dropIndex(db, 'pies', 'linkage', ['linked_asset_id']);
-  await dropIndex(db, 'pies', 'linkage', ['linkage_undirected']);
+  await dropIndex(db, 'pies', 'linkage', ['asset_group_id']);
+  await dropIndex(db, 'pies', 'linkage', ['linkage_undirected_group']);
   await db.schema.withSchema('pies').dropTable('linkage').execute();
 
   //
@@ -130,12 +138,12 @@ export async function down(db: Kysely<unknown>): Promise<void> {
   await createIndex(db, 'pies', 'record_linkage', ['linked_asset_id']);
   // Ensures bidirectional links - should behave as an undirected graph
   await sql`
-      CREATE UNIQUE INDEX record_linkage_undirected
-      ON pies.record_linkage (
-        LEAST(asset_id, linked_asset_id),
-        GREATEST(asset_id, linked_asset_id)
-      );
-    `.execute(db);
+    CREATE UNIQUE INDEX record_linkage_undirected
+    ON pies.record_linkage (
+      LEAST(asset_id, linked_asset_id),
+      GREATEST(asset_id, linked_asset_id)
+    );
+  `.execute(db);
   await createUpdatedAtTrigger(db, 'pies', 'record_linkage');
   await createAuditLogTrigger(db, 'pies', 'record_linkage');
 }
