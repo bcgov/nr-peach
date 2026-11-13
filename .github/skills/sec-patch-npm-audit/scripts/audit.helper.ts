@@ -53,7 +53,7 @@ function abbreviateTitle(title: string | undefined, packageName: string): string
   let clean = title.replace(new RegExp(String.raw`^${escapedPackageName}:\s*`, 'i'), '').trim();
 
   // Truncate at common connectors to capture only the core issue phrase
-  const splitMatch = clean.split(/\s+(via|in|through|allows|during|vulnerability)\s+/i);
+  const splitMatch = clean.split(/\s+(via|in|through|allows|during|vulnerability)\b/i);
   if (splitMatch[0]) {
     clean = splitMatch[0].trim();
   }

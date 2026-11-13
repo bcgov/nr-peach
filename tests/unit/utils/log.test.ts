@@ -58,26 +58,25 @@ describe('httpLogger', () => {
       expect(customLogLevel(req, res, undefined)).toBe('debug');
     });
 
-    it('should return "error" for status codes >= 500', () => {
+    it.each([
+      { description: 'return "error" for status codes >= 500', statusCode: 500, err: undefined, expected: 'error' },
+      {
+        description: 'return "error" if an error is present',
+        statusCode: 200,
+        err: new Error('Test error'),
+        expected: 'error'
+      },
+      {
+        description: 'return "warn" for status codes >= 400 and < 500',
+        statusCode: 404,
+        err: undefined,
+        expected: 'warn'
+      }
+    ])('should $description', ({ statusCode, err, expected }) => {
       const req = { get: () => 'Mozilla/5.0' } as unknown as Request;
-      const res = { statusCode: 500 } as Response;
+      const res = { statusCode } as Response;
 
-      expect(customLogLevel(req, res, undefined)).toBe('error');
-    });
-
-    it('should return "error" if an error is present', () => {
-      const req = { get: () => 'Mozilla/5.0' } as unknown as Request;
-      const res = { statusCode: 200 } as Response;
-      const err = new Error('Test error');
-
-      expect(customLogLevel(req, res, err)).toBe('error');
-    });
-
-    it('should return "warn" for status codes >= 400 and < 500', () => {
-      const req = { get: () => 'Mozilla/5.0' } as unknown as Request;
-      const res = { statusCode: 404 } as Response;
-
-      expect(customLogLevel(req, res, undefined)).toBe('warn');
+      expect(customLogLevel(req, res, err)).toBe(expected);
     });
 
     it('should return "info" for success status codes', () => {

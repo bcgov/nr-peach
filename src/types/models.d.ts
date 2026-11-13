@@ -42,6 +42,19 @@ export interface PiesCoding {
   versionId: string;
 }
 
+export interface PiesLinkage {
+  assetGroupId: number;
+  assetId: number;
+  createdAt: Generated<Timestamp>;
+  createdBy: Generated<string>;
+  id: Generated<number>;
+  linkedAssetId: number;
+  relationKindId: number;
+  transactionId: string;
+  updatedAt: Timestamp | null;
+  updatedBy: string | null;
+}
+
 export interface PiesOnHoldEvent {
   assetId: number;
   codingId: number;
@@ -75,15 +88,14 @@ export interface PiesProcessEvent {
   updatedBy: string | null;
 }
 
-export interface PiesRecordLinkage {
-  assetId: number;
+export interface PiesRelationKind {
   createdAt: Generated<Timestamp>;
   createdBy: Generated<string>;
   id: Generated<number>;
-  linkedAssetId: number;
-  transactionId: string;
+  kind: string;
   updatedAt: Timestamp | null;
   updatedBy: string | null;
+  versionId: string;
 }
 
 export interface PiesSystem {
@@ -114,9 +126,10 @@ export interface DB {
   'pies.asset': PiesAsset;
   'pies.assetKind': PiesAssetKind;
   'pies.coding': PiesCoding;
+  'pies.linkage': PiesLinkage;
   'pies.onHoldEvent': PiesOnHoldEvent;
   'pies.processEvent': PiesProcessEvent;
-  'pies.recordLinkage': PiesRecordLinkage;
+  'pies.relationKind': PiesRelationKind;
   'pies.system': PiesSystem;
   'pies.transaction': PiesTransaction;
   'pies.version': PiesVersion;

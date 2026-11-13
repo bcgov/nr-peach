@@ -135,12 +135,14 @@ describe('mergeDateAndTimeToISOString', () => {
   });
 
   it.each([
-    ['hour', 'xx:30'],
-    ['minute', '14:xx'],
-    ['second', '14:30:xx']
-  ])('throws error for non-numeric %s', (_component, time) => {
+    ['hour', 'xx:30', 'hour value'],
+    ['minute', '14:xx', 'minute/second value in (0, 59] range'],
+    ['second', '14:30:xx', 'second value in (0, 60] range']
+  ])('throws error for non-numeric %s', (_component, time, expected) => {
     const date = new Date(Date.UTC(2023, 5, 1));
-    expect(() => mergeDateAndTimeToISOString(date, time)).toThrow(`invalid RFC 9557 string: ${time}`);
+    expect(() => mergeDateAndTimeToISOString(date, time)).toThrow(
+      `Temporal error: Invalid character while parsing ${expected}.`
+    );
   });
 });
 
