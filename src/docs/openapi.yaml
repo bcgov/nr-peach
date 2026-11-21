@@ -20,6 +20,10 @@ tags:
     description: Operations for managing Assets.
     externalDocs:
       url: https://github.com/bcgov/nr-peach/wiki/Endpoint-Notes#assets
+  - name: Groups
+    description: Operations for managing Groups.
+    externalDocs:
+      url: https://github.com/bcgov/nr-peach/wiki/Endpoint-Notes#groups
   - name: Linkages
     description: Operations for managing Linkages.
     externalDocs:
@@ -42,6 +46,7 @@ paths:
         - Assets
       parameters:
         - $ref: '#/components/parameters/Query-AssetId-Required'
+        - $ref: '#/components/parameters/Query-AssetKind'
         - $ref: '#/components/parameters/Query-SystemId'
       responses:
         '200':
@@ -87,6 +92,413 @@ paths:
           $ref: '#/components/responses/NotFound'
         '409':
           $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        default:
+          $ref: '#/components/responses/Error'
+  /assets/search:
+    post:
+      summary: Search for qualifying assets with complex criteria
+      description: >
+        Evaluates a list of qualifying criteria and simple qualification
+        traversal rules, returning matching assets.
+      operationId: searchAssets
+      tags:
+        - Assets
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Request-SearchAssets'
+      responses:
+        '200':
+          description: OK - List of qualifying asset headers
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: >-
+                    https://raw.githubusercontent.com/bcgov/nr-pies/refs/heads/main/docs/spec/element/data/header.schema.json
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        default:
+          $ref: '#/components/responses/Error'
+  /groups:
+    get:
+      summary: Get a specific group
+      description: Gets a specific group
+      operationId: getGroups
+      tags:
+        - Groups
+      parameters:
+        - $ref: '#/components/parameters/Query-AssetId-Required'
+        - $ref: '#/components/parameters/Query-AssetKind'
+        - $ref: '#/components/parameters/Query-SystemId'
+        - $ref: '#/components/parameters/Query-RelationKind'
+      responses:
+        '200':
+          description: OK - A group message
+          content:
+            application/json:
+              schema:
+                $ref: >-
+                  https://raw.githubusercontent.com/bcgov/nr-pies/refs/heads/main/docs/spec/element/message/group.schema.json
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        default:
+          $ref: '#/components/responses/Error'
+    post:
+      summary: Add and modify a specific group asset
+      description: Adds and merges all known assets into the asset set.
+      operationId: postGroups
+      tags:
+        - Groups
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: >-
+                https://raw.githubusercontent.com/bcgov/nr-pies/refs/heads/main/docs/spec/element/message/group.schema.json
+      responses:
+        '202':
+          description: >-
+            Accepted - Merged an existing Group with the associated assets
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        default:
+          $ref: '#/components/responses/Error'
+    put:
+      summary: Assert an asset set for a specific group
+      description: Replaces all known assets in the asset set.
+      operationId: putGroups
+      tags:
+        - Groups
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: >-
+                https://raw.githubusercontent.com/bcgov/nr-pies/refs/heads/main/docs/spec/element/message/group.schema.json
+      responses:
+        '201':
+          description: Created - Added a new Group with the associated assets
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        default:
+          $ref: '#/components/responses/Error'
+    delete:
+      summary: Prune all assets from the asset set
+      description: Deletes all known assets from the asset set.
+      operationId: pruneGroups
+      tags:
+        - Groups
+      parameters:
+        - $ref: '#/components/parameters/Query-AssetId-Required'
+        - $ref: '#/components/parameters/Query-SystemId'
+      responses:
+        '204':
+          description: No Content
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        default:
+          $ref: '#/components/responses/Error'
+  /groups/search:
+    post:
+      summary: Search for qualifying groups with complex criteria
+      description: >
+        Evaluates a list of qualifying criteria and simple qualification
+        traversal rules, returning matching groups.
+      operationId: searchGroups
+      tags:
+        - Groups
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Request-SearchGroups'
+      responses:
+        '200':
+          description: OK - List of qualifying groups
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: >-
+                    https://raw.githubusercontent.com/bcgov/nr-pies/refs/heads/main/docs/spec/element/message/group.schema.json
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        default:
+          $ref: '#/components/responses/Error'
+  /groups/validate:
+    post:
+      summary: Validates a specific group message addition
+      description: Validates a specific group message without making any changes.
+      operationId: postValidateGroups
+      tags:
+        - Groups
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: >-
+                https://raw.githubusercontent.com/bcgov/nr-pies/refs/heads/main/docs/spec/element/message/group.schema.json
+      responses:
+        '202':
+          description: >-
+            Accepted - Merged an existing Group with the associated assets
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        default:
+          $ref: '#/components/responses/Error'
+    put:
+      summary: Validates a specific asset set assertion
+      description: Validates a specific group message without making any changes.
+      operationId: putValidateGroups
+      tags:
+        - Groups
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: >-
+                https://raw.githubusercontent.com/bcgov/nr-pies/refs/heads/main/docs/spec/element/message/group.schema.json
+      responses:
+        '201':
+          description: Created - Added a new Group with the associated assets
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        default:
+          $ref: '#/components/responses/Error'
+  /linkages:
+    get:
+      summary: Get a specific linkage
+      description: Gets a specific linkage.
+      operationId: getLinkages
+      tags:
+        - Linkages
+      parameters:
+        - $ref: '#/components/parameters/Query-AssetId-Required'
+        - $ref: '#/components/parameters/Query-AssetKind'
+        - $ref: '#/components/parameters/Query-SystemId'
+        - $ref: '#/components/parameters/Query-RelationKind'
+      responses:
+        '200':
+          description: OK - A linkage message
+          content:
+            application/json:
+              schema:
+                $ref: >-
+                  https://raw.githubusercontent.com/bcgov/nr-pies/refs/heads/main/docs/spec/element/message/linkage.schema.json
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        default:
+          $ref: '#/components/responses/Error'
+    put:
+      summary: Adds linkages for a specific asset record
+      description: Adds linkages associated with a record.
+      operationId: putRecordLinkages
+      tags:
+        - Linkages
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: >-
+                https://raw.githubusercontent.com/bcgov/nr-pies/refs/heads/main/docs/spec/element/message/linkage.schema.json
+      responses:
+        '201':
+          description: Created - Added a new Record with the associated linkage
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        default:
+          $ref: '#/components/responses/Error'
+    delete:
+      summary: Deletes a specific linkage for a specific asset record
+      description: Deletes a specific linkage associated with a record.
+      operationId: deleteLinkages
+      tags:
+        - Linkages
+      parameters:
+        - $ref: '#/components/parameters/Query-AssetId-Required'
+        - $ref: '#/components/parameters/Query-SystemId'
+        - $ref: '#/components/parameters/Query-Linked-AssetId-Required'
+        - $ref: '#/components/parameters/Query-Linked-SystemId'
+      responses:
+        '204':
+          description: No Content
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        default:
+          $ref: '#/components/responses/Error'
+  /linkages/search:
+    post:
+      summary: Search for qualifying linkages with complex criteria
+      description: >
+        Evaluates a list of qualifying criteria and simple qualification
+        traversal rules, returning matching linkages.
+      operationId: searchLinkages
+      tags:
+        - Linkages
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Request-SearchLinkages'
+      responses:
+        '200':
+          description: OK - List of qualifying linkages
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: >-
+                    https://raw.githubusercontent.com/bcgov/nr-pies/refs/heads/main/docs/spec/element/message/linkage.schema.json
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        default:
+          $ref: '#/components/responses/Error'
+  /linkages/validate:
+    put:
+      summary: Validates a specific linkage addition
+      description: Validates a specific linkage without making any changes.
+      operationId: putValidateLinkages
+      tags:
+        - Linkages
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: >-
+                https://raw.githubusercontent.com/bcgov/nr-pies/refs/heads/main/docs/spec/element/message/linkage.schema.json
+      responses:
+        '200':
+          description: OK - Validated the linkage without making any changes
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
         '422':
           $ref: '#/components/responses/UnprocessableEntity'
         default:
@@ -264,128 +676,6 @@ paths:
           $ref: '#/components/responses/UnprocessableEntity'
         default:
           $ref: '#/components/responses/Error'
-  /record-linkages:
-    get:
-      summary: List RecordLinkages for a specific asset record
-      description: >-
-        Retrieves a flattened set of all known RecordLinkages associated with a
-        record.
-      operationId: getRecordLinkages
-      tags:
-        - Linkages
-      parameters:
-        - $ref: '#/components/parameters/Query-AssetId-Required'
-        - $ref: '#/components/parameters/Query-SystemId'
-        - $ref: '#/components/parameters/Query-Depth'
-      responses:
-        '200':
-          description: OK - A set of RecordLinkage messages associated with a record
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: >-
-                    https://raw.githubusercontent.com/bcgov/nr-pies/refs/heads/main/docs/spec/element/message/linkage.schema.json
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '409':
-          $ref: '#/components/responses/Conflict'
-        '422':
-          $ref: '#/components/responses/UnprocessableEntity'
-        default:
-          $ref: '#/components/responses/Error'
-    put:
-      summary: Adds RecordLinkages for a specific asset record
-      description: Adds RecordLinkages associated with a record.
-      operationId: putRecordLinkages
-      tags:
-        - Linkages
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: >-
-                https://raw.githubusercontent.com/bcgov/nr-pies/refs/heads/main/docs/spec/element/message/linkage.schema.json
-      responses:
-        '201':
-          description: Created - Added a new Record with the associated RecordLinkage
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '409':
-          $ref: '#/components/responses/Conflict'
-        '422':
-          $ref: '#/components/responses/UnprocessableEntity'
-        default:
-          $ref: '#/components/responses/Error'
-    delete:
-      summary: Deletes a specific RecordLinkage for a specific asset record
-      description: Deletes a specific RecordLinkage associated with a record.
-      operationId: deleteRecordLinkages
-      tags:
-        - Linkages
-      parameters:
-        - $ref: '#/components/parameters/Query-AssetId-Required'
-        - $ref: '#/components/parameters/Query-SystemId'
-        - $ref: '#/components/parameters/Query-Linked-AssetId-Required'
-        - $ref: '#/components/parameters/Query-Linked-SystemId'
-      responses:
-        '204':
-          description: No Content
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '409':
-          $ref: '#/components/responses/Conflict'
-        '422':
-          $ref: '#/components/responses/UnprocessableEntity'
-        default:
-          $ref: '#/components/responses/Error'
-  /record-linkages/validate:
-    put:
-      summary: Validates a specific record linkage addition
-      description: Validates a specific record linkage without making any changes.
-      operationId: putValidateRecordLinkages
-      tags:
-        - Linkages
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: >-
-                https://raw.githubusercontent.com/bcgov/nr-pies/refs/heads/main/docs/spec/element/message/linkage.schema.json
-      responses:
-        '200':
-          description: OK - Validated the RecordLinkage without making any changes
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '422':
-          $ref: '#/components/responses/UnprocessableEntity'
-        default:
-          $ref: '#/components/responses/Error'
   /systems:
     get:
       summary: Checks if a specific system has records being tracked
@@ -419,15 +709,12 @@ paths:
           $ref: '#/components/responses/Error'
 components:
   parameters:
-    Path-SubmissionId:
-      in: path
-      name: submissionId
-      description: UUID of a Submission
-      required: true
+    Query-AssetId:
+      in: query
+      name: asset_id
+      description: Asset Identifier
       schema:
-        type: string
-        format: uuid
-        example: da5c5031-0e84-4234-7766-1ba846997482
+        $ref: '#/components/schemas/Attribute-AssetId'
     Query-AssetId-Required:
       in: query
       name: asset_id
@@ -435,17 +722,38 @@ components:
       required: true
       schema:
         $ref: '#/components/schemas/Attribute-AssetId'
+    Query-AssetKind:
+      in: query
+      name: asset_kind
+      description: Asset Kind
+      schema:
+        $ref: '#/components/schemas/Attribute-AssetKind'
     Query-Depth:
       in: query
       name: depth
       description: |
-        Specifies the maximum number of hops allowed in record linkage graph
-        traversal. Default is 1 if undefined, and -1 indicates no limit.
+        Specifies the maximum number of hops allowed in linkage graph traversal.
+        Default is 1 if undefined, and -1 indicates no limit.
       schema:
         type: integer
         minimum: -1
         default: 1
-        example: 1
+        examples:
+          - 1
+    Query-Limit:
+      in: query
+      name: limit
+      description: |
+        Specifies the maximum number of items to return.
+        Default is 10 if undefined, and -1 indicates no limit.
+      schema:
+        type: integer
+        minimum: -1
+        default: 10
+        examples:
+          - -1
+          - 1
+          - 10
     Query-Linked-AssetId-Required:
       in: query
       name: linked_asset_id
@@ -459,6 +767,26 @@ components:
       description: System Identifier
       schema:
         $ref: '#/components/schemas/Attribute-SystemId'
+    Query-Offset:
+      in: query
+      name: offset
+      description: |
+        Specifies the number of items to skip before starting to collect the result set.
+        Default is 0 if undefined.
+      schema:
+        type: integer
+        minimum: 0
+        default: 0
+        examples:
+          - 0
+          - 1
+          - 10
+    Query-RelationKind:
+      in: query
+      name: relation_kind
+      description: Relation Kind
+      schema:
+        $ref: '#/components/schemas/Attribute-RelationKind'
     Query-SystemId:
       in: query
       name: system_id
@@ -478,7 +806,32 @@ components:
       description: >-
         The primary key representing what the data this asset is directly
         associated to.
-      example: 06bc53dc-3e4f-420b-801c-bd9cc0ea01b2
+      examples:
+        - 06bc53dc-3e4f-420b-801c-bd9cc0ea01b2
+    Attribute-AssetKind:
+      type: string
+      description: Declares the precise type of asset represented in a message.
+      enum:
+        - ANCHOR
+        - PERMIT
+        - PROJECT
+      examples:
+        - ANCHOR
+        - PERMIT
+        - PROJECT
+    Attribute-RelationKind:
+      type: string
+      description: Declares the type of relation in a linkage.
+      enum:
+        - MERGES
+        - RELATES
+        - SELF
+        - SPLITS
+      examples:
+        - MERGES
+        - RELATES
+        - SELF
+        - SPLITS
     Attribute-SystemId:
       type: string
       description: >-
@@ -489,11 +842,40 @@ components:
         an authoritative asset tracking system or equivalent. However, the URI
         does not need to be machine readable.
       format: uri
-      example: https://apps.nrs.gov.bc.ca/int/jira/secure/insight/assets/ITSM-5917
+      examples:
+        - https://apps.nrs.gov.bc.ca/int/jira/secure/insight/assets/ITSM-5917
     Header-WWW-Authenticate:
       title: Header WWW-Authenticate
       type: string
       description: HTTP Authentication header indicating the status of the request
+    Request-SearchAssets:
+      title: Request Search Assets
+      description: Search using simple qualification criteria for matching asset headers.
+      allOf:
+        - $ref: '#/components/schemas/Search-ArrayFilters'
+        - $ref: '#/components/schemas/Search-Base'
+    Request-SearchGroups:
+      title: Request Search Groups
+      description: Search using simple qualification criteria for matching groups.
+      allOf:
+        - $ref: '#/components/schemas/Search-ArrayFilters'
+        - $ref: '#/components/schemas/Search-Base'
+    Request-SearchLinkages:
+      title: Request Search Linkages
+      description: Search using simple qualification criteria for matching linkages.
+      allOf:
+        - type: object
+          properties:
+            asset_id:
+              $ref: '#/components/schemas/Attribute-AssetId'
+            asset_kind:
+              $ref: '#/components/schemas/Attribute-AssetKind'
+            relation_kind:
+              $ref: '#/components/schemas/Attribute-RelationKind'
+            system_id:
+              $ref: '#/components/schemas/Attribute-SystemId'
+        - $ref: '#/components/schemas/Search-LinkedFilters'
+        - $ref: '#/components/schemas/Search-Base'
     Response-BadRequest:
       title: Response Bad Request
       type: object
@@ -502,11 +884,14 @@ components:
         - type: object
           properties:
             status:
-              example: 400
+              examples:
+                - 400
             title:
-              example: Bad Request
+              examples:
+                - Bad Request
             type:
-              example: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/400
+              examples:
+                - https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/400
     Response-Conflict:
       title: Response Conflict
       type: object
@@ -515,11 +900,14 @@ components:
         - type: object
           properties:
             status:
-              example: 409
+              examples:
+                - 409
             title:
-              example: Conflict
+              examples:
+                - Conflict
             type:
-              example: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/409
+              examples:
+                - https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/409
     Response-Error:
       title: Response Error
       type: object
@@ -528,11 +916,14 @@ components:
         - type: object
           properties:
             status:
-              example: 500
+              examples:
+                - 500
             title:
-              example: Internal Server Error
+              examples:
+                - Internal Server Error
             type:
-              example: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/500
+              examples:
+                - https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/500
     Response-Forbidden:
       title: Response Forbidden
       type: object
@@ -541,13 +932,17 @@ components:
         - type: object
           properties:
             type:
-              example: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/403
+              examples:
+                - https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/403
             title:
-              example: Forbidden
+              examples:
+                - Forbidden
             status:
-              example: 403
+              examples:
+                - 403
             detail:
-              example: User lacks permission to complete this action
+              examples:
+                - User lacks permission to complete this action
     Response-NotFound:
       title: Response Not Found
       type: object
@@ -556,11 +951,14 @@ components:
         - type: object
           properties:
             status:
-              example: 404
+              examples:
+                - 404
             title:
-              example: Not Found
+              examples:
+                - Not Found
             type:
-              example: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/404
+              examples:
+                - https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/404
     Response-Problem:
       title: Response Problem
       type: object
@@ -596,13 +994,17 @@ components:
         - type: object
           properties:
             type:
-              example: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/401
+              examples:
+                - https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/401
             title:
-              example: Unauthorized
+              examples:
+                - Unauthorized
             status:
-              example: 401
+              examples:
+                - 401
             detail:
-              example: Invalid authorization credentials
+              examples:
+                - Invalid authorization credentials
     Response-ValidationError:
       title: Response Validation Error
       type: object
@@ -622,17 +1024,105 @@ components:
                   value:
                     type: object
                     description: Contents of the field that was in error.
-                    example: {}
+                    examples:
+                      - {}
                   message:
                     type: string
                     description: The error message for the field.
-                    example: Invalid value `encoding`.
+                    examples:
+                      - Invalid value `encoding`.
             status:
-              example: 422
+              examples:
+                - 422
             title:
-              example: Unprocessable Entity
+              examples:
+                - Unprocessable Entity
             type:
-              example: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/422
+              examples:
+                - https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/422
+    Search-ArrayFilters:
+      type: object
+      properties:
+        asset_id:
+          type: array
+          minItems: 1
+          description: Optional list of specific asset identifiers to match.
+          items:
+            $ref: '#/components/schemas/Attribute-AssetId'
+        asset_kind:
+          type: array
+          minItems: 1
+          description: Filter to items matching any of these asset kinds.
+          items:
+            $ref: '#/components/schemas/Attribute-AssetKind'
+        relation_kind:
+          type: array
+          minItems: 1
+          description: Filter to items matching any of these relation kinds.
+          items:
+            $ref: '#/components/schemas/Attribute-RelationKind'
+        system_id:
+          type: array
+          minItems: 1
+          description: Filter to items associated with any of these systems.
+          items:
+            $ref: '#/components/schemas/Attribute-SystemId'
+    Search-Base:
+      type: object
+      required:
+        - search_kind
+      properties:
+        search_kind:
+          type: string
+          description: Filter by membership, direct association, or path-based relation.
+          enum:
+            - FILTER
+            - MEMBER
+            - PATH
+          examples:
+            - FILTER
+            - MEMBER
+            - PATH
+        depth:
+          type: integer
+          description: |
+            Specifies the maximum number of hops allowed in linkage graph traversal.
+            Default is 1 if undefined, and -1 indicates no limit.
+          minimum: -1
+          default: 1
+          examples:
+            - 1
+        limit:
+          type: integer
+          description: |
+            Specifies the maximum number of items to return.
+            Default is 10 if undefined, and -1 indicates no limit.
+          minimum: -1
+          default: 10
+          examples:
+            - -1
+            - 1
+            - 10
+        offset:
+          type: integer
+          description: |
+            Specifies the number of items to skip before starting to collect the result set.
+            Default is 0 if undefined.
+          minimum: 0
+          default: 0
+          examples:
+            - 0
+            - 1
+            - 10
+    Search-LinkedFilters:
+      type: object
+      properties:
+        linked_asset_id:
+          $ref: '#/components/schemas/Attribute-AssetId'
+        linked_asset_kind:
+          $ref: '#/components/schemas/Attribute-AssetKind'
+        linked_system_id:
+          $ref: '#/components/schemas/Attribute-SystemId'
   responses:
     BadRequest:
       description: Bad Request (Missing content or malformed)
